@@ -1,0 +1,2 @@
+dashboard/demo_data/scenarios.csv filter=lfs diff=lfs merge=lfs -text
+*.csv filter=lfs diff=lfs merge=lfs -text
