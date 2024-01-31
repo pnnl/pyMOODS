@@ -1,3 +1,117 @@
-body{
-    background-color: #f8f9fa,
+body {
+  /* background-color: rgb(204, 197, 197); */
+  /* background-color: #ffffff;
+  background-image: linear-gradient(315deg, #ffffff 0%, #274060 74%); */
+  /* You can use the above color for the tab and this for body Royal blue: background-image: linear-gradient(to right, #141e30, #243b55); */
+  /* margin: 2%; */
+  background-image: linear-gradient(to right, #141e30, #243b55);
+}
+
+button {
+  font-size: larger;
+  font-weight:bolder;
+  align-items: center;
+  margin-left:4rem;
+}
+
+.custom-tab {
+  font-size: x-large;
+  font-weight:500;
+}
+
+.custom-tab--selected {
+  color: black;
+  box-shadow: 1px 1px 0px white;
+  font-size: xx-large;
+  font-weight: bold;
+}
+
+#tabs-example-graph {
+  margin-top: 40px;
+  margin-left: 400px;
+  width: 80%;
+  overflow: hidden;
+}
+
+.my-custom-container-style {
+  /* width: 100%;
+  margin: 0; */
+  margin-left: 0;
+  width: 100%;
+  padding: 0;
+  background-color: #f8f9fa;  /* Change background color */
+  overflow: hidden;
+}
+
+
+#graph-container {
+  display: inline-block;
+  border-radius: 10px;
+  margin-top: 1rem;
+  height: 30%;
+  width: 38%;
+  margin-left: 5rem;
+  overflow: hidden;
+  vertical-align: top;
+  font-weight: 900;
+  padding: 15px;
+  box-sizing: border-box;
+  background-color: #f8f9fa;
+}
+
+#sliders {
+  display: inline-block;
+  vertical-align: auto;
+  height: 36.1vh;
+  width: 38%;
+  border-radius: 10px;
+  margin-top: 1rem;
+  margin-left: 2rem;
+  padding-top: 4rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  color: black;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.rc-slider-mark-text {
+  font-size: 19px;
+  color:gray;
+}
+
+.rc-slider-mark-text-active {
+  color: black;
+}
+
+.align-cards {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.card {
+  background-color: rgb(118, 192, 192);
+  margin-top: 0.7rem;
+  height: 40vh;
+  width: 80%;
+  left: 0;
+}
+
+.card-title {
+  margin-left: 2rem;
+  text-align: center;
+  font-weight: bold;
+  color:rgb(13, 13, 12);
+}
+
+.card-title2 {
+  text-align: center;
+  font-weight: bold;
+  color:rgb(13, 13, 12);
+}
+
+#tabs-example-graph .my-custom-container-style {
+  width: 100%;  /* Adjust the width as needed */
+  margin-left: 0;
+  margin-right: auto;
 }
