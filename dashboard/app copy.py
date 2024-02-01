@@ -7,7 +7,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
-from pymoo.problems import get_problem
+# from pymoo.problems import get_problem
 
 app = dash.Dash(
     __name__,
@@ -64,7 +64,7 @@ app.layout = html.Div([
                                 html.Div(id="sliders"),
                                 html.Button("Objective Space"),
                                 html.Button("Decision Space",
-                                            style={"margin-left": "600px", "margin-bottom": "1px"}),
+                                            style={"marginLeft": "600px", "marginBottom": "1px"}),
                             ],
                                 className="my-custom-container-style"),
                             dbc.Row(
@@ -128,19 +128,21 @@ def parse_data(contents, filename):
         return None, None, None
 
 
-def generate_slider_callback(col, min_val, max_val):
-    @app.callback(Output(f'slider-{col}', 'value'),
-                  Input('graph1', 'clickData'),
-                  State('stored-df', 'data'),
+def generate_slider_callback(output_list, decision_variables):
+    @app.callback(output = output_list,
+    inputs= Input('graph1', 'clickData'),
+    state= State('stored-df', 'data'),
                   prevent_initial_call=True)
     def slider_output(click_data, my_data):
+        print("Hello")
         if click_data and my_data:
             df = pd.DataFrame(my_data)
+            
             f1_point = click_data['points'][0]['x']
             f2_point = click_data['points'][0]['y']
             dff = df[(df.f1 == f1_point) & (df.f2 == f2_point)]
-            if not dff.empty and col in dff.columns:
-                return dff[col].values[0]
+            if not dff.empty and decision_variables in dff.columns:
+                return dff[decision_variables].values[0]
         return 0
 
 
@@ -157,7 +159,7 @@ def update_output(contents, filename, tab):
         contents = contents[0]
         filename = filename[0]
         df, decision_variables, objective_functions = parse_data(contents, filename)
-
+        
         if df is not None:
             # Save categorized data to "categorized_data.json"
             categorized_data = {
@@ -173,8 +175,8 @@ def update_output(contents, filename, tab):
                 html.Div([
                     html.Label(col,
                                style={
-                                   "font-size": "27px",
-                                   "font-weight": "bold"
+                                   "fontSize": "27px",
+                                   "fontWeight": "bold"
                                }),
                     dcc.Slider(
                         id=f'slider-{col}',
@@ -192,11 +194,16 @@ def update_output(contents, filename, tab):
             ]
 
             # Dynamically generate callback for each slider
-            for col, (min_val, max_val) in zip(decision_variables.keys(), [(0, 1)] * len(decision_variables)):
-                generate_slider_callback(col, min_val, max_val)
-
+            output_list=[]
+            d_v = []
+            for col in decision_variables.keys():
+                output_list.append(Output(f'slider-{col}', 'value'))
+                d_v.append(col)
+            #     print("H")
+            # print(df)
+            generate_slider_callback(output_list, d_v)
             return graph, df.to_dict('records'), sliders
-
+        
     return dash.no_update, [], []
 
 
@@ -256,6 +263,21 @@ def gen_graph(df, tab):
             plot_bgcolor='rgba(0,0,0,0)',
         )
     return fig
+
+# @app.callback(Output('graph1', "figure"), [
+#     Input('slider1', 'value'),
+#     Input('slider2', 'value'),
+#     Input('slider3', 'value'),
+#     Input('slider4', 'value')
+# ], State('graph1', "figure"), State('stored-df', 'data'))
+# def pareto_front(x1_val, x2_val, x3_val, x4_val, fig, data):
+#     DTLZ2 = get_problem("dtlz2", n_var=4, n_obj=2)
+#     dff = DTLZ2.evaluate(np.array([x1_val, x2_val, x3_val, x4_val]))
+#     print(dff)
+#     fig = gen_graph(pd.DataFrame.from_dict(data))
+#     fig.add_scatter(x=[dff[0]], y=[dff[1]], marker=dict(color='red', size=12))
+#     fig.update_layout(showlegend=False)
+#     return fig
 
 
 if __name__ == "__main__":
