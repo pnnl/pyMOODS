@@ -1,450 +1,133 @@
-from matplotlib import figure
+import json
 import pandas as pd
-from dash import Dash, dcc, html
-import plotly.express as px
-import plotly.graph_objs as go
-import plotly.io as pio
-from dash.dependencies import Input, Output
-import seaborn as sns
+import numpy as np
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output, State, ALL
 import dash_bootstrap_components as dbc
+# from pymoo.problems import get_problem
 
-app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+from dashlib.layout import interface_layout
+from dashlib.components import gen_graph
+from data.parser import parse_data
+from logger.custom import NumpyEncoder
 
-df1 = pd.read_csv("/Users/matt412/Downloads/2V-2O (1).csv")
-df2 = pd.read_csv("/Users/matt412/Downloads/2V-4O (1).csv")
-df3 = pd.read_csv("/Users/matt412/Downloads/4V-2O (1).csv")
-df4 = pd.read_csv("/Users/matt412/Downloads/4V-4O (1).csv")
-
-
-app.layout = html.Div(
-    [
-        html.H1(
-            children="MOO Visualization",
-            style={
-                "font-family": "Gill Sans",
-                "font-weight": "medium",
-                "text-align": "center",
-            },
-        ),
-        dcc.Dropdown(
-            id="my_dropdown",
-            options=[
-                {
-                    "label": "2 Variables - 2 Objective Functions",
-                    "value": "/Users/matt412/Downloads/2V-2O (1).csv",
-                },
-                {
-                    "label": "2 Variables - 4 Objective Functions",
-                    "value": "/Users/matt412/Downloads/2V-4O (1).csv",
-                },
-                {
-                    "label": "4 Variables - 2 Objective Functions",
-                    "value": "/Users/matt412/Downloads/4V-2O (1).csv",
-                },
-                {
-                    "label": "4 Variables - 4 Objective Functions",
-                    "value": "/Users/matt412/Downloads/4V-4O (1).csv",
-                },
-            ],
-            value="/Users/matt412/Downloads/2V-2O (1).csv",
-            optionHeight=25,
-            multi=False,
-            searchable=True,
-            style={"width": "100%", "font-family": "Gill Sans", "top": "0"},
-        ),
-        html.Div(
-            [
-                dbc.Row(
-            [
-                dbc.Col(html.H5("Objective Space"), style={"width": "50%", "textAlign":"center","fontWeight" : "bold","textDecoration" : "underline","justify": "between","padding":"2rem"}),
-                dbc.Col(html.H5("Decision Space"), style={"width": "50%", "textAlign":"center","fontWeight" : "bold","textDecoration" : "underline","justify": "between","padding":"2rem"}),
-            ]
-        ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            html.Div(dcc.Graph(id="fig1")),
-                            style={"width": "50%", "justify": "between", "tilteText":"tt"},
-                        ),
-                        dbc.Col(
-                            html.Div(dcc.Graph(id="fig2")),
-                            style={"width": "50%", "justify": "between"},
-                        ),
-                    ]
-                ),
-                #dbc.Row(
-                #    [
-                #        dbc.Col(
-                #            html.Div(dcc.Graph(id="fig3")),
-                #            style={"width": "50%", "justify": "between"},
-                #        ),
-                #        dbc.Col(
-                #            html.Div(dcc.Graph(id="fig4")),
-                #            style={"width": "50%", "justify": "between"},
-                #        ),
-                #    ]
-                #),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            html.Div(dcc.Graph(id="fig5")),
-                            style={"width": "50%", "justify": "between"},
-                        ),
-                        dbc.Col(
-                            html.Div(dcc.Graph(id="fig6")),
-                            style={"width": "50%", "justify": "between"},
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            html.Div(dcc.Graph(id="fig7")),
-                            style={"width": "50%", "justify": "between"},
-                        ),
-                        dbc.Col(
-                            html.Div(dcc.Graph(id="fig8")),
-                            style={"width": "50%", "justify": "between"},
-                        ),
-                    ]
-                ),
-                #dbc.Row(
-                #    [
-                #        dbc.Col(
-                #            html.Div(dcc.Graph(id="fig9")),
-                #            style={"width": "50%", "justify": "between"},
-                #        ),
-                #        dbc.Col(
-                #            html.Div(dcc.Graph(id="fig10")),
-                #            style={"width": "50%", "justify": "between"},
-                #        ),
-                #    ]
-                #)
-            ]
-        ),
-    ]
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.DARKLY],
+    suppress_callback_exceptions=True,
 )
 
+app.layout = interface_layout
 
-@app.callback(
-    Output("fig1", "figure"),
-    Output("fig2", "figure"),
-    #Output("fig3", "figure"),
-    #Output("fig4", "figure"),
-    Output("fig5", "figure"),
-    Output("fig6", "figure"),
-    Output("fig7", "figure"),
-    Output("fig8", "figure"),
-    #Output("fig9", "figure"),
-    #Output("fig10", "figure"),
-    [Input("my_dropdown", "value")],
-)
-def update_output(my_dropdown):
-    if my_dropdown == "/Users/matt412/Downloads/2V-2O (1).csv":
-        scatter = px.scatter(
-            df1,
-            x=df1["f1"],
-            y=df1["f2"],
-            labels={"df1[f1]": "f1", "df1[f2]": "f2"},
-            title="Scatter Plot",
-        )
-        scatter_d = px.scatter(
-            df1,
-            x=df1["x1"],
-            y=df1["x2"],
-            labels={"df1[x1]": "x1", "df1[x2]": "x2"},
-            title="Scatter Plot",
-        )
-
-        # bubble = go.Figure(
-        #     data=go.Scatter(
-        #         x=df1["f1"],
-        #         y=df1["f2"],
-        #         mode="markers",
-        #         marker_size=df1["f1"]+df1["f2"],
-        #     )
-        # )
-        # bubble_d = go.Figure(
-        #     data=go.Scatter(
-        #         x=df1["x1"],
-        #         y=df1["x2"],
-        #         mode="markers",
-        #         marker_size=df1["x1"]+df1["x2"],
-        #         #[0, 20, 40, 60, 80, 100, 120],
-        #     )
-        #)
-
-        parallel = px.parallel_coordinates(
-            df1,
-            dimensions=["f1", "f2"],
-            labels={"df1[f1]": "f1", "df1[f2]": "f2"},
-            title="Parallel Coordinates",
-        )
-        parallel_d = px.parallel_coordinates(
-            df1,
-            dimensions=["x1", "x2"],
-            labels={"df1[x1]": "x1", "df1[x2]": "x2"},
-            title="Parallel Coordinates",
-        )
-
-        data1 = df1[["f1", "f2"]].values.tolist()
-        heatmap = px.imshow(
-            data1,
-            labels={"df1[f1]": "f1", "df1[f2]": "f2"},
-            x=["f1", "f2"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-        data2 = df1[["x1", "x2"]].values.tolist()
-        heatmap_d = px.imshow(
-            data2,
-            labels={"df1[x1]": "x1", "df1[x2]": "x2"},
-            x=["x1", "x2"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
+@app.callback(Output({"type": "ds-sliders", "index": ALL}, "value"),
+inputs= Input('graph1', 'clickData'),
+state= State('stored-df', 'data'))
+def slider_output(click_data, my_data):
+    # FIXME: Get from slider ids 
+    decision_variables = ['x1', 'x2', 'x3', 'x4']
+    if click_data and my_data:
+        df = pd.DataFrame(my_data)
         
-        # polar = go.Figure()
-        # polar.add_trace(go.Scatterpolar(
-        #     r = df1["x1"],
-        #     theta = df1["f1"],
-        #     mode = 'lines',
-        #     line_color='peru'
-        # ))
-        # polar.add_trace(go.Scatterpolar(
-        #     r = df1["x1"],
-        #     theta = df1["f2"],
-        #     mode = 'lines',
-        #     line_color='darkviolet'
-        # ))
-        # polar.add_trace(go.Scatterpolar(
-        #     r = df1["x2"],
-        #     theta = df1["f1"],
-        #     mode = 'lines',
-        #     line_color='black'
-        # ))
-        # polar.add_trace(go.Scatterpolar(
-        #     r = df1["x2"],
-        #     theta = df1["f2"],
-        #     mode = 'lines',
-        #     line_color='deepskyblue'
-        # ))
+        f1_point = click_data['points'][0]['x']
+        f2_point = click_data['points'][0]['y']
+        dff = df[(df.f1 == f1_point) & (df.f2 == f2_point)]
+        if not dff.empty and pd.Series(decision_variables).isin(dff.columns).all():
+            return list(dff[decision_variables].values[0])
+    
+    return [0 for dv in decision_variables]
+
+@app.callback(Output("graph1", "figure"),
+              Output("stored-df", "data"),
+              Output("sliders", "children"), [
+                  Input("upload-data", "contents"),
+                  Input("upload-data", "filename"),
+                  Input('tabs-example-graph', 'value')
+              ],
+              prevent_initial_call=True)
+def update_output(contents, filename, tab):
+    if contents is not None:
+        contents = contents[0]
+        filename = filename[0]
+        df, decision_variables, objective_functions = parse_data(contents, filename)
         
-        #polar = px.scatter_polar(df1, r = ["x1", "x2"], theta= ["f1","f2"] )
+        if df is not None:
+            # Save categorized data to "categorized_data.json"
+            categorized_data = {
+                "Decision Variables": {key: {"values": value, "min": 0, "max": 1} for key, value in decision_variables.items()},
+                "Objective Functions": {key: value for key, value in objective_functions.items()},
+            }
+            with open("categorized_data.json", "w") as outfile:
+                json.dump(categorized_data, outfile, cls=NumpyEncoder, indent=4)
+
+            fig = gen_graph(df, tab)
+            sliders = [
+                html.Div([
+                    html.Label(col,
+                               style={
+                                   "fontSize": "27px",
+                                   "fontWeight": "bold"
+                               }),
+                    dcc.Slider(
+                        id={'type': 'ds-sliders', 'index': f'slider-{col}'},
+                        min=min_val,
+                        max=max_val,
+                        step=0.1,
+                        marks={
+                            i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.1, 0.1)
+                        },
+                        tooltip={
+                            "placement": "bottom",
+                            "always_visible": True
+                        }),
+                ]) for col, (min_val, max_val) in zip(decision_variables.keys(), [(0, 1)] * len(decision_variables))
+            ]
+
+            # Dynamically generate callback for each slider
+            # output_list=[]
+            # d_v = []
+            # for col in decision_variables.keys():
+            #     output_list.append(Output(f'slider-{col}', 'value'))
+            #     d_v.append(col)
+            #     print("H")
+            # print(df)
+            # generate_slider_callback(output_list, d_v)
+            return fig, df.to_dict('records'), sliders
         
-        # polar_data = pd.melt(df1,id_vars=["x1","x2"], var_name="Objective functions", value_vars=['f1','f2'],)
-        # print(polar_data)
-        # polar = px.line_polar(polar_data, r ='value', theta ='Objective functions', color = "x2", line_close= True, line_shape = 'spline', markers=True,color_discrete_sequence=px.colors.sequential.Plasma_r,
-        #             template="plotly_dark",)
-        #polar_fig = px.line_polar(polar)
+    return dash.no_update, [], []
 
-        return scatter, scatter_d, parallel, parallel_d, heatmap, heatmap_d
+# @app.callback(Output("placeholder", "children"),
+# inputs= Input('graph1', 'clickData'),
+# state= State('stored-df', 'data'))
+# def slider_output(click_data, my_data):
+#     print("Hello")
+#     if click_data and my_data:
+#         df = pd.DataFrame(my_data)
+        
+#         f1_point = click_data['points'][0]['x']
+#         f2_point = click_data['points'][0]['y']
+#         dff = df[(df.f1 == f1_point) & (df.f2 == f2_point)]
+#         decision_variables = ['x1', 'x2', 'x3', 'x4']
+#         if not dff.empty:# and decision_variables in dff.columns:
+#             # return dff[decision_variables].values[0]
+#             return "Hello"
+        
+#     return "Bye"
 
-    elif my_dropdown == "/Users/matt412/Downloads/2V-4O (1).csv":
-        scatter = px.scatter_3d(
-            df2,
-            x=df2["f1"],
-            y=df2["f2"],
-            z=df2["f3"],
-            color=df2["f4"],
-            labels={"df2[f1]": "f1", "df2[f2]": "f2", "df2[f3]": "f3", "df2[f4]": "f4"},
-            title="Scatter Plot",
-        )
-        scatter_d = px.scatter(
-            df2,
-            x=df2["x1"],
-            y=df2["x2"],
-            labels={"df2[x1]": "x1", "df2[x2]": "x2"},
-            title="Scatter Plot",
-        )
-
-        # bubble = px.scatter_3d(
-        #     x=df2["f1"],
-        #     y=df2["f2"],
-        #     z=df2["f3"],
-        #     color=df2["f4"],
-        #     size_max=300,
-        #     title="Bubble Chart",
-        # )
-        # bubble_d = go.Figure(
-        #     data=go.Scatter(
-        #         x=df2["x1"],
-        #         y=df2["x2"],
-        #         mode="markers",
-        #         marker_size=[0, 20, 40, 60, 80, 100, 120],
-        #     )
-        # )
-
-        parallel = px.parallel_coordinates(
-            df2,
-            dimensions=["f1", "f2", "f3", "f4"],
-            labels={"df2[f1]": "f1", "df2[f2]": "f2", "df2[f3]": "f3", "df2[f4]": "f4"},
-            title="Parallel Coordinates",
-        )
-        parallel_d = px.parallel_coordinates(
-            df2,
-            dimensions=["x1", "x2"],
-            labels={"df2[x1]": "x1", "df2[x2]": "x2"},
-            title="Parallel Coordinates",
-        )
-
-        data3 = df2[["f1", "f2", "f3", "f4"]].values.tolist()
-        heatmap = px.imshow(
-            data3,
-            labels={"df2[f1]": "f1", "df2[f2]": "f2", "df2[f3]": "f3", "df2[f4]": "f4"},
-            x=["f1", "f2", "f3", "f4"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-        data4 = df2[["x1", "x2"]].values.tolist()
-        heatmap_d = px.imshow(
-            data4,
-            labels={"df2[x1]": "x1", "df2[x2]": "x2"},
-            x=["x1", "x2"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-
-        return scatter, scatter_d, parallel, parallel_d, heatmap, heatmap_d
-
-    elif my_dropdown == "/Users/matt412/Downloads/4V-2O (1).csv":
-        scatter = px.scatter(
-            df3,
-            x=df3["f1"],
-            y=df3["f2"],
-            labels={"df3[f1]": "f1", "df3[f2]": "f2"},
-            title="Scatter Plot",
-        )
-        scatter_d = px.scatter_3d(
-            df3,
-            x=df3["x1"],
-            y=df3["x2"],
-            z=df3["x3"],
-            color=df3["x4"],
-            labels={"df3[x1]": "x1", "df3[x2]": "x2", "df3[x3]": "x3", "df3[x4]": "x4"},
-            title="Scatter Plot",
-        )
-
-        # bubble = go.Figure(
-        #     data=go.Scatter(
-        #         x=df3["f1"],
-        #         y=df3["f2"],
-        #         mode="markers",
-        #         marker_size=[0, 20, 40, 60, 80, 100, 120],
-        #     )
-        # )
-        # bubble_d = px.scatter_3d(
-        #     x=df3["x1"],
-        #     y=df3["x2"],
-        #     z=df3["x3"],
-        #     color=df3["x4"],
-        #     size_max=300,
-        #     title="Bubble Chart",
-        # )
-
-        parallel = px.parallel_coordinates(
-            df3,
-            dimensions=["f1", "f2"],
-            labels={"df3[f1]": "f1", "df3[f2]": "f2"},
-            title="Parallel Coordinates",
-        )
-        parallel_d = px.parallel_coordinates(
-            df3,
-            dimensions=["x1", "x2", "x3", "x4"],
-            labels={"df3[x1]": "x1", "df3[x2]": "x2", "df3[x3]": "x3", "df3[x4]": "x4"},
-            title="Parallel Coordinates",
-        )
-
-        data5 = df3[["f1", "f2"]].values.tolist()
-        heatmap = px.imshow(
-            data5,
-            labels={"df3[f1]": "f1", "df3[f2]": "f2"},
-            x=["f1", "f2"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-        data6 = df3[["x1", "x2", "x3", "x4"]].values.tolist()
-        heatmap_d = px.imshow(
-            data6,
-            labels={"df3[x1]": "x1", "df3[x2]": "x2", "df3[x3]": "x3", "df3[x4]": "x4"},
-            x=["x1", "x2", "x3", "x4"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-        return scatter, scatter_d, parallel, parallel_d, heatmap, heatmap_d
-
-    elif my_dropdown == "/Users/matt412/Downloads/4V-4O (1).csv":
-        scatter = px.scatter_3d(
-            df4,
-            x=df4["f1"],
-            y=df4["f2"],
-            z=df4["f3"],
-            color=df4["f4"],
-            labels={"df4[f1]": "f1", "df4[f2]": "f2", "df4[f3]": "f3", "df4[f4]": "f4"},
-            title="Scatter Plot",
-        )
-        scatter_d = px.scatter_3d(
-            df4,
-            x=df4["x1"],
-            y=df4["x2"],
-            z=df4["x3"],
-            color=df4["x4"],
-            labels={"df4[x1]": "x1", "df4[x2]": "x2", "df4[x3]": "x3", "df4[x4]": "x4"},
-            title="Scatter Plot",
-        )
-
-        # bubble = px.scatter_3d(
-        #     df4,
-        #     x=df4["f1"],
-        #     y=df4["f2"],
-        #     z=df4["f3"],
-        #     color=df4["f4"],
-        #     size_max=40,
-        #     labels={"df4[f1]": "f1", "df4[f2]": "f2", "df4[f3]": "f3", "df4[f4]": "f4"},
-        #     title=" Bubble Chart",
-        # )
-        # bubble_d = px.scatter_3d(
-        #     df4,
-        #     x=df4["x1"],
-        #     y=df4["x2"],
-        #     z=df4["x3"],
-        #     color=df4["x4"],
-        #     size_max=40,
-        #     labels={"df4[x1]": "x1", "df4[x2]": "x2", "df4[x3]": "x3", "df4[x4]": "x4"},
-        #     title=" Bubble Chart",
-        # )
-
-        parallel = px.parallel_coordinates(
-            df4,
-            dimensions=["f1", "f2", "f3", "f4"],
-            labels={"df4[f1]": "f1", "df4[f2]": "f2", "df4[f3]": "f3", "df4[f4]": "f4"},
-            title="Parallel Coordinates",
-        )
-        parallel_d = px.parallel_coordinates(
-            df4,
-            dimensions=["x1", "x2", "x3", "x4"],
-            labels={"df4[x1]": "x1", "df4[x2]": "x2", "df4[x3]": "x3", "df4[x4]": "x4"},
-            title="Parallel Coordinates",
-        )
-
-        data7 = df4[["f1", "f2", "f3", "f4"]].values.tolist()
-        heatmap = px.imshow(
-            data7,
-            labels={"df4[f1]": "f1", "df4[f2]": "f2", "df4[f3]": "f3", "df4[f4]": "f4"},
-            x=["f1", "f2", "f3", "f4"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-        data8 = df4[["x1", "x2", "x3", "x4"]].values.tolist()
-        heatmap_d = px.imshow(
-            data8,
-            labels={"df4[x1]": "x1", "df4[x2]": "x2", "df4[x3]": "x3", "df4[x4]": "x4"},
-            x=["x1", "x2", "x3", "x4"],
-            color_continuous_scale=px.colors.sequential.Pinkyl,
-            title="Heatmap",
-        )
-
-        return scatter, scatter_d, parallel, parallel_d, heatmap, heatmap_d
+# @app.callback(Output('graph1', "figure"), [
+#     Input('slider1', 'value'),
+#     Input('slider2', 'value'),
+#     Input('slider3', 'value'),
+#     Input('slider4', 'value')
+# ], State('graph1', "figure"), State('stored-df', 'data'))
+# def pareto_front(x1_val, x2_val, x3_val, x4_val, fig, data):
+#     DTLZ2 = get_problem("dtlz2", n_var=4, n_obj=2)
+#     dff = DTLZ2.evaluate(np.array([x1_val, x2_val, x3_val, x4_val]))
+#     print(dff)
+#     fig = gen_graph(pd.DataFrame.from_dict(data))
+#     fig.add_scatter(x=[dff[0]], y=[dff[1]], marker=dict(color='red', size=12))
+#     fig.update_layout(showlegend=False)
+#     return fig
 
 
 if __name__ == "__main__":
