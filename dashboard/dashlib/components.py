@@ -25,6 +25,8 @@ def gen_graph(df):
                     y=df[y_column],
                     hovertemplate='<b>f1</b>: %{x}' +
                     '<br><b>f2</b>: %{y}<extra></extra>',
+                    # hoverinfo='text',
+                    # text=f'f1: {df[0]: .2f}<br>f2: {df[1]: .2f}',
                     hoverlabel=dict(font_size=22),
                     mode="markers",
                     marker=dict(color='rgba(0,0,0,0)',
@@ -64,6 +66,7 @@ def gen_graph(df):
             template=None,
             font_family="Helvetica",
             margin=dict(l=10, r=20, t=20, b=0),
+            # title="Objective Space",
             paper_bgcolor='rgb(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
         )
