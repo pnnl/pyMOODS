@@ -1,9 +1,14 @@
+import base64
+import json
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
+import pandas as pd
 from .components import blank_figure
 
 interface_layout = html.Div([
+    html.Img(src="assets/PNNL-logo-16-9.png", style={'position':'absolute','top':'5px','left':'15px', 'width':'250px','height':'108px'}),
+    html.Img(src="assets/E-COMP_logo (3).png", style={'position':'absolute','top':'5px','right':'40px', 'width':'300px','height':'108px'}),
     dcc.Store(id="stored-df"),
     # html.Div(id='placeholder'),
     html.H1(
@@ -15,30 +20,37 @@ interface_layout = html.Div([
             "marginTop": "1rem",
         },
     ),
-    dcc.Upload(
-        id="upload-data",
-        children=html.Div([
-            html.Div(html.H3("Data Upload")),
-            html.Hr(),
-            dbc.Button('Upload File', outline=True, color="dark", size="lg")
-        ]),
-        style={
-            'borderTop': '200px',
-            "position": "fixed",
-            'borderRadius': '5px',
-            "top": '7.4rem',
-            "left": "1rem",
-            "bottom": '2px',
-            "textAlign": "center",
-            "width": "30rem",
-            "padding": "8rem 1.5rem 50rem 1rem",
-            "color": "black",
-            "fontWeight": "bolder",
-            "backgroundColor": "#fcba03",
-            "fontFamily":"Helvetica",
-        },
-        multiple=True,
-    ),
+    html.Div([
+        dcc.Upload(
+            id="upload-data",
+            children=html.Div([
+                html.Div(html.H3("DATA UPLOAD")),
+                html.Hr(),
+                dbc.Button('Upload File',
+                           outline=True,
+                           color="dark",
+                           size="lg"),
+                html.Div(id='summary-table'),
+            ]),
+            style={
+                'borderTop': '200px',
+                "position": "fixed",
+                'borderRadius': '5px',
+                "top": '7.4rem',
+                "left": "1rem",
+                "bottom": '2px',
+                "textAlign": "center",
+                "width": "30rem",
+                "padding": "8rem 1.5rem 50rem 1rem",
+                "color": "black",
+                "fontWeight": "bolder",
+                "backgroundColor": "#fcba03",
+                "fontFamily": "Helvetica",
+            },
+            multiple=True,
+        ),
+        # html.Div(id='summary-table'),
+    ]),
     dcc.Tabs(
         id="tabs-example-graph",
         value='tab-1-example-graph',
@@ -55,10 +67,10 @@ interface_layout = html.Div([
                                 dbc.Col(),
                                 dbc.Col(html.H4("Objective Space",
                                                 style={
-                                                    "fontWeight": "550",
+                                                    "fontWeight": "600",
                                                     "borderTop": "120px",
                                                     "paddingTop": "40px",
-                                                    'fontFamily':"Helvetica"
+                                                    'fontFamily': "Helvetica"
                                                 }),
                                         width=5),
                                 dbc.Col(html.H4("Decision Space",
@@ -66,8 +78,8 @@ interface_layout = html.Div([
                                                     "fontWeight": "600",
                                                     "borderTop": "120px",
                                                     "paddingTop": "40px",
-                                                    'fontFamily':"Helvetica",
-                                                    'marginLeft':'70px'
+                                                    'fontFamily': "Helvetica",
+                                                    'marginLeft': '100px'
                                                 }),
                                         width=5)
                             ],
@@ -75,16 +87,29 @@ interface_layout = html.Div([
                             dbc.Row(
                                 [
                                     # dbc.Col(width=2),
-                                    dbc.Col(
-                                        id="graph-container",
-                                        children=[
-                                            dcc.Graph(figure=blank_figure(), style={"backgroundColor":"transparent"},
-                                                      id='graph1')
-                                        ]),
+                                    dbc.Col(id="graph-container",
+                                            children=[
+                                                dcc.Graph(
+                                                    figure=blank_figure(),
+                                                    # style={
+                                                    #     "backgroundColor":
+                                                    #     "transparent"
+                                                    # },
+                                                    id='graph1')
+                                            ]),
                                     dbc.Col(html.Div(id="sliders")),
                                 ],
-                                className="my-custom-container-style"
-                                ),
+                                # html.Div([
+                                #     html.Div(
+                                #         id="graph-container",
+                                #         children=[dcc.Graph(figure=blank_figure(), id='graph1')]
+                                #     ),
+                                #     html.Div(id="sliders"),
+                                #     html.Button("Objective Space"),
+                                #     html.Button("Decision Space",
+                                #                 style={"marginLeft": "600px", "marginBottom": "1px"}),
+                                # ],
+                                className="my-custom-container-style"),
                             dbc.Row(
                                 [
                                     dbc.Col([
@@ -125,3 +150,4 @@ interface_layout = html.Div([
         },
     ),
 ])
+
