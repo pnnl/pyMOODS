@@ -261,4 +261,4 @@ def pareto_front(slider_values, fig, data, stored_slider_values):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, host="0.0.0.0", port=5000)
