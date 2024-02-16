@@ -38,13 +38,13 @@ button {
 
 #tabs-example-graph {
   margin-top: 9px;
-  margin-left: 510px;
+  margin-left: 515px;
   width: 76%;
 }
 
 .my-custom-container-style {
-  margin-left: 1rem;
-  width: 108.4rem;
+  margin-left: 0.7rem;
+  width: 109.4rem;
   height: 23vh;
   padding: 0;
   color: #141e30;
@@ -100,7 +100,7 @@ button {
 .card {
   background-color: rgb(118, 192, 192);
   margin-top: 0.7rem;
-  height: 35vh;
+  height: 33.5vh;
   left: 0;
 }
 
