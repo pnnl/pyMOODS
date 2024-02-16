@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.graph_objs as go
 
+
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
     fig.update_layout(template=None)
@@ -8,6 +9,7 @@ def blank_figure():
     fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
 
     return fig
+
 
 def gen_graph(df):
     fig = go.Figure()
@@ -40,18 +42,24 @@ def gen_graph(df):
             print("Invalid data format")
             return fig
 
-        fig.update_xaxes(showgrid=False, showline=True,
-                     zeroline=False,
-                     linewidth=2,
-                     linecolor='black', title_font=dict(size= 50),
-                     title_standoff=5, automargin=True)
-        fig.update_yaxes(showgrid=False, zeroline=False,
-                     showline=True,
-                     linewidth=2,
-                     linecolor='black',
-                    #  tickwidth=17,
-                     title_font=dict(size= 50),
-                     title_standoff=5, automargin=True)
+        fig.update_xaxes(showgrid=False,
+                         showline=True,
+                         zeroline=False,
+                         linewidth=2,
+                         linecolor='black',
+                         title_font=dict(size=50),
+                         title_standoff=5,
+                         automargin=True)
+        fig.update_yaxes(
+            showgrid=False,
+            zeroline=False,
+            showline=True,
+            linewidth=2,
+            linecolor='black',
+            #  tickwidth=17,
+            title_font=dict(size=50),
+            title_standoff=5,
+            automargin=True)
         fig.update_layout(
             font=dict(color="black", size=22),
             clickmode='event+select',

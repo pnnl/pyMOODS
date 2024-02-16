@@ -7,19 +7,46 @@ import pandas as pd
 from .components import blank_figure
 
 interface_layout = html.Div([
-    html.Img(src="assets/PNNL-logo-16-9.png", style={'position':'absolute','top':'5px','left':'15px', 'width':'130px','height':'108px'}),
-    html.Img(src="assets/E-COMP_logo (3).png", style={'position':'absolute','top':'5px','right':'40px', 'width':'300px','height':'108px'}),
+    dbc.Row([
+        dbc.Col(
+            html.Div(
+                html.Img(
+                    className='image',
+                    src="assets/PNNL-logo-16-9.png",
+                    style={
+                        'position': 'absolute',
+                        'top': '5px',
+                        'left': '40px',
+                        'width': '115px',
+                        'height': '100px',
+                        #  'border':'20px none white',
+                        #  'padding':'4px',
+                        'margin-left': '1px',
+                        'margin-right': '1px',
+                    }),
+                className='box'),
+            width=2),
+        dbc.Col(html.H1(
+            children=
+            "pyMOODS: Multi-Objective Optimization Decision Support System",
+            style={
+                "fontWeight": "400",
+                "textAlign": "center",
+                "marginTop": "1rem",
+            },
+        ),
+                width=8),
+        dbc.Col(
+            html.Img(src="assets/E-COMP_logo (3).png",
+                     style={
+                         'position': 'absolute',
+                         'top': '5px',
+                         'right': '40px',
+                         'width': '300px',
+                         'height': '110px'
+                     }))
+    ]),
     dcc.Store(id="stored-df"),
-    # html.Div(id='placeholder'),
-    html.H1(
-        children=
-        "pyMOODS: Multi-Objective Optimization Decision Support System",
-        style={
-            "fontWeight": "400",
-            "textAlign": "center",
-            "marginTop": "1rem",
-        },
-    ),
     html.Div([
         dcc.Upload(
             id="upload-data",
@@ -87,28 +114,19 @@ interface_layout = html.Div([
                             dbc.Row(
                                 [
                                     # dbc.Col(width=2),
-                                    dbc.Col(id="graph-container",
-                                            children=[
-                                                dcc.Graph(
-                                                    figure=blank_figure(),
-                                                    # style={
-                                                    #     "backgroundColor":
-                                                    #     "transparent"
-                                                    # },
-                                                    id='graph1')
-                                            ]),
+                                    dbc.Col(
+                                        id="graph-container",
+                                        children=[
+                                            dcc.Graph(
+                                                figure=blank_figure(),
+                                                # style={
+                                                #     "backgroundColor":
+                                                #     "transparent"
+                                                # },
+                                                id='graph1')
+                                        ]),
                                     dbc.Col(html.Div(id="sliders")),
                                 ],
-                                # html.Div([
-                                #     html.Div(
-                                #         id="graph-container",
-                                #         children=[dcc.Graph(figure=blank_figure(), id='graph1')]
-                                #     ),
-                                #     html.Div(id="sliders"),
-                                #     html.Button("Objective Space"),
-                                #     html.Button("Decision Space",
-                                #                 style={"marginLeft": "600px", "marginBottom": "1px"}),
-                                # ],
                                 className="my-custom-container-style"),
                             dbc.Row(
                                 [
@@ -116,7 +134,7 @@ interface_layout = html.Div([
                                         dbc.Card(
                                             dbc.CardBody([
                                                 html.H4(
-                                                    "Plot Summary",
+                                                    "Plot Description",
                                                     className="card-title"),
                                                 # Add interpretation content here
                                             ]))
@@ -124,9 +142,9 @@ interface_layout = html.Div([
                                     dbc.Col([
                                         dbc.Card(
                                             dbc.CardBody([
-                                                html.H4(
-                                                    "Fairness Index (Future Capability)",
-                                                    className="card-title2"),
+                                                html.
+                                                H4("Fairness Index (Future Capability)",
+                                                   className="card-title2"),
                                                 # Add Fairness Index content here
                                             ]))
                                     ]),
@@ -150,4 +168,3 @@ interface_layout = html.Div([
         },
     ),
 ])
-

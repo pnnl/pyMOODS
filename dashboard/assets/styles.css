@@ -1,33 +1,32 @@
 body {
-  /* background-color: rgb(204, 197, 197); */
-  /* background-color: #ffffff;
-  background-image: linear-gradient(315deg, #ffffff 0%, #274060 74%); */
-  /* You can use the above color for the tab and this for body Royal blue: background-image: linear-gradient(to right, #141e30, #243b55); */
-  /* margin: 2%; */
   background-image: linear-gradient(to right, #141e30, #243b55);
 }
 
 button {
   font-size: larger;
-  font-weight:bolder;
+  font-weight: bolder;
   align-items: center;
-  /* margin-left:4rem; */
 }
 
-/* #summary-table{
-margin: 8rem 4rem auto 4rem;
-font-weight: 500 !important;
-border-radius: 10px !important;
-box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-padding: 1.7rem;
-font-family:Arial, Helvetica, sans-serif;
-text-align: center;
-width: 69%;
-} */
+.image {
+  /* position: fixed; */
+  opacity: 1;
+}
+
+.box {
+  margin-top: 5px;
+  margin-left: 15px;
+  overflow: hidden;
+  min-height: 108px;
+  background-color: white;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  width: 180px;
+}
 
 .custom-tab {
   font-size: x-large;
-  font-weight:500;
+  font-weight: 500;
 }
 
 .custom-tab--selected {
@@ -38,79 +37,54 @@ width: 69%;
 }
 
 #tabs-example-graph {
-  margin-top: 40px;
-  margin-left: 513px;
+  margin-top: 9px;
+  margin-left: 510px;
   width: 76%;
-  /* overflow: hidden; */
 }
 
 .my-custom-container-style {
-  /* width: 100%;
-  margin: 0; */
-  /* margin-left: 0; */
-  margin-left:0.6rem;
-  width: 109.4rem;
-  height:23vh;
+  margin-left: 1rem;
+  width: 108.4rem;
+  height: 23vh;
   padding: 0;
   color: #141e30;
-  background-color: white;  
-  /* overflow: hidden; */
+  background-color: white;
   position: relative;
 }
 
 #graph-container {
-  position:absolute !important;
-  top:-70%;
+  position: absolute !important;
+  top: -70%;
   display: inline;
-  /* border-radius: 10px; */
-  /* margin-top: -100; */
   height: 40%;
   width: 38%;
   margin-left: 2rem;
-  /* overflow: hidden; */
-  /* vertical-align: top; */
-  /* top:0; */
-  /* font-weight: 400; */
-  /* padding: 15px; */
-  /* box-sizing: border-box; */
   background-color: transparent;
 }
 
 #sliders {
   display: inline;
-  position:absolute !important;
-  /* vertical-align: auto; */
-  /* height: 36.1vh; */
+  position: absolute !important;
   width: 38%;
-  top:-30%;
-  /* border-radius: 10px; */
-  /* margin-top: 1rem; */
+  top: -30%;
   margin-left: 55rem;
-  /* padding-top: 4rem;
-  padding-bottom: 1rem;
-  padding-left: 1rem; */
-  /* padding: 3rem; */
   color: black;
   font-size: 25px;
-  /* overflow: hidden;
-  box-sizing: border-box; */
 }
 
-.slider-label{
+.slider-label {
   flex-shrink: 0;
-  /* font-family: Arial, Helvetica, sans-serif; */
   margin-right: 1rem;
   padding: 1rem 0 1rem 0;
 }
 
-.slider-input{
+.slider-input {
   flex-grow: 1;
-  
 }
 
 .rc-slider-mark-text {
   font-size: 19px;
-  color:gray;
+  color: gray;
 }
 
 .rc-slider-mark-text-active {
@@ -131,23 +105,19 @@ width: 69%;
 }
 
 .card-title {
-  /* margin-left: 1rem; */
   text-align: center;
-  /* width: 33rem; */
-  /* height:23vh; */
   font-weight: bold;
-  color:rgb(13, 13, 12);
+  color: rgb(13, 13, 12);
 }
 
 .card-title2 {
   text-align: center;
-  /* width:45rem; */
   font-weight: bold;
-  color:rgb(13, 13, 12);
+  color: rgb(13, 13, 12);
 }
 
 #tabs-example-graph .my-custom-container-style {
-  width: 100%;  
+  width: 100%;
   margin-left: 0;
   margin-right: auto;
 }

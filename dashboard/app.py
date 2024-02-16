@@ -29,8 +29,7 @@ app.layout = interface_layout
 
 app.layout = html.Div([
     dcc.Store(id="slider-values-store", data={}),
-    dcc.Store(id="slider-change-status", data={}),
-    interface_layout
+    dcc.Store(id="slider-change-status", data={}), interface_layout
 ])
 
 
@@ -53,25 +52,9 @@ def update_summary(contents, filename):
     objective_functions = [col for col in df.columns if col.startswith('f')]
     size = len(df)
 
-    # summary_table = html.Table([
-    #     html.Td(html.H4("SUMMARY"), style={'textAlign':'center', 'paddingLeft':'3.5rem'}),
-    #     html.Tr([
-    #         html.Td(html.H5("#Decision variables:")),
-    #         html.Td(html.H5(len(decision_variables)), style={'color': 'blue'})
-    #     ]),
-    #     html.Tr([
-    #         html.Td(html.H5("#Objective Variables:")),
-    #         html.Td(html.H5(len(objective_functions)), style={'color': 'blue'})
-    #     ]),
-    #     html.Tr([
-    #         html.Td(html.H5("Size of Pareto Front:")),
-    #         html.Td(html.H5(size), style={'color': 'blue'})
-    #     ]),
-    # ])
-    # return summary_table
     summary_table = html.Table([
         html.Tr([
-            html.Td(html.H4("SUMMARY"),
+            html.Td(html.H3("SUMMARY"),
                     style={
                         'textAlign': 'center',
                         'paddingLeft': '3.5rem'
@@ -80,32 +63,44 @@ def update_summary(contents, filename):
             html.Td(),
         ]),
         html.Tr([
-            html.Td(html.H5("#Decision Variables:")),
-            html.Td(html.H5(len(decision_variables)), style={'color': 'blue'})
+            html.Td(html.H4("#Decision Variables:"),
+                    style={'padding': '0.2rem'}),
+            html.Td(html.H4(len(decision_variables)),
+                    style={
+                        'color': 'blue',
+                        'padding': '0.5rem'
+                    })
         ]),
         html.Tr([
-            html.Td(html.H5("#Objective Variables:")),
-            html.Td(html.H5(len(objective_functions)), style={'color': 'blue'})
+            html.Td(html.H4("#Objective Variables:"),
+                    style={'padding': '0.2rem'}),
+            html.Td(html.H4(len(objective_functions)),
+                    style={
+                        'color': 'blue',
+                        'padding': '0.5rem'
+                    })
         ]),
         html.Tr([
-            html.Td(html.H5("Size of Pareto Front:")),
-            html.Td(html.H5(size), style={'color': 'blue'})
+            html.Td(html.H4("Size of Pareto Front:  "),
+                    style={'padding': '0.2rem'}),
+            html.Td(html.H4(size),
+                    style={
+                        'color': 'blue',
+                        'padding': '0.5rem'
+                    })
         ]),
     ])
 
     return {
-        'margin': '10rem 4rem auto 4.2rem',
+        'margin': '10rem auto auto auto',
         'fontWeight': '500',
         'borderRadius': '10px',
         'boxShadow': '0 4px 8px 0 rgba(0,0,0,0.8)',
         'padding': '1.7rem',
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
-        'width': '69%'
+        'width': '82%'
     }, summary_table
-
-
-
 
 
 @app.callback(Output("graph1", "figure", allow_duplicate=True),
@@ -158,7 +153,7 @@ def update_output(contents, filename, tab):
                             },
                             min=min_val,
                             max=max_val,
-                            step=round((max_val-min_val)/4,2),
+                            step=round((max_val - min_val) / 4, 2),
                             # step=0.001,
                             marks={
                                 i: f'{i: .2f}'
@@ -187,6 +182,7 @@ def update_output(contents, filename, tab):
 
     return dash.no_update, [], []
 
+
 @app.callback(Output({
     "type": "ds-sliders",
     "index": ALL
@@ -214,6 +210,7 @@ def slider_output(click_data, my_data, slider_ids):
 
     return [0 for _ in slider_ids]
 
+
 @app.callback(Output('graph1', "figure"),
               [Input({
                   "type": "ds-sliders",
@@ -226,7 +223,7 @@ def slider_output(click_data, my_data, slider_ids):
               prevent_initial_call=True)
 def pareto_front(slider_values, fig, data, stored_slider_values):
     print("Slider values: ", slider_values)
-    
+
     if slider_values != stored_slider_values:
         stored_slider_values = slider_values
         if not slider_values or slider_values == [0] * len(slider_values):
@@ -248,12 +245,11 @@ def pareto_front(slider_values, fig, data, stored_slider_values):
         #                   hoverlabel=dict(font_size=22))
 
         fig.add_scatter(x=[dff[0]],
-                            y=[dff[1]],
-                            marker=dict(color='blue', size=30, symbol='star'),
-                            hoverinfo='text',
-                            text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
-                            hoverlabel=dict(font_size=22)
-                            )
+                        y=[dff[1]],
+                        marker=dict(color='blue', size=30, symbol='star'),
+                        hoverinfo='text',
+                        text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
+                        hoverlabel=dict(font_size=22))
     else:
         return fig
 
@@ -261,4 +257,4 @@ def pareto_front(slider_values, fig, data, stored_slider_values):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5000)
+    app.run_server(debug=True, host="0.0.0.0", port=5001)
