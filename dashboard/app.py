@@ -80,7 +80,7 @@ def update_summary(contents, filename):
             html.Td(),
         ]),
         html.Tr([
-            html.Td(html.H5("#Decision variables:")),
+            html.Td(html.H5("#Decision Variables:")),
             html.Td(html.H5(len(decision_variables)), style={'color': 'blue'})
         ]),
         html.Tr([
