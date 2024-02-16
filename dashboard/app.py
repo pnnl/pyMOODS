@@ -80,7 +80,7 @@ def update_summary(contents, filename):
             html.Td(),
         ]),
         html.Tr([
-            html.Td(html.H5("#Decision variables:")),
+            html.Td(html.H5("#Decision Variables:")),
             html.Td(html.H5(len(decision_variables)), style={'color': 'blue'})
         ]),
         html.Tr([
@@ -261,4 +261,4 @@ def pareto_front(slider_values, fig, data, stored_slider_values):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5000)
+    app.run_server(debug=True, host="0.0.0.0", port=5001)

@@ -7,7 +7,7 @@ import pandas as pd
 from .components import blank_figure
 
 interface_layout = html.Div([
-    html.Img(src="assets/PNNL-logo-16-9.png", style={'position':'absolute','top':'5px','left':'15px', 'width':'250px','height':'108px'}),
+    html.Img(src="assets/PNNL-logo-16-9.png", style={'position':'absolute','top':'5px','left':'15px', 'width':'130px','height':'108px'}),
     html.Img(src="assets/E-COMP_logo (3).png", style={'position':'absolute','top':'5px','right':'40px', 'width':'300px','height':'108px'}),
     dcc.Store(id="stored-df"),
     # html.Div(id='placeholder'),
@@ -26,7 +26,7 @@ interface_layout = html.Div([
             children=html.Div([
                 html.Div(html.H3("DATA UPLOAD")),
                 html.Hr(),
-                dbc.Button('Upload File',
+                dbc.Button('Upload Pareto Front',
                            outline=True,
                            color="dark",
                            size="lg"),
@@ -116,7 +116,7 @@ interface_layout = html.Div([
                                         dbc.Card(
                                             dbc.CardBody([
                                                 html.H4(
-                                                    "AI-Interpretation",
+                                                    "Plot Summary",
                                                     className="card-title"),
                                                 # Add interpretation content here
                                             ]))
@@ -125,7 +125,7 @@ interface_layout = html.Div([
                                         dbc.Card(
                                             dbc.CardBody([
                                                 html.H4(
-                                                    "Fairness Index",
+                                                    "Fairness Index (Future Capability)",
                                                     className="card-title2"),
                                                 # Add Fairness Index content here
                                             ]))
