@@ -32,11 +32,12 @@ def gen_graph(df):
                     mode="markers",
                     marker=dict(color='rgba(0,0,0,0)',
                                 size=20,
-                                line=dict(color='MediumPurple', width=2)),
-                    selected=go.scatter.Selected(marker={
-                        'size': 40,
-                        "color": "LightSeaGreen"
-                    })))
+                                line=dict(color='MediumPurple', width=2))
+                    # selected=go.scatter.Selected(marker={
+                    #     'size': 40,
+                    #     "color": "LightSeaGreen"
+                    # })
+                ))
         else:
             print("Invalid data format")
             return fig
