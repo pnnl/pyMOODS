@@ -115,18 +115,20 @@ def update_summary(contents, filename):
                       "index": ALL
                   }, "value"),
                   Input("graph1", "clickData")
-              ], [State("slider-change-status", "data")],
+              ],
+              # [State("slider-change-status", "data")],
               prevent_initial_call=True)
-def update_output(contents, filename, tab, slider_values, click_data,
-                  slider_change_status):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-
-    if click_data:
-        print('in here')
+def update_output(contents, filename, tab, slider_values, click_data):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
+    if len(changed_id) == 5:
         return dash.no_update, dash.no_update, dash.no_update, False
-    elif 'slider' in changed_id:
+    # elif len(changed_id) == 2:
+    #     return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    elif 'slider' in changed_id[0]:
         return dash.no_update, dash.no_update, dash.no_update, True
-    elif 'upload-data' in changed_id:
+    elif click_data:
+        return dash.no_update, dash.no_update, dash.no_update, False
+    elif 'upload-data' in changed_id[0]:
         if contents is not None:
             contents = contents[0]
             filename = filename[0]
@@ -198,7 +200,7 @@ def update_output(contents, filename, tab, slider_values, click_data,
     # elif click_data:
         # return dash.no_update, dash.no_update, dash.no_update, False
 
-    return dash.no_update, [], [], False
+    # return dash.no_update, [], [], False
 
 
 @app.callback(Output({
@@ -232,14 +234,15 @@ def slider_output(click_data, my_data, slider_ids):
               [Input({
                   "type": "ds-sliders",
                   "index": ALL
-              }, "value"), Input('graph1', 'clickData')], [
+              }, "value"), Input('graph1', 'clickData'), Input('slider-change-status', 'data')], [
                   State('graph1', "figure"),
                   State('stored-df', 'data'),
                   State('slider-values-store', 'data'),
-                  State('slider-change-status', 'data')
+                  # State('slider-change-status', 'data')
               ],
               prevent_initial_call=True)
-def pareto_front(slider_values, click_data, fig, data, stored_slider_values, change_status):
+def pareto_front(slider_values, click_data, change_status, fig, data, stored_slider_values):
+    # print('values', click_data)
     if slider_values != stored_slider_values:
         stored_slider_values = slider_values
         if not slider_values or all(slider == 0 for slider in slider_values):
@@ -249,29 +252,28 @@ def pareto_front(slider_values, click_data, fig, data, stored_slider_values, cha
 
     # Adding new scatter trace for the newly selected point:
     if change_status is True:
+        # click_data = None
         n_var = len(slider_values)
         n_obj = len(data[0]) - n_var
         DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
         dff = DTLZ2.evaluate(np.array(slider_values))
-        print(dff)
 
         fig = gen_graph(pd.DataFrame.from_dict(data)) 
         
-        if click_data is None:
-            fig.add_scatter(x=[dff[0]],
-                        y=[dff[1]],
-                        marker=dict(color='blue', size=30, symbol='star'),
-                        hoverinfo='text',
-                        text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
-                        hoverlabel=dict(font_size=22))
-        else:
-            f1_point = click_data['points'][0]['x']
-            f2_point = click_data['points'][0]['y']
-            fig.add_scatter(x=[f1_point], y=[f2_point], marker=dict(color='LightSeaGreen', size=30))
+        fig.add_scatter(x=[dff[0]],
+                    y=[dff[1]],
+                    marker=dict(color='blue', size=30, symbol='star'),
+                    hoverinfo='text',
+                    text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
+                    hoverlabel=dict(font_size=22))
+        # else:
+        #     f1_point = click_data['points'][0]['x']
+        #     f2_point = click_data['points'][0]['y']
+        #     fig.add_scatter(x=[f1_point], y=[f2_point], marker=dict(color='LightSeaGreen', size=30))
 
     else:
         fig = gen_graph(pd.DataFrame.from_dict(data)) 
-        print(click_data)
+        
         if click_data:
             f1_point = click_data['points'][0]['x']
             f2_point = click_data['points'][0]['y']
@@ -282,4 +284,4 @@ def pareto_front(slider_values, click_data, fig, data, stored_slider_values, cha
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5001)
+    app.run_server(debug=True, host="0.0.0.0", port=5001, mode='external')
