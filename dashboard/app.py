@@ -119,25 +119,23 @@ def update_summary(contents, filename):
               # [State("slider-change-status", "data")],
               prevent_initial_call=True)
 def update_output(contents, filename, tab, slider_values, click_data):
+    if contents is not None:
+        contents = contents[0]
+        filename = filename[0]
+        df, decision_variables, objective_functions = parse_data(contents, filename)
+    
+    if df is None:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    if len(changed_id) == 5:
+    if len(changed_id) == len(decision_variables) + 1:
         return dash.no_update, dash.no_update, dash.no_update, False
-    # elif len(changed_id) == 2:
-    #     return dash.no_update, dash.no_update, dash.no_update, dash.no_update
     elif 'slider' in changed_id[0]:
         return dash.no_update, dash.no_update, dash.no_update, True
     elif click_data:
         return dash.no_update, dash.no_update, dash.no_update, False
     elif 'upload-data' in changed_id[0]:
-        if contents is not None:
-            contents = contents[0]
-            filename = filename[0]
-            df, decision_variables, objective_functions = parse_data(
-                contents, filename)
-
-            if df is not None:
-                # Save categorized data to "categorized_data.json"
-                categorized_data = {
+        categorized_data = {
                     "Decision Variables": {
                         key: {
                             "values": value,
@@ -151,14 +149,14 @@ def update_output(contents, filename, tab, slider_values, click_data):
                         for key, value in objective_functions.items()
                     },
                 }
-            with open("categorized_data.json", "w") as outfile:
+        with open("categorized_data.json", "w") as outfile:
                 json.dump(categorized_data,
                           outfile,
                           cls=NumpyEncoder,
                           indent=4)
 
-            fig = gen_graph(df)
-            sliders = [
+        fig = gen_graph(df)
+        sliders = [
                 html.Div(
                     [
                         html.Div(
@@ -195,7 +193,7 @@ def update_output(contents, filename, tab, slider_values, click_data):
                                           len(decision_variables))
             ]
 
-            return fig, df.to_dict('records'), sliders, False
+        return fig, df.to_dict('records'), sliders, False
     
     # elif click_data:
         # return dash.no_update, dash.no_update, dash.no_update, False
@@ -245,6 +243,7 @@ def pareto_front(slider_values, click_data, change_status, fig, data, stored_sli
     # print('values', click_data)
     if slider_values != stored_slider_values:
         stored_slider_values = slider_values
+        print("Stored: ",stored_slider_values)
         if not slider_values or all(slider == 0 for slider in slider_values):
             return fig
         if data is None:
@@ -284,4 +283,4 @@ def pareto_front(slider_values, click_data, change_status, fig, data, stored_sli
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5001, mode='external')
+    app.run_server(debug=True, host="0.0.0.0", port=5001)
