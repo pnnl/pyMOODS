@@ -116,17 +116,17 @@ def update_summary(contents, filename):
                   }, "value"),
                   Input("graph1", "clickData")
               ],
-              # [State("slider-change-status", "data")],
               prevent_initial_call=True)
 def update_output(contents, filename, tab, slider_values, click_data):
     if contents is not None:
         contents = contents[0]
         filename = filename[0]
-        df, decision_variables, objective_functions = parse_data(contents, filename)
-    
+        df, decision_variables, objective_functions = parse_data(
+            contents, filename)
+
     if df is None:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
-    
+
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     if len(changed_id) == len(decision_variables) + 1:
         return dash.no_update, dash.no_update, dash.no_update, False
@@ -136,67 +136,61 @@ def update_output(contents, filename, tab, slider_values, click_data):
         return dash.no_update, dash.no_update, dash.no_update, False
     elif 'upload-data' in changed_id[0]:
         categorized_data = {
-                    "Decision Variables": {
-                        key: {
-                            "values": value,
-                            "min": 0,
-                            "max": 1
-                        }
-                        for key, value in decision_variables.items()
-                    },
-                    "Objective Functions": {
-                        key: value
-                        for key, value in objective_functions.items()
-                    },
+            "Decision Variables": {
+                key: {
+                    "values": value,
+                    "min": 0,
+                    "max": 1
                 }
+                for key, value in decision_variables.items()
+            },
+            "Objective Functions": {
+                key: value
+                for key, value in objective_functions.items()
+            },
+        }
         with open("categorized_data.json", "w") as outfile:
-                json.dump(categorized_data,
-                          outfile,
-                          cls=NumpyEncoder,
-                          indent=4)
+            json.dump(categorized_data, outfile, cls=NumpyEncoder, indent=4)
 
         fig = gen_graph(df)
         sliders = [
-                html.Div(
-                    [
-                        html.Div(
-                            col, style=labelFlex, className="slider-label"),
-                        dcc.Slider(
-                            id={
-                                'type': 'ds-sliders',
-                                'index': f'slider-{col}'
-                            },
-                            min=min_val,
-                            max=max_val,
-                            # step=round((max_val - min_val) / 4, 2),
-                            step=0.01,
-                            marks={
-                                i: f'{i: .2f}'
-                                for i in np.arange(min_val, max_val +
-                                                   0.1, 0.25)
-                                # for i in np.arange(min_val, max_val +
-                                #                    0.001, 0.1)
-                            },
-                            tooltip={
-                                "placement": "bottom",
-                                "always_visible": True
-                            },
-                            className="slider-input"),
-                    ],
-                    style={
-                        "display": "flex",
-                        "alignItems": "center"
-                    },
-                )
-                for col, (min_val,
-                          max_val) in zip(decision_variables.keys(), [(0, 1)] *
-                                          len(decision_variables))
-            ]
+            html.Div(
+                [
+                    html.Div(col, style=labelFlex, className="slider-label"),
+                    dcc.Slider(
+                        id={
+                            'type': 'ds-sliders',
+                            'index': f'slider-{col}'
+                        },
+                        min=min_val,
+                        max=max_val,
+                        # step=round((max_val - min_val) / 4, 2),
+                        step=0.01,
+                        marks={
+                            i: f'{i: .2f}'
+                            for i in np.arange(min_val, max_val + 0.1, 0.25)
+                            # for i in np.arange(min_val, max_val +
+                            #                    0.001, 0.1)
+                        },
+                        tooltip={
+                            "placement": "bottom",
+                            "always_visible": True
+                        },
+                        className="slider-input"),
+                ],
+                style={
+                    "display": "flex",
+                    "alignItems": "center"
+                },
+            ) for col, (min_val,
+                        max_val) in zip(decision_variables.keys(), [(0, 1)] *
+                                        len(decision_variables))
+        ]
 
         return fig, df.to_dict('records'), sliders, False
-    
+
     # elif click_data:
-        # return dash.no_update, dash.no_update, dash.no_update, False
+    # return dash.no_update, dash.no_update, dash.no_update, False
 
     # return dash.no_update, [], [], False
 
@@ -228,56 +222,120 @@ def slider_output(click_data, my_data, slider_ids):
     return [0 for _ in slider_ids]
 
 
-@app.callback(Output('graph1', "figure"),
-              [Input({
-                  "type": "ds-sliders",
-                  "index": ALL
-              }, "value"), Input('graph1', 'clickData'), Input('slider-change-status', 'data')], [
-                  State('graph1', "figure"),
-                  State('stored-df', 'data'),
-                  State('slider-values-store', 'data'),
-                  # State('slider-change-status', 'data')
-              ],
-              prevent_initial_call=True)
-def pareto_front(slider_values, click_data, change_status, fig, data, stored_slider_values):
+@app.callback(
+    Output('graph1', "figure"),
+    [
+        Input({
+            "type": "ds-sliders",
+            "index": ALL
+        }, "value"),
+        Input('graph1', 'clickData'),
+        Input('slider-change-status', 'data')
+    ],
+    [
+        State('graph1', "figure"),
+        State('stored-df', 'data'),
+        State('slider-values-store', 'data'),
+        # State('slider-change-status', 'data')
+    ],
+    prevent_initial_call=True)
+def pareto_front(slider_values, click_data, change_status, fig, data,
+                 stored_slider_values):
     # print('values', click_data)
     if slider_values != stored_slider_values:
         stored_slider_values = slider_values
-        print("Stored: ",stored_slider_values)
+        print("Stored: ", stored_slider_values)
         if not slider_values or all(slider == 0 for slider in slider_values):
             return fig
         if data is None:
             return fig
+    fig = gen_graph(pd.DataFrame.from_dict(data))
 
+    if len(fig.data) > 1:
+        fig.data = [fig.data[0]]
     # Adding new scatter trace for the newly selected point:
     if change_status is True:
+        if not slider_values or all(slider == 0 for slider in slider_values):
+            return fig
         # click_data = None
         n_var = len(slider_values)
         n_obj = len(data[0]) - n_var
         DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
         dff = DTLZ2.evaluate(np.array(slider_values))
 
-        fig = gen_graph(pd.DataFrame.from_dict(data)) 
-        
-        fig.add_scatter(x=[dff[0]],
-                    y=[dff[1]],
-                    marker=dict(color='blue', size=30, symbol='star'),
-                    hoverinfo='text',
-                    text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
-                    hoverlabel=dict(font_size=22))
-        # else:
-        #     f1_point = click_data['points'][0]['x']
-        #     f2_point = click_data['points'][0]['y']
-        #     fig.add_scatter(x=[f1_point], y=[f2_point], marker=dict(color='LightSeaGreen', size=30))
+        # fig = gen_graph(pd.DataFrame.from_dict(data))
+
+        if isinstance(fig.data[0], go.Scatter):
+            fig.add_scatter(x=[dff[0]],
+                            y=[dff[1]],
+                            mode='markers',
+                            marker=dict(color='red', size=30, symbol='star'),
+                            hoverinfo='text',
+                            text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
+                            hoverlabel=dict(font_size=22))
+        elif isinstance(fig.data[0], go.Scatter3d):
+            fig.add_scatter3d(
+                x=[dff[0]],
+                y=[dff[1]],
+                z=[dff[2]],
+                mode='markers',
+                marker=dict(color='red', size=30),
+                hoverinfo='text',
+                text=
+                f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}<br>f3: {dff[2]: .2f}',
+                hoverlabel=dict(font_size=22))
+        elif isinstance(fig.data[0], go.Parcoords):
+            dimensions = [{
+                "label": f"Objective {i+1}",
+                "values": [dff[i]]
+            } for i in range(len(dff))]
+            if len(fig.data) == 1:
+                fig.add_trace(
+                    go.Parcoords(line=dict(color='blue'),
+                                 dimensions=dimensions))
+            else:
+                fig.data[1].dimensions = dimensions
 
     else:
-        fig = gen_graph(pd.DataFrame.from_dict(data)) 
-        
+        # fig = gen_graph(pd.DataFrame.from_dict(data))
+
         if click_data:
-            f1_point = click_data['points'][0]['x']
-            f2_point = click_data['points'][0]['y']
-            fig.add_scatter(x=[f1_point], y=[f2_point], marker=dict(color='LightSeaGreen', size=30))
-           
+            if isinstance(fig.data[0], go.Scatter):
+                f1_point = click_data['points'][0]['x']
+                f2_point = click_data['points'][0]['y']
+                fig.add_scatter(x=[f1_point],
+                                y=[f2_point],
+                                marker=dict(color='LightSeaGreen', size=30))
+                fig.update_traces(
+                    hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
+            elif isinstance(fig.data[0], go.Scatter3d):
+                f1_point = click_data['points'][0]['x']
+                f2_point = click_data['points'][0]['y']
+                f3_point = click_data['points'][0]['z']
+                fig.add_scatter3d(x=[f1_point],
+                                  y=[f2_point],
+                                  z=[f3_point],
+                                  mode='markers',
+                                  marker=dict(color='LightSeaGreen', size=30))
+                fig.update_traces(
+                    hovertemplate=
+                    'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>')
+            elif isinstance(fig.data[0], go.Parcoords):
+                coords = [
+                    click_data['points'][0]['dimension_values'][i]
+                    for i in range(len(data[0]))
+                ]
+                dimensions = [{
+                    "label": f"Objective {i+1}",
+                    "values": [coords[i]]
+                } for i in range(len(coords))]
+                if len(fig.data) == 1:
+                    fig.add_trace(
+                        go.Parcoords(line=dict(color='LightSeaGreen', size=30),
+                                     dimensions=dimensions))
+                else:
+                    fig.data[1].dimensions = dimensions
+
     fig.update_layout(showlegend=False)
     return fig
 
