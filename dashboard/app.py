@@ -25,7 +25,7 @@ labelFlex = {
     'fontFamily': "Helvetica",
 }
 
-app.layout = interface_layout
+# app.layout = interface_layout
 
 app.layout = html.Div([
     dcc.Store(id="slider-values-store", data={}),
@@ -208,18 +208,47 @@ def update_output(contents, filename, tab, slider_values, click_data):
 def slider_output(click_data, my_data, slider_ids):
     if click_data and my_data:
         df = pd.DataFrame(my_data)
-        f1_point = click_data['points'][0]['x']
-        f2_point = click_data['points'][0]['y']
-        dff = df[(df.f1 == f1_point) & (df.f2 == f2_point)]
-        if not dff.empty and len(slider_ids) > 0:
-            decision_variables = [
-                id['index'].split('-')[1] for id in slider_ids
-            ]
+        if 'points' in click_data and len(click_data['points']) > 0:
+            # Extracting coordinates based on the plot type
+            num_objectives = len(
+                [col for col in df.columns if col.startswith('f')])
+            num_decision_vars = len(df.columns) - num_objectives
 
-            if pd.Series(decision_variables).isin(dff.columns).all():
-                return list(dff[decision_variables].values[0])
+            if num_objectives > 0:
+                # Extracting x, y, z coordinates if applicable
+                x_key = 'x'
+                y_key = 'y'
+                z_key = 'z' if num_objectives >= 3 else None
+
+                if num_objectives <= 3:
+                    f1_point = click_data['points'][0][x_key]
+                    f2_point = click_data['points'][0][y_key]
+                    f3_point = click_data['points'][0][z_key] if z_key else None
+
+                    dff = df[(df["f1"] == f1_point) & (df["f2"] == f2_point)]
+                    if f3_point:
+                        dff = dff[dff["f3"] == f3_point]
+
+                    if not dff.empty and len(slider_ids) > 0:
+                        decision_variables = [
+                            id['index'].split('-')[1] for id in slider_ids
+                        ]
+                        if pd.Series(decision_variables).isin(
+                                dff.columns).all():
+                            return list(dff[decision_variables].iloc[0])
+                        # if len(slider_values) == len(slider_ids):
+                        #     return slider_values
+                else:
+                    trace_index = click_data["points"][0]["curveNumber"]
+                    if 0 <= trace_index < len(df):
+                        slider_values = df.iloc[
+                            trace_index, :num_decision_vars].tolist()
+                        
+                        return slider_values
 
     return [0 for _ in slider_ids]
+
+
 
 
 @app.callback(
@@ -251,8 +280,8 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
             return fig
     fig = gen_graph(pd.DataFrame.from_dict(data))
 
-    if len(fig.data) > 1:
-        fig.data = [fig.data[0]]
+    # if len(fig.data) > 1:
+    #     fig.data = [fig.data[0]]
     # Adding new scatter trace for the newly selected point:
     if change_status is True:
         if not slider_values or all(slider == 0 for slider in slider_values):
@@ -263,39 +292,49 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
         DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
         dff = DTLZ2.evaluate(np.array(slider_values))
 
-        # fig = gen_graph(pd.DataFrame.from_dict(data))
-
-        if isinstance(fig.data[0], go.Scatter):
-            fig.add_scatter(x=[dff[0]],
-                            y=[dff[1]],
-                            mode='markers',
-                            marker=dict(color='red', size=30, symbol='star'),
-                            hoverinfo='text',
-                            text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
-                            hoverlabel=dict(font_size=22))
-        elif isinstance(fig.data[0], go.Scatter3d):
-            fig.add_scatter3d(
-                x=[dff[0]],
-                y=[dff[1]],
-                z=[dff[2]],
-                mode='markers',
-                marker=dict(color='red', size=30),
-                hoverinfo='text',
-                text=
-                f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}<br>f3: {dff[2]: .2f}',
-                hoverlabel=dict(font_size=22))
-        elif isinstance(fig.data[0], go.Parcoords):
-            dimensions = [{
-                "label": f"Objective {i+1}",
-                "values": [dff[i]]
-            } for i in range(len(dff))]
-            if len(fig.data) == 1:
-                fig.add_trace(
-                    go.Parcoords(line=dict(color='blue'),
-                                 dimensions=dimensions))
-            else:
-                fig.data[1].dimensions = dimensions
-
+        
+        df = pd.DataFrame(data)
+        num_objectives = len(
+            [col for col in df.columns if col.startswith('f')])
+        if num_objectives == 2:
+            if isinstance(fig.data[0], go.Scatter):
+                fig.add_scatter(x=[dff[0]],
+                                y=[dff[1]],
+                                mode='markers',
+                                marker=dict(color='red',
+                                            size=30,
+                                            symbol='star'),
+                                hoverinfo='text',
+                                text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}',
+                                hoverlabel=dict(font_size=22))
+        elif num_objectives == 3:
+            if isinstance(fig.data[0], go.Scatter3d):
+                fig.add_scatter3d(
+                    x=[dff[0]],
+                    y=[dff[1]],
+                    z=[dff[2]],
+                    mode='markers',
+                    marker=dict(color='red', size=30),
+                    hoverinfo='text',
+                    text=
+                    f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}<br>f3: {dff[2]: .2f}',
+                    hoverlabel=dict(font_size=22))
+        elif num_objectives > 3:
+            if isinstance(fig.data[0], go.Scatter):
+                x_labels = [f'f{i+1}' for i in range(len(dff))]
+                fig.add_scatter(
+                    x=x_labels,
+                    y=dff,
+                    mode='lines+markers',
+                    line=dict(color='red', width=5),
+                    marker=dict(color='red', size=30, symbol='star'),
+                    hoverinfo='text',
+                    text='<br>'.join([
+                        f'{label}: {value: .2f}'
+                        for label, value in zip(x_labels, dff)
+                    ]),
+                    # text=f'f1: {dff[0]: .2f}<br>f2: {dff[1]: .2f}<br>f3: {dff[2]: .2f}<br>f4: {dff[3]: .2f}',
+                    hoverlabel=dict(font_size=22))
     else:
         # fig = gen_graph(pd.DataFrame.from_dict(data))
 
@@ -306,8 +345,8 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
                 fig.add_scatter(x=[f1_point],
                                 y=[f2_point],
                                 marker=dict(color='LightSeaGreen', size=30))
-                fig.update_traces(
-                    hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
+                # fig.update_traces(
+                #     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
             elif isinstance(fig.data[0], go.Scatter3d):
                 f1_point = click_data['points'][0]['x']
                 f2_point = click_data['points'][0]['y']
