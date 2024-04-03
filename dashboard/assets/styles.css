@@ -1,6 +1,22 @@
 body {
   background-image: linear-gradient(to right, #141e30, #243b55);
+  margin:0;
+  padding:0;
 }
+
+.image { 
+  opacity: 1;
+  height: auto;
+  max-width: 200px;
+}
+
+.header-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem;
+}
+
 
 button {
   font-size: larger;
@@ -8,21 +24,17 @@ button {
   align-items: center;
 }
 
-.image {
-  /* position: fixed; */
-  opacity: 1;
+.upload-section{
+  color: black;
+  background-color: #fcba03;
+  margin-left: 0.5rem;
+  border-radius: 5px;
+  padding:20px;
+  height: calc(100vh - 150px);
+  overflow:hidden ;
+  text-align: center;
 }
 
-.box {
-  margin-top: 5px;
-  margin-left: 15px;
-  overflow: hidden;
-  min-height: 108px;
-  background-color: white;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  width: 180px;
-}
 
 .custom-tab {
   font-size: x-large;
@@ -36,41 +48,44 @@ button {
   font-weight: bold;
 }
 
-#tabs-example-graph {
-  margin-top: 9px;
-  margin-left: 515px;
-  width: 76%;
-}
+
 
 .my-custom-container-style {
-  margin-left: 0.7rem;
-  width: 109.4rem;
-  height: 23vh;
-  padding: 0;
-  color: #141e30;
-  background-color: white;
-  position: relative;
-}
+  overflow: hidden;
+  color: black;
+  background-color: white; 
+} 
 
-#graph-container {
-  position: absolute !important;
-  top: -70%;
-  display: inline;
-  height: 40%;
-  width: 38%;
-  margin-left: 2rem;
-  background-color: transparent;
-}
+
+/* #graph1-container {  */
+  /* position: absolute !important;  */
+  /* position: relative; */
+  /* top: -200%; */
+  /* display: inline;
+  height: 40%; */
+  /* width: 38%; */
+  /* width: 48%; */
+  /* margin-left: 2rem;
+  flex:1 1 50%;
+} */
+  /* margin-left: 0; */
+  /* background-color: transparent;
+/* } 
+
+
 
 #sliders {
   display: inline;
-  position: absolute !important;
-  width: 38%;
-  top: -30%;
-  margin-left: 55rem;
-  color: black;
+  /* position: absolute !important;
+  width: 38%; */
+  /* width: 48%; */
+  /* top: -30%; */
+  /* margin-left: 55rem; */
+  /* color: black;
   font-size: 25px;
-}
+} */
+
+
 
 .slider-label {
   flex-shrink: 0;
@@ -91,33 +106,32 @@ button {
   color: black;
 }
 
-.align-cards {
-  margin-left: 0;
-  margin-right: 0;
-  width: 111rem;
-}
+
+ .align-cards { 
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+} 
+
 
 .card {
   background-color: rgb(118, 192, 192);
-  margin-top: 0.7rem;
-  height: 33.5vh;
-  left: 0;
+  margin-top: 0.4rem;
+  height:calc(100vh - 800px); 
+  flex-grow: 1;
+  overflow: hidden;
 }
 
-.card-title {
+.main-container{
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.card-title, .card-title2 {
   text-align: center;
   font-weight: bold;
   color: rgb(13, 13, 12);
 }
 
-.card-title2 {
-  text-align: center;
-  font-weight: bold;
-  color: rgb(13, 13, 12);
-}
 
-#tabs-example-graph .my-custom-container-style {
-  width: 100%;
-  margin-left: 0;
-  margin-right: auto;
-}
