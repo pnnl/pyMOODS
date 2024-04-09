@@ -124,8 +124,8 @@ interface_layout = html.Div([
                                                 #     "transparent"
                                                 # },
                                                 id='graph1')
-                                        ]),
-                                    dbc.Col(html.Div(id="sliders")),
+                                        ], width=5),
+                                    dbc.Col(html.Div(id="sliders"), width=5),
                                 ],
                                 className="my-custom-container-style"),
                             dbc.Row(
@@ -136,6 +136,7 @@ interface_layout = html.Div([
                                                 html.H4(
                                                     "Plot Description",
                                                     className="card-title"),
+                                                html.Div(id='temp-radar-chart'),
                                                 # Add interpretation content here
                                             ]))
                                     ]),
