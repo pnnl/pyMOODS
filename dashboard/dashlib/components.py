@@ -1,5 +1,7 @@
 import pandas as pd
 import plotly.graph_objs as go
+import numpy as np
+
 
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
@@ -9,6 +11,7 @@ def blank_figure():
 
     return fig
 
+
 def gen_graph(df):
     fig = go.Figure()
     if ('tab-1-example-graph') and df is not None and isinstance(
@@ -17,99 +20,121 @@ def gen_graph(df):
         num_objective_functions = len(f_cols)
 
         if num_objective_functions >= 2:
-            if num_objective_functions == 2:
-                x_column, y_column = f_cols[:2]
-                fig.add_trace(
-                    go.Scatter(
-                        x=df[x_column],
-                        y=df[y_column],
-                        # hovertemplate='(x = %{x}, y= %{y})<extra></extra>',
-                        mode="markers",
-                        marker=dict(color='rgba(0,0,0,0)',
-                                    size=20,
-                                    line=dict(color='MediumPurple', width=2)),
-                        # selected=go.scatter.Selected(marker={
-                        #     'size': 40,
-                        #     "color": "LightSeaGreen"
-                        # })
+            if num_objective_functions <= 3:
+                if num_objective_functions == 2:
+                    x_column, y_column = f_cols[:2]
+                    fig.add_trace(
+                        go.Scatter(
+                            x=df[x_column],
+                            y=df[y_column],
+                            # hovertemplate='(x = %{x}, y= %{y})<extra></extra>',
+                            mode="markers",
+                            marker=dict(color='rgba(0,0,0,0)',
+                                        size=20,
+                                        line=dict(color='MediumPurple',
+                                                  width=2)),
+                            # selected=go.scatter.Selected(marker={
+                            #     'size': 40,
+                            #     "color": "LightSeaGreen"
+                            # })
                         ))
+                    fig.update_layout(
+                        xaxis=dict(title='f1',
+                                   showgrid=True,
+                                   showline=True,
+                                   zeroline=False,
+                                   linewidth=2,
+                                   linecolor='black',
+                                   title_font=dict(size=30),
+                                   title_standoff=5,
+                                   automargin=True),
+                        yaxis=dict(title='f2',
+                                   showgrid=True,
+                                   zeroline=False,
+                                   showline=True,
+                                   linewidth=2,
+                                   linecolor='black',
+                                   title_font=dict(size=30),
+                                   title_standoff=5,
+                                   automargin=True),
+                        font=dict(color="black", size=22),
+                        clickmode='event+select',
+                        mapbox={
+                            'style': "stamen-terrain",
+                            'zoom': 6
+                        },
+                        hovermode='closest',
+                        # font_color='black',
+                        # template=None,
+                        font_family="Helvetica",
+                        margin=dict(l=10, r=20, t=20, b=0),
+                        paper_bgcolor='rgb(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                    )
+                # elif num_objective_functions == 3:
+                else:
+                    fig.add_trace(
+                        go.Scatter3d(
+                            x=df[f_cols[0]],
+                            y=df[f_cols[1]],
+                            z=df[f_cols[2]],
+                            hovertemplate=
+                            'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>',
+                            mode="markers",
+                            marker=dict(size=20,
+                                        line=dict(color='MediumPurple',
+                                                  width=2),
+                                        symbol='circle'),
+                        ))
+                    fig.update_layout(scene=dict(xaxis=dict(title='f1'),
+                                                 yaxis=dict(title='f2'),
+                                                 zaxis=dict(title='f3')),
+                                      clickmode='event+select',
+                                      hovermode='closest',
+                                      font_family="Helvetica",
+                                      margin=dict(l=10, r=20, t=20, b=0),
+                                      paper_bgcolor='rgb(0,0,0,0)',
+                                      plot_bgcolor='rgba(0,0,0,0)')
+            else:
+                df = df.T
+                f_colss = [col for col in df.index if col.startswith('f')]
+                
+                for col in f_colss:
+                    fig.add_vline(x=col,
+                                  line_width=3,
+                                  line_dash="dash",
+                                  line_color="green")
+                for col in df.columns:
+                    fig.add_trace(
+                        go.Scatter(x=df.index.values[df.index.str.startswith('f')],
+                                   y=df[col][df.index.str.startswith('f')],
+                                   mode='lines',
+                                   name=str(col)))
+
                 fig.update_layout(
-                    xaxis=dict(title='f1',
-                               showgrid=True,
-                               showline=True,
-                               zeroline=False,
-                               linewidth=2,
-                               linecolor='black',
-                               title_font=dict(size=30),
-                               title_standoff=5,
-                               automargin=True),
-                    yaxis=dict(title='f2',
-                               showgrid=True,
-                               zeroline=False,
-                               showline=True,
-                               linewidth=2,
-                               linecolor='black',
-                               title_font=dict(size=30),
-                               title_standoff=5,
-                               automargin=True),
-                    font=dict(color="black", size=22),
+                    showlegend=False,
+                    xaxis=dict(
+                        tickmode='array',
+                        tickvals=np.arange(len(df)),
+                        # tickvals=list(range(num_objective_functions)),
+                        ticktext=[col for col in f_colss],
+                        # ticktext=[
+                        #     "f" + str(i + 1)
+                        #     for i in range(num_objective_functions)
+                        # ],
+                        # tickangle=45,
+                        automargin=True,
+                    ),
+                    # yaxis=dict(title='Values'),
                     clickmode='event+select',
-                    mapbox={
-                        'style': "stamen-terrain",
-                        'zoom': 6
-                    },
                     hovermode='closest',
-                    # font_color='black',
-                    # template=None,
-                    font_family="Helvetica",
-                    margin=dict(l=10, r=20, t=20, b=0),
                     paper_bgcolor='rgb(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color="black", size=22),
+                    margin=dict(l=10, r=20, t=20, b=0),
                 )
-            elif num_objective_functions == 3:
-                fig.add_trace(
-                    go.Scatter3d(
-                        x=df[f_cols[0]],
-                        y=df[f_cols[1]],
-                        z=df[f_cols[2]],
-                        hovertemplate='f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>',
-                        mode="markers",
-                        marker=dict(
-                                    size=20,
-                                    line=dict(color='MediumPurple', width=2),
-                                    symbol='circle'),
-                    ))
-                fig.update_layout(
-                    scene= dict(xaxis=dict(title='f1'),
-                                  yaxis=dict(title='f2'),
-                                  zaxis=dict(title='f3')),
-                                  clickmode='event+select',
-                                  hovermode='closest',
-                                  font_family="Helvetica",
-                                  margin=dict(l=10, r=20, t=20, b=0),
-                                  paper_bgcolor='rgb(0,0,0,0)',
-                                  plot_bgcolor='rgba(0,0,0,0)')
-            # else:
-            #     dimensions = [
-            #         dict(range=[df[col].min(), df[col].max()],
-            #              label=col,
-            #              values=df[col]) for col in f_cols
-            #     ]
-            #     fig.add_trace(
-            #         go.Parcoords(
-            #             line=dict(color='purple'),
-            #             dimensions=dimensions
-            #         ))
-            #     fig.update_layout(
-            #         paper_bgcolor='rgb(0,0,0,0)',
-            #         plot_bgcolor='rgba(0,0,0,0)',
-            #         font=dict(color="black", size=22),
-            #         clickmode='event+select',
-            #         hovermode='closest',
-            #     )
-        else:
-            print("Error: Insufficient columns starting with 'f'")
-            return fig
+
+         
 
     else:
         print("Invalid data format")
