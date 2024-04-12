@@ -1,10 +1,11 @@
+
 body {
   background-image: linear-gradient(to right, #141e30, #243b55);
   margin:0;
   padding:0;
 }
 
-.image { 
+.image {
   opacity: 1;
   height: auto;
   max-width: 200px;
@@ -53,36 +54,36 @@ button {
 .my-custom-container-style {
   overflow: hidden;
   color: black;
-  background-color: white; 
-} 
+  background-color: white;
+}
 
 
 /* #graph1-container {  */
-  /* position: absolute !important;  */
-  /* position: relative; */
-  /* top: -200%; */
-  /* display: inline;
-  height: 40%; */
-  /* width: 38%; */
-  /* width: 48%; */
-  /* margin-left: 2rem;
-  flex:1 1 50%;
+/* position: absolute !important;  */
+/* position: relative; */
+/* top: -200%; */
+/* display: inline;
+height: 40%; */
+/* width: 38%; */
+/* width: 48%; */
+/* margin-left: 2rem;
+flex:1 1 50%;
 } */
-  /* margin-left: 0; */
-  /* background-color: transparent;
-/* } 
+/* margin-left: 0; */
+/* background-color: transparent;
+/* }
 
 
 
 #sliders {
-  display: inline;
-  /* position: absolute !important;
-  width: 38%; */
-  /* width: 48%; */
-  /* top: -30%; */
-  /* margin-left: 55rem; */
-  /* color: black;
-  font-size: 25px;
+display: inline;
+/* position: absolute !important;
+width: 38%; */
+/* width: 48%; */
+/* top: -30%; */
+/* margin-left: 55rem; */
+/* color: black;
+font-size: 25px;
 } */
 
 
@@ -98,7 +99,7 @@ button {
 }
 
 .rc-slider-mark-text {
-  font-size: 19px;
+  font-size: 15px;
   color: gray;
 }
 
@@ -106,18 +107,22 @@ button {
   color: black;
 }
 
+.slider-marker {
+  font-size: 12px;
+}
 
- .align-cards { 
+
+.align-cards {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-} 
+}
 
 
 .card {
   background-color: rgb(118, 192, 192);
   margin-top: 0.4rem;
-  height:calc(100vh - 800px); 
+  height:calc(100vh - 800px);
   flex-grow: 1;
   overflow: hidden;
 }
@@ -133,5 +138,3 @@ button {
   font-weight: bold;
   color: rgb(13, 13, 12);
 }
-
-

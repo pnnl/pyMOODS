@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import numpy as np
 import dash
-from dash import dcc, html
+from dash import dcc, html, Dash, ctx
 from dash.dependencies import Input, Output, State, ALL
 import dash_bootstrap_components as dbc
 from pymoo.problems import get_problem
@@ -12,6 +12,7 @@ from dashlib.layout import interface_layout
 from dashlib.components import gen_graph
 from data.parser import parse_data
 from logger.custom import NumpyEncoder
+from dash.exceptions import PreventUpdate
 
 app = dash.Dash(
     __name__,
@@ -19,6 +20,14 @@ app = dash.Dash(
     suppress_callback_exceptions=True,
 )
 
+new_markers = {}
+
+for i in np.arange(0, 1.01, 0.25):
+    if isinstance(i, float) and i == int(i):
+        new_markers[int(i)] = f'{i:.2f}'
+    else:
+        new_markers[i] = f'{i:.2f}'
+        
 divFlex = {'display': 'flex', 'padding': "0.2rem", 'width': '38%'}
 labelFlex = {
     'flexShrink': 0,
@@ -29,17 +38,25 @@ labelFlex = {
 
 app.layout = html.Div([
     dcc.Store(id="slider-values-store", data={}),
-    dcc.Store(id="slider-change-status", data={}), interface_layout
+    dcc.Store(id="slider-change-status", data={}),
+    dcc.Store(id="df-dimensions", data={}),
+    dcc.Store(id='decision-variables-store', data={}),
+    dcc.Store(id="decision-values-store", data=[]),
+    interface_layout
 ])
 
 
 @app.callback(
-    Output("summary-table", 'style'), Output("summary-table", 'children'),
+    Output("summary-table", 'style'), 
+    Output("summary-table", 'children'),
+    Output('df-dimensions', 'data'),
+    Output('decision-variables-store', 'data'),
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename')])
+
 def update_summary(contents, filename):
     if contents is None:
-        return {'display': 'none'}, []
+        return {'display': 'none'}, [], {}, []
 
     #parse the uploaded file
     content_type, content_string = contents[0].split(',')
@@ -100,24 +117,33 @@ def update_summary(contents, filename):
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
         'width': '82%'
-    }, summary_table
+    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables
 
 
 @app.callback(Output("graph1", "figure", allow_duplicate=True),
               Output("stored-df", "data"),
               Output("sliders", "children"),
-              Output("slider-change-status", "data"), [
-                  Input("upload-data", "contents"),
-                  Input("upload-data", "filename"),
-                  Input('tabs-example-graph', 'value'),
-                  Input({
-                      "type": "ds-sliders",
-                      "index": ALL
-                  }, "value"),
-                  Input("graph1", "clickData")
-              ],
+              Output("slider-change-status", "data"),
+              Input("upload-data", "contents"),
+              Input("upload-data", "filename"),
+              Input('tabs-example-graph', 'value'),
+              Input({
+                  "type": "ds-sliders",
+                  "index": ALL
+              }, "value"),
+              Input("graph1", "clickData"),
+              Input('df-dimensions', 'data'),
+              Input('decision-values-store', 'data'),
               prevent_initial_call=True)
-def update_output(contents, filename, tab, slider_values, click_data):
+
+def update_output(contents, filename, tab, slider_values, click_data, dimensions, decision_store):
+    if len(dimensions) == 0:
+        raise PreventUpdate
+
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
+    if 'decision-values-store.data' in changed_id:
+        print(decision_store)
+
     if contents is not None:
         contents = contents[0]
         filename = filename[0]
@@ -127,13 +153,10 @@ def update_output(contents, filename, tab, slider_values, click_data):
     if df is None:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     if len(changed_id) == len(decision_variables) + 1:
         return dash.no_update, dash.no_update, dash.no_update, False
     elif 'slider' in changed_id[0]:
         return dash.no_update, dash.no_update, dash.no_update, True
-    elif click_data:
-        return dash.no_update, dash.no_update, dash.no_update, False
     elif 'upload-data' in changed_id[0]:
         categorized_data = {
             "Decision Variables": {
@@ -153,6 +176,36 @@ def update_output(contents, filename, tab, slider_values, click_data):
             json.dump(categorized_data, outfile, cls=NumpyEncoder, indent=4)
 
         fig = gen_graph(df)
+
+        if dimensions['dec'] >= 5:
+            rad_sliders = []
+            default_r = [0]*len(decision_variables.keys())
+            default_th = list(decision_variables.keys())
+#             print(default_r, default_th)
+
+            for x in range(len(default_r)):
+                rad_sliders.append(html.P(f"Decision Variable - {x+1}"))
+                rad_sliders.append(dcc.Slider(
+                    id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+                    min=0, max=1, 
+                    step=0.01,
+                    marks=new_markers,
+                    tooltip={
+                        "placement": "bottom",
+                        "always_visible": True
+                    },
+                    value=default_r[x], 
+                    className='slider-marker'
+                ))
+
+            rad_fig = go.Figure(data=go.Scatterpolar(r=default_r, theta=default_th, line_color='red'))
+            rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+
+            return fig, df.to_dict('records'), html.Div([
+                dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '40%', 'height': '100%'}),
+                html.Div(id='radar-sliders', children=rad_sliders, style={'width': '50%', 'fontSize': '16px'}),
+            ], style={'display': 'flex', 'alignItems': 'center'}), False
+
         sliders = [
             html.Div(
                 [
@@ -187,24 +240,138 @@ def update_output(contents, filename, tab, slider_values, click_data):
                                         len(decision_variables))
         ]
 
+
         return fig, df.to_dict('records'), sliders, False
+    elif click_data:
+        if dimensions['dec'] >= 5:
+#             print('in here', decision_store)
+            rad_fig = go.Figure(data=go.Scatterpolar(r=[], theta=[]))
+            sliders = []
+            r = decision_store
 
-    # elif click_data:
-    # return dash.no_update, dash.no_update, dash.no_update, False
+            if len(decision_store) > 0:
+                th = [f'x{i+1}' for i in range(len(decision_store))]
+                th.append(th[0])
 
-    # return dash.no_update, [], [], False
+                r = decision_store
+                r.append(r[0])
+                rad_fig = go.Figure(data=go.Scatterpolar(r=r, theta=th, line_color='red'))
+
+                for x in range(len(r)-1):
+                    sliders.append(html.P(f"Decision Variable - {x+1}"))
+                    sliders.append(dcc.Slider(
+                        id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+                        min=0, max=1, step=0.01, 
+                        marks=new_markers,
+                        tooltip={
+                            "placement": "bottom",
+                            "always_visible": True
+                        },
+                        value=r[x],
+                        className='slider-marker'
+                    ))
+                rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+
+            return dash.no_update, dash.no_update, html.Div([
+                    dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '50%', 'height': '100%'}),
+                    html.Div(id='radar-sliders', children=sliders, style={'width': '50%', 'fontSize': '14px'}),
+#                         dcc.Store(id='sliders-store', data=r)
+                ], style={'display': 'flex', 'height': '100%', 'width': '100%'}), False
+        return dash.no_update, dash.no_update, dash.no_update, False
+
+@app.callback(
+    Output('radar-sliders', 'children'),
+    Input('radar-chart', 'selectedData'),
+    State('decision-values-store', 'data'),
+    prevent_initial_call=True
+)
+
+def filter_sliders(radar_values, stored_sliders):
+    if radar_values is None:
+        tmp_sliders = []
+        for i in range(len(stored_sliders)):
+            tmp_sliders.append(html.P(f"Decision Variable - {i+1}"))
+            tmp_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[i]))
+        return tmp_sliders
+    else:
+        filtered = list(set([d['theta'] for d in radar_values['points']]))
+        t = sorted([int(el.split('x')[1]) for el in filtered])
+        new_sliders = []
+        for i in range(len(filtered)):
+            new_sliders.append(html.P(f"Decision Variable - {t[i]}"))
+            new_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{t[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[t[i]-1]))
+        return new_sliders
+
+@app.callback(
+    Output('radar-chart', 'figure'),
+    Output('decision-values-store', 'data'),
+    Input({
+            "type": "dec-sliders",
+            "index": ALL
+        }, "value"),
+    Input('radar-sliders', 'children'),
+    Input('radar-chart', 'selectedData'),
+    State('decision-values-store', 'data'),
+    State('decision-variables-store', 'data'),
+    prevent_initial_call=True
+)
+
+def update_radar(slider_values, slider_elements, radar_selected, slider_store, decision_vars):
+    th = decision_vars
+    th.append(th[0])
+
+    triggered_id = [p['prop_id'] for p in ctx.triggered]
+
+    if 'radar-chart.selectedData' in triggered_id:
+        return dash.no_update, dash.no_update
+    else:
+        if radar_selected is not None:
+            filtered_labels = list(set([d['theta'] for d in radar_selected['points']]))
+            filtered_labels_indices = [decision_vars.index(label) for label in filtered_labels]
+
+            new_r = slider_store
+            for i, x in enumerate(filtered_labels_indices):
+                new_r[x] = slider_values[i]
+
+            fig = go.Figure(data=go.Scatterpolar(
+                r=new_r,
+                theta=th,
+                line_color='red'
+            , selectedpoints=radar_selected))
+            fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+            return fig, new_r
+
+        else:
+            new_r = slider_values
+#             new_r.append(slider_values[0])
+            fig = go.Figure(data=go.Scatterpolar(
+                r=new_r,
+                theta=th,
+                line_color='red'
+            ))
+            fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+
+            return fig, new_r
 
 
-@app.callback(Output({
-    "type": "ds-sliders",
-    "index": ALL
-}, "value"), Input('graph1', 'clickData'), [
-    State('stored-df', 'data'),
-    State({
+
+
+
+@app.callback(
+    Output({
         "type": "ds-sliders",
         "index": ALL
-    }, "id")
-])
+    }, "value"),
+    Output('decision-values-store', 'data', allow_duplicate=True),
+    Input('graph1', 'clickData'), [
+        State('stored-df', 'data'),
+        State({
+            "type": "ds-sliders",
+            "index": ALL
+        }, "id")
+    ],
+    prevent_initial_call=True
+)
 def slider_output(click_data, my_data, slider_ids):
     if click_data and my_data:
         df = pd.DataFrame(my_data)
@@ -229,26 +396,31 @@ def slider_output(click_data, my_data, slider_ids):
                     if f3_point:
                         dff = dff[dff["f3"] == f3_point]
 
-                    if not dff.empty and len(slider_ids) > 0:
-                        decision_variables = [
-                            id['index'].split('-')[1] for id in slider_ids
-                        ]
-                        if pd.Series(decision_variables).isin(
-                                dff.columns).all():
-                            return list(dff[decision_variables].iloc[0])
+                    if not dff.empty:
+                        if len(slider_ids) > 0:
+                            decision_variables = [
+                                id['index'].split('-')[1] for id in slider_ids
+                            ]
+                            if pd.Series(decision_variables).isin(dff.columns).all():
+                                values = [float(x) for x in list(dff[decision_variables].iloc[0])]
+                                return values, values
                         # if len(slider_values) == len(slider_ids):
                         #     return slider_values
+                        else:
+                            decision_variables = [key for key in list(my_data[0].keys()) if 'x' in key]
+                            if pd.Series(decision_variables).isin(dff.columns).all():
+                                return [], list(dff[decision_variables].values[0])
                 else:
                     trace_index = click_data["points"][0]["curveNumber"]
+#                     print('trace_index', trace_index)
                     if 0 <= trace_index < len(df):
                         slider_values = df.iloc[
                             trace_index, :num_decision_vars].tolist()
-                        
-                        return slider_values
-
-    return [0 for _ in slider_ids]
-
-
+                        if num_decision_vars >= 5:
+                            return [], [float(x) for x in slider_values]
+                        return [float(x) for x in slider_values], []
+                    
+    return [0 for _ in slider_ids], [0 for _ in slider_ids]
 
 
 @app.callback(
@@ -264,18 +436,17 @@ def slider_output(click_data, my_data, slider_ids):
     [
         State('graph1', "figure"),
         State('stored-df', 'data'),
-        State('slider-values-store', 'data'),
-        # State('slider-change-status', 'data')
+        State('slider-values-store', 'data')
     ],
     prevent_initial_call=True)
+
 def pareto_front(slider_values, click_data, change_status, fig, data,
                  stored_slider_values):
-    # print('values', click_data)
+
     if slider_values != stored_slider_values:
         stored_slider_values = slider_values
-        print("Stored: ", stored_slider_values)
-        if not slider_values or all(slider == 0 for slider in slider_values):
-            return fig
+#         if not slider_values or all(slider == 0 for slider in slider_values):
+#             return fig
         if data is None:
             return fig
     fig = gen_graph(pd.DataFrame.from_dict(data))
@@ -289,10 +460,10 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
         # click_data = None
         n_var = len(slider_values)
         n_obj = len(data[0]) - n_var
-        DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
-        dff = DTLZ2.evaluate(np.array(slider_values))
 
-        
+        DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
+        dff = DTLZ2.evaluate(np.array([0 if x is None else x for x in slider_values ]))
+
         df = pd.DataFrame(data)
         num_objectives = len(
             [col for col in df.columns if col.startswith('f')])
@@ -337,8 +508,8 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
                     hoverlabel=dict(font_size=22))
     else:
         # fig = gen_graph(pd.DataFrame.from_dict(data))
-
         if click_data:
+#             print(fig.data[0])
             if isinstance(fig.data[0], go.Scatter):
                 f1_point = click_data['points'][0]['x']
                 f2_point = click_data['points'][0]['y']
@@ -377,7 +548,6 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
 
     fig.update_layout(showlegend=False)
     return fig
-
 
 if __name__ == "__main__":
     app.run_server(debug=True, host="0.0.0.0", port=5001)
