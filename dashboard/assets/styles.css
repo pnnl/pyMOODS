@@ -1,21 +1,22 @@
 body {
   background-image: linear-gradient(to right, #141e30, #243b55);
-  margin: 0;
-  padding: 0;
+  margin:0;
+  padding:0;
 }
 
-.image {
+.image { 
   opacity: 1;
   height: auto;
   max-width: 200px;
 }
 
-.header-row {
+.header-row{
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.4rem;
 }
+
 
 button {
   font-size: larger;
@@ -23,16 +24,17 @@ button {
   align-items: center;
 }
 
-.upload-section {
+.upload-section{
   color: black;
   background-color: #fcba03;
   margin-left: 0.5rem;
   border-radius: 5px;
-  padding: 20px;
+  padding:20px;
   height: calc(100vh - 150px);
-  overflow: hidden;
+  overflow:hidden ;
   text-align: center;
 }
+
 
 .custom-tab {
   font-size: x-large;
@@ -46,25 +48,28 @@ button {
   font-weight: bold;
 }
 
+
+
 .my-custom-container-style {
   overflow: hidden;
   color: black;
-  background-color: white;
-}
+  background-color: white; 
+} 
+
 
 /* #graph1-container {  */
-/* position: absolute !important;  */
-/* position: relative; */
-/* top: -200%; */
-/* display: inline;
+  /* position: absolute !important;  */
+  /* position: relative; */
+  /* top: -200%; */
+  /* display: inline;
   height: 40%; */
-/* width: 38%; */
-/* width: 48%; */
-/* margin-left: 2rem;
+  /* width: 38%; */
+  /* width: 48%; */
+  /* margin-left: 2rem;
   flex:1 1 50%;
 } */
-/* margin-left: 0; */
-/* background-color: transparent;
+  /* margin-left: 0; */
+  /* background-color: transparent;
 /* } 
 
 
@@ -73,18 +78,14 @@ button {
   display: inline;
   /* position: absolute !important;
   width: 38%; */
-/* width: 48%; */
-/* top: -30%; */
-/* margin-left: 55rem; */
-/* color: black;
+  /* width: 48%; */
+  /* top: -30%; */
+  /* margin-left: 55rem; */
+  /* color: black;
   font-size: 25px;
 } */
 
-#sliders {
-  display: inline;
-  margin-top: 1rem;
-  font-size: 22px;
-}
+
 
 .slider-label {
   flex-shrink: 0;
@@ -105,30 +106,32 @@ button {
   color: black;
 }
 
-.align-cards {
+
+ .align-cards { 
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-}
+} 
+
 
 .card {
   background-color: rgb(118, 192, 192);
   margin-top: 0.4rem;
-  height: calc(100vh - 800px);
-  margin-left: -0.8rem;
+  height:calc(100vh - 800px); 
   flex-grow: 1;
   overflow: hidden;
 }
 
-.main-container {
+.main-container{
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-.card-title,
-.card-title2 {
+.card-title, .card-title2 {
   text-align: center;
   font-weight: bold;
   color: rgb(13, 13, 12);
 }
+
+
