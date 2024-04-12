@@ -74,7 +74,7 @@ def update_summary(contents, filename):
             html.Td(html.H3("SUMMARY"),
                     style={
                         'textAlign': 'center',
-                        'paddingLeft': '3.5rem'
+                        # 'paddingLeft': '3.5rem'
                     }),
             html.Td(),
             html.Td(),
@@ -106,18 +106,84 @@ def update_summary(contents, filename):
                         'padding': '0.5rem'
                     })
         ]),
-    ])
-
-    return {
-        'margin': '10rem auto auto auto',
+    ], style={'margin': '10rem auto auto auto',
         'fontWeight': '500',
         'borderRadius': '10px',
         'boxShadow': '0 4px 8px 0 rgba(0,0,0,0.8)',
         'padding': '1.7rem',
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
-        'width': '82%'
-    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables
+        'width': '82%',
+        'display' : 'flex',
+        'flexDirection' : 'column',
+        'alignItems':'center'})
+
+    return {
+        'margin': 'auto'}, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables
+
+@app.callback(
+    [Output("mop-objective-graph", "figure"), Output("mop-decision-graph", "figure")],
+    [Input("upload-data", "contents"),Input("upload-data", "filename")]
+) 
+def update_mop_graphs(contents, filename):
+    if contents is None:
+        return dash.no_update, dash.no_update
+    
+    content_type, content_string = contents[0].split(',')
+    decoded = base64.b64decode(content_string)
+    file = json.loads(decoded)
+
+    df = pd.DataFrame(file)
+    print("DDF: ",df)
+
+    decision_variables = [col for col in df.columns if col.startswith('x')]
+    objective_functions = [col for col in df.columns if col.startswith('f')]
+    
+    f1_values = np.linspace(df[objective_functions[0]].min(), df[objective_functions[0]].max(), 100)
+    f2_values = np.linspace(df[objective_functions[1]].min(), df[objective_functions[1]].max(), 100)
+    F1, F2 = np.meshgrid(f1_values, f2_values)
+    
+    objective_fig = go.Figure(data=[go.Surface(x=F1, y=F2,z=np.sqrt(F1**2 + F2**2), hovertemplate=
+                            'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>')])
+    # objective_fig = go.Figure(data=[go.Heatmap(z=df[objective_functions], colorscale='Viridis')])
+    
+    x1_values = np.linspace(df[decision_variables[0]].min(), df[decision_variables[0]].max(), 100)
+    x2_values = np.linspace(df[decision_variables[1]].min(), df[decision_variables[1]].max(), 100)
+    X1, X2 = np.meshgrid(x1_values, x2_values)
+    
+    decision_fig = go.Figure(data=[go.Surface(x=X1, y=X2,z=np.sqrt(X1**2 + X2**2), hovertemplate=
+                            'x1: %{x}<br>x2: %{y}<br>x3: %{z}<extra></extra>')])
+    # decision_fig = go.Figure(data=[go.Heatmap(z=df[decision_variables])])
+
+    objective_fig.update_layout(
+        scene=dict(
+            xaxis = dict(title='f1', title_font=dict(size=24)),
+            yaxis = dict(title='f2', title_font=dict(size=24)),
+            zaxis = dict(title='f3', title_font=dict(size=24) 
+                        #  if len(objective_functions) > 2 else ''
+                         ),
+            bgcolor = 'rgba(0,0,0,0)', 
+        ),
+        paper_bgcolor = 'rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=0, r=0,t=0, b=100)
+    )
+    
+    decision_fig.update_layout(
+        scene=dict(
+            xaxis = dict(title='x1', title_font=dict(size=24)),
+            yaxis = dict(title='x2', title_font=dict(size=24)),
+            zaxis = dict(title='x3', title_font=dict(size=24) 
+                        #  if len(decision_variables) > 2 else ''
+                         ),
+            bgcolor = 'rgba(0,0,0,0)', 
+        ),
+        paper_bgcolor = 'rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=0, r=0,t=0, b=100)
+    )
+    
+    return objective_fig, decision_fig
 
 
 @app.callback(Output("graph1", "figure", allow_duplicate=True),
@@ -526,7 +592,9 @@ def pareto_front(slider_values, click_data, change_status, fig, data,
                                   y=[f2_point],
                                   z=[f3_point],
                                   mode='markers',
-                                  marker=dict(color='LightSeaGreen', size=30))
+                                  marker=dict(color=f"rgb(32,178,170)", size=30),
+                                  text=f'f1: {f1_point: .2f}<br>f2: {f2_point: .2f}<br>f3: {f3_point: .2f}',
+                                  hoverlabel=dict(font_size=22))
                 fig.update_traces(
                     hovertemplate=
                     'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>')

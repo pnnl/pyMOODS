@@ -38,6 +38,8 @@ def gen_graph(df):
                             #     "color": "LightSeaGreen"
                             # })
                         ))
+                    fig.update_traces(
+                     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
                     fig.update_layout(
                         xaxis=dict(title='f1',
                                    showgrid=True,
@@ -45,7 +47,7 @@ def gen_graph(df):
                                    zeroline=False,
                                    linewidth=2,
                                    linecolor='black',
-                                   title_font=dict(size=30),
+                                   title_font=dict(size=28),
                                    title_standoff=5,
                                    automargin=True),
                         yaxis=dict(title='f2',
@@ -54,7 +56,7 @@ def gen_graph(df):
                                    showline=True,
                                    linewidth=2,
                                    linecolor='black',
-                                   title_font=dict(size=30),
+                                   title_font=dict(size=28),
                                    title_standoff=5,
                                    automargin=True),
                         font=dict(color="black", size=22),
@@ -86,13 +88,16 @@ def gen_graph(df):
                                                   width=2),
                                         symbol='circle'),
                         ))
-                    fig.update_layout(scene=dict(xaxis=dict(title='f1'),
-                                                 yaxis=dict(title='f2'),
-                                                 zaxis=dict(title='f3')),
+                    fig.update_layout(scene=dict(xaxis=dict(title='f1', title_font=dict(size=24), backgroundcolor='rgba(0,0,0,0)', 
+                                        showline= True, showgrid=True, zeroline=False, linewidth=2,linecolor='black', zerolinecolor="black"),
+                                                 yaxis=dict(title='f2', title_font=dict(size=24), backgroundcolor='rgba(0,0,0,0)', 
+                                        showline= True,showgrid=True, zeroline=False, linewidth=2,linecolor='black', zerolinecolor="black"),
+                                                 zaxis=dict(title='f3', title_font=dict(size=24), backgroundcolor='rgba(0,0,0,0)', 
+                                         showline= True,showgrid=True, zeroline=False, linewidth=2,linecolor='black', zerolinecolor="black")),
                                       clickmode='event+select',
                                       hovermode='closest',
                                       font_family="Helvetica",
-                                      margin=dict(l=10, r=20, t=20, b=0),
+                                      margin=dict(l=0, r=0, t=0, b=28),
                                       paper_bgcolor='rgb(0,0,0,0)',
                                       plot_bgcolor='rgba(0,0,0,0)')
             else:
@@ -116,14 +121,9 @@ def gen_graph(df):
                     xaxis=dict(
                         tickmode='array',
                         tickvals=np.arange(len(df)),
-                        # tickvals=list(range(num_objective_functions)),
                         ticktext=[col for col in f_colss],
-                        # ticktext=[
-                        #     "f" + str(i + 1)
-                        #     for i in range(num_objective_functions)
-                        # ],
-                        # tickangle=45,
                         automargin=True,
+                        title_font=dict(size=20)
                     ),
                     # yaxis=dict(title='Values'),
                     clickmode='event+select',
