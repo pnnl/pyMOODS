@@ -24,7 +24,7 @@ new_markers = {}
 
 for i in np.arange(0, 1.01, 0.25):
     if isinstance(i, float) and i == int(i):
-        new_markers[int(i)] = f'{i:.2f}'
+        new_markers[int(i)] = f'{int(i)}'
     else:
         new_markers[i] = f'{i:.2f}'
         
@@ -75,7 +75,7 @@ def update_summary(contents, filename):
             html.Td(html.H3("SUMMARY"),
                     style={
                         'textAlign': 'center',
-                        # 'paddingLeft': '3.5rem'
+                        'paddingLeft': '3.5rem'
                     }),
             html.Td(),
             html.Td(),
@@ -107,84 +107,18 @@ def update_summary(contents, filename):
                         'padding': '0.5rem'
                     })
         ]),
-    ], style={'margin': '10rem auto auto auto',
+    ])
+
+    return {
+        'margin': '10rem auto auto auto',
         'fontWeight': '500',
         'borderRadius': '10px',
         'boxShadow': '0 4px 8px 0 rgba(0,0,0,0.8)',
         'padding': '1.7rem',
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
-        'width': '82%',
-        'display' : 'flex',
-        'flexDirection' : 'column',
-        'alignItems':'center'})
-
-    return {
-        'margin': 'auto'}, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables
-
-@app.callback(
-    [Output("mop-objective-graph", "figure"), Output("mop-decision-graph", "figure")],
-    [Input("upload-data", "contents"),Input("upload-data", "filename")]
-) 
-def update_mop_graphs(contents, filename):
-    if contents is None:
-        return dash.no_update, dash.no_update
-    
-    content_type, content_string = contents[0].split(',')
-    decoded = base64.b64decode(content_string)
-    file = json.loads(decoded)
-
-    df = pd.DataFrame(file)
-    print("DDF: ",df)
-
-    decision_variables = [col for col in df.columns if col.startswith('x')]
-    objective_functions = [col for col in df.columns if col.startswith('f')]
-    
-    f1_values = np.linspace(df[objective_functions[0]].min(), df[objective_functions[0]].max(), 100)
-    f2_values = np.linspace(df[objective_functions[1]].min(), df[objective_functions[1]].max(), 100)
-    F1, F2 = np.meshgrid(f1_values, f2_values)
-    
-    objective_fig = go.Figure(data=[go.Surface(x=F1, y=F2,z=np.sqrt(F1**2 + F2**2), hovertemplate=
-                            'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>')])
-    # objective_fig = go.Figure(data=[go.Heatmap(z=df[objective_functions], colorscale='Viridis')])
-    
-    x1_values = np.linspace(df[decision_variables[0]].min(), df[decision_variables[0]].max(), 100)
-    x2_values = np.linspace(df[decision_variables[1]].min(), df[decision_variables[1]].max(), 100)
-    X1, X2 = np.meshgrid(x1_values, x2_values)
-    
-    decision_fig = go.Figure(data=[go.Surface(x=X1, y=X2,z=np.sqrt(X1**2 + X2**2), hovertemplate=
-                            'x1: %{x}<br>x2: %{y}<br>x3: %{z}<extra></extra>')])
-    # decision_fig = go.Figure(data=[go.Heatmap(z=df[decision_variables])])
-
-    objective_fig.update_layout(
-        scene=dict(
-            xaxis = dict(title='f1', title_font=dict(size=24)),
-            yaxis = dict(title='f2', title_font=dict(size=24)),
-            zaxis = dict(title='f3', title_font=dict(size=24) 
-                        #  if len(objective_functions) > 2 else ''
-                         ),
-            bgcolor = 'rgba(0,0,0,0)', 
-        ),
-        paper_bgcolor = 'rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=0, r=0,t=0, b=100)
-    )
-    
-    decision_fig.update_layout(
-        scene=dict(
-            xaxis = dict(title='x1', title_font=dict(size=24)),
-            yaxis = dict(title='x2', title_font=dict(size=24)),
-            zaxis = dict(title='x3', title_font=dict(size=24) 
-                        #  if len(decision_variables) > 2 else ''
-                         ),
-            bgcolor = 'rgba(0,0,0,0)', 
-        ),
-        paper_bgcolor = 'rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=0, r=0,t=0, b=100)
-    )
-    
-    return objective_fig, decision_fig
+        'width': '82%'
+    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables
 
 
 @app.callback(Output("graph1", "figure", allow_duplicate=True),
@@ -222,7 +156,7 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
     
     if df is None:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
-    print(len(decision_variables))
+#     print(len(decision_variables))
 #     if len(changed_id) == len(decision_variables) + 1:
 #         return dash.no_update, dash.no_update, dash.no_update, False
     if 'slider' in changed_id[0]:
@@ -254,26 +188,43 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
 #             print(default_r, default_th)
 
             for x in range(len(default_r)):
-                rad_sliders.append(html.P(f"Decision Variable - {x+1}"))
-                rad_sliders.append(dcc.Slider(
-                    id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
-                    min=0, max=1, 
-                    step=0.01,
-                    marks=new_markers,
-                    tooltip={
-                        "placement": "bottom",
-                        "always_visible": True
-                    },
-                    value=default_r[x], 
-                    className='slider-marker'
-                ))
+                rad_sliders.append(
+                    html.Div([
+                        html.P(f"x{x+1}", style={'fontSize': '18px'}),
+                        dcc.Slider(
+                            id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+                            min=0, max=1, 
+                            step=0.01,
+                            marks=new_markers,
+                            tooltip={
+                                "placement": "bottom",
+                                "always_visible": True
+                            },
+                            value=default_r[x], 
+                            className='slider-5'
+                        )
+                    ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
+                )
+#                 rad_sliders.append(html.P(f"Decision Variable - {x+1}"))
+#                 rad_sliders.append(dcc.Slider(
+#                     id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+#                     min=0, max=1, 
+#                     step=0.01,
+#                     marks=new_markers,
+#                     tooltip={
+#                         "placement": "bottom",
+#                         "always_visible": True
+#                     },
+#                     value=default_r[x], 
+#                     className='slider-marker'
+#                 ))
 
             rad_fig = go.Figure(data=go.Scatterpolar(r=default_r, theta=default_th, line_color='red'))
             rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
 
             return fig, df.to_dict('records'), html.Div([
-                dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '40%', 'height': '100%'}),
-                html.Div(id='radar-sliders', children=rad_sliders, style={'width': '55%', 'fontSize': '16px'}),
+                dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '35%', 'height': '100%'}),
+                html.Div(id='radar-sliders', children=rad_sliders, style={'width': '60%', 'fontSize': '16px'}),
             ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'}), False
 
         sliders = [
@@ -328,18 +279,34 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
                 rad_fig = go.Figure(data=go.Scatterpolar(r=r, theta=th, line_color='red'))
 
                 for x in range(len(r)-1):
-                    sliders.append(html.P(f"Decision Variable - {x+1}"))
-                    sliders.append(dcc.Slider(
-                        id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
-                        min=0, max=1, step=0.01, 
-                        marks=new_markers,
-                        tooltip={
-                            "placement": "bottom",
-                            "always_visible": True
-                        },
-                        value=r[x],
-                        className='slider-marker'
-                    ))
+                    sliders.append(
+                        html.Div([
+                            html.P(f"x{x+1}", style={'fontSize': '18px'}),
+                            dcc.Slider(
+                                id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+                                min=0, max=1, step=0.01, 
+                                marks=new_markers,
+                                tooltip={
+                                    "placement": "bottom",
+                                    "always_visible": True
+                                },
+                                value=r[x],
+                                className='slider-5'
+                            )
+                        ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
+                    )
+#                     sliders.append(html.P(f"Decision Variable - {x+1}"))
+#                     sliders.append(dcc.Slider(
+#                         id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+#                         min=0, max=1, step=0.01, 
+#                         marks=new_markers,
+#                         tooltip={
+#                             "placement": "bottom",
+#                             "always_visible": True
+#                         },
+#                         value=r[x],
+#                         className='slider-marker'
+#                     ))
                 rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
 
             return dash.no_update, dash.no_update, html.Div([
@@ -359,19 +326,50 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
 
 def filter_sliders(radar_values, stored_sliders):
     if radar_values is None:
-#         print('stored_sliders', stored_sliders)
         tmp_sliders = []
         for i in range(len(stored_sliders)):
-            tmp_sliders.append(html.P(f"Decision Variable - {i+1}"))
-            tmp_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[i]))
+            tmp_sliders.append(
+                html.Div([
+                    html.P(f"Decision Variable - {i+1}", style={'fontSize': '18px'}),
+                    dcc.Slider(
+                        id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, 
+                        min=0, max=1, step=0.1, 
+                        marks=new_markers,
+                        tooltip={
+                            "placement": "bottom",
+                            "always_visible": True
+                        },
+                        value=stored_sliders[i],
+                        className='slider-5'
+                    )
+                ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
+            )
+#             tmp_sliders.append(html.P(f"Decision Variable - {i+1}"))
+#             tmp_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[i]))
         return tmp_sliders
     else:
         filtered = list(set([d['theta'] for d in radar_values['points']]))
         t = sorted([int(el.split('x')[1]) for el in filtered])
         new_sliders = []
         for i in range(len(filtered)):
-            new_sliders.append(html.P(f"Decision Variable - {t[i]}"))
-            new_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{t[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[t[i]-1]))
+            new_sliders.append(
+                html.Div([
+                    html.P(f"Decision Variable - {t[i]}", style={'fontSize': '18px'}),
+                    dcc.Slider(
+                        id={'type': 'dec-sliders', 'index': f'rad-slider-{t[i]}'}, 
+                        min=0, max=1, step=0.1,
+                        marks=new_markers,
+                        tooltip={
+                            "placement": "bottom",
+                            "always_visible": True
+                        },
+                        value=stored_sliders[t[i]-1],
+                        className='slider-5'
+                    )
+                ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
+            )
+#             new_sliders.append(html.P(f"Decision Variable - {t[i]}"))
+#             new_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{t[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[t[i]-1]))
         return new_sliders
 
 @app.callback(
@@ -620,9 +618,7 @@ def pareto_front(ds_slider_values, dec_slider_values, click_data, change_status,
                                   y=[f2_point],
                                   z=[f3_point],
                                   mode='markers',
-                                  marker=dict(color=f"rgb(32,178,170)", size=30),
-                                  text=f'f1: {f1_point: .2f}<br>f2: {f2_point: .2f}<br>f3: {f3_point: .2f}',
-                                  hoverlabel=dict(font_size=22))
+                                  marker=dict(color='LightSeaGreen', size=30))
                 fig.update_traces(
                     hovertemplate=
                     'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>')

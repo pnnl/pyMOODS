@@ -103,7 +103,7 @@ font-size: 25px;
 }
 
 .rc-slider-mark-text {
-  font-size: 19px;
+  font-size: 14px;
   color: gray;
 }
 
@@ -111,8 +111,8 @@ font-size: 25px;
   color: black;
 }
 
-.slider-marker {
-  font-size: 12px;
+.slider-5 {
+  width: 100%;
 }
 
 
