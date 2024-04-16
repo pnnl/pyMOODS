@@ -156,7 +156,6 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
     
     if df is None:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
-#     print(len(decision_variables))
 #     if len(changed_id) == len(decision_variables) + 1:
 #         return dash.no_update, dash.no_update, dash.no_update, False
     if 'slider' in changed_id[0]:
@@ -325,12 +324,13 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
 )
 
 def filter_sliders(radar_values, stored_sliders):
+    print('stored-sliders', stored_sliders)
     if radar_values is None:
         tmp_sliders = []
         for i in range(len(stored_sliders)):
             tmp_sliders.append(
                 html.Div([
-                    html.P(f"Decision Variable - {i+1}", style={'fontSize': '18px'}),
+                    html.P(f"x{i+1}", style={'fontSize': '18px'}),
                     dcc.Slider(
                         id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, 
                         min=0, max=1, step=0.1, 
@@ -354,7 +354,7 @@ def filter_sliders(radar_values, stored_sliders):
         for i in range(len(filtered)):
             new_sliders.append(
                 html.Div([
-                    html.P(f"Decision Variable - {t[i]}", style={'fontSize': '18px'}),
+                    html.P(f"x{t[i]}", style={'fontSize': '18px'}),
                     dcc.Slider(
                         id={'type': 'dec-sliders', 'index': f'rad-slider-{t[i]}'}, 
                         min=0, max=1, step=0.1,
@@ -518,6 +518,7 @@ def slider_output(click_data, my_data, slider_ids):
             "type": "dec-sliders",
             "index": ALL
         }, "value"),
+        Input('decision-values-store', 'data'),
         Input('graph1', 'clickData'),
         Input('slider-change-status', 'data')
     ],
@@ -529,11 +530,11 @@ def slider_output(click_data, my_data, slider_ids):
     ],
     prevent_initial_call=True)
 
-def pareto_front(ds_slider_values, dec_slider_values, click_data, change_status, fig, data,
+def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_data, change_status, fig, data,
                  stored_slider_values, dims):
-    slider_values = ds_slider_values
+    slider_values = dec_values_store
     if dims['dec'] >= 5:
-        slider_values = dec_slider_values
+        slider_values = dec_values_store
         
     if slider_values != stored_slider_values:
         stored_slider_values = slider_values
