@@ -42,8 +42,12 @@ app.layout = html.Div([
     dcc.Store(id="df-dimensions", data={}),
     dcc.Store(id='decision-variables-store', data={}),
     dcc.Store(id="decision-values-store", data=[]),
+    dcc.Store(id='selected-radar-pts-store', data=[]),
+    dcc.Store(id='selection-bbox', data={}),
     interface_layout
 ])
+
+
 
 
 @app.callback(
@@ -51,12 +55,13 @@ app.layout = html.Div([
     Output("summary-table", 'children'),
     Output('df-dimensions', 'data'),
     Output('decision-variables-store', 'data'),
+    Output('decision-values-store', 'data'),
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename')])
 
 def update_summary(contents, filename):
     if contents is None:
-        return {'display': 'none'}, [], {}, []
+        return {'display': 'none'}, [], {}, [], dash.no_update
 
     #parse the uploaded file
     content_type, content_string = contents[0].split(',')
@@ -118,7 +123,7 @@ def update_summary(contents, filename):
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
         'width': '82%'
-    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables
+    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables, [0]*len(decision_variables)
 
 
 @app.callback(Output("graph1", "figure", allow_duplicate=True),
@@ -134,20 +139,17 @@ def update_summary(contents, filename):
               }, "value"),
               Input("graph1", "clickData"),
               Input('df-dimensions', 'data'),
+              Input('decision-variables-store', 'data'),
               Input('decision-values-store', 'data'),
+              State('selected-radar-pts-store', 'data'),
               prevent_initial_call=True)
 
-def update_output(contents, filename, tab, slider_values, click_data, dimensions, decision_store):
-#     print('update_output...')
+def update_output(contents, filename, tab, slider_values, click_data, dimensions, decision_vars, decision_values, selection_store):
     if len(dimensions) == 0:
         raise PreventUpdate
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    print(changed_id)
     
-    if 'decision-values-store.data' in changed_id:
-        print(decision_store)
-
     if contents is not None:
         contents = contents[0]
         filename = filename[0]
@@ -184,7 +186,6 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
             rad_sliders = []
             default_r = [0]*len(decision_variables.keys())
             default_th = list(decision_variables.keys())
-#             print(default_r, default_th)
 
             for x in range(len(default_r)):
                 rad_sliders.append(
@@ -204,26 +205,13 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
                         )
                     ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
                 )
-#                 rad_sliders.append(html.P(f"Decision Variable - {x+1}"))
-#                 rad_sliders.append(dcc.Slider(
-#                     id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
-#                     min=0, max=1, 
-#                     step=0.01,
-#                     marks=new_markers,
-#                     tooltip={
-#                         "placement": "bottom",
-#                         "always_visible": True
-#                     },
-#                     value=default_r[x], 
-#                     className='slider-marker'
-#                 ))
 
             rad_fig = go.Figure(data=go.Scatterpolar(r=default_r, theta=default_th, line_color='red'))
             rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
 
             return fig, df.to_dict('records'), html.Div([
-                dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '35%', 'height': '100%'}),
-                html.Div(id='radar-sliders', children=rad_sliders, style={'width': '60%', 'fontSize': '16px'}),
+                dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '95%', 'height': '100%'}),
+                html.Div(id='radar-sliders', style={'display': 'none'}),
             ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'}), False
 
         sliders = [
@@ -262,93 +250,87 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
 
 
         return fig, df.to_dict('records'), sliders, False
+
     elif click_data:
-        if dimensions['dec'] >= 5:
-#             print('in here', decision_store)
-            rad_fig = go.Figure(data=go.Scatterpolar(r=[], theta=[]))
-            sliders = []
-            r = decision_store
+        if selection_store is None:
+            if dimensions['dec'] >= 5:
+                rad_fig = go.Figure(data=go.Scatterpolar(r=[], theta=[]))
+                sliders = []
+                r = decision_values
 
-            if len(decision_store) > 0:
-                th = [f'x{i+1}' for i in range(len(decision_store))]
-                th.append(th[0])
+                if len(decision_values) > 0:
+                    th = decision_vars
+                    th.append(th[0])
 
-                r = decision_store
-                r.append(r[0])
-                rad_fig = go.Figure(data=go.Scatterpolar(r=r, theta=th, line_color='red'))
+                    r = decision_values
+                    r.append(r[0])
+                    rad_fig = go.Figure(data=go.Scatterpolar(r=r, theta=th, line_color='red'))
 
-                for x in range(len(r)-1):
-                    sliders.append(
-                        html.Div([
-                            html.P(f"x{x+1}", style={'fontSize': '18px'}),
-                            dcc.Slider(
-                                id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
-                                min=0, max=1, step=0.01, 
-                                marks=new_markers,
-                                tooltip={
-                                    "placement": "bottom",
-                                    "always_visible": True
-                                },
-                                value=r[x],
-                                className='slider-5'
-                            )
-                        ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
-                    )
-#                     sliders.append(html.P(f"Decision Variable - {x+1}"))
-#                     sliders.append(dcc.Slider(
-#                         id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
-#                         min=0, max=1, step=0.01, 
-#                         marks=new_markers,
-#                         tooltip={
-#                             "placement": "bottom",
-#                             "always_visible": True
-#                         },
-#                         value=r[x],
-#                         className='slider-marker'
-#                     ))
-                rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+                    for x in range(len(r)-1):
+                        sliders.append(
+                            html.Div([
+                                html.P(f"x{x+1}", style={'fontSize': '18px'}),
+                                dcc.Slider(
+                                    id={'type': 'dec-sliders', 'index': f'rad-slider-{x}'}, 
+                                    min=0, max=1, step=0.01, 
+                                    marks=new_markers,
+                                    tooltip={
+                                        "placement": "bottom",
+                                        "always_visible": True
+                                    },
+                                    value=r[x],
+                                    className='slider-5'
+                                )
+                            ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
+                        )
 
-            return dash.no_update, dash.no_update, html.Div([
-                    dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '40%', 'height': '100%'}),
-                    html.Div(id='radar-sliders', children=sliders, style={'width': '55%', 'fontSize': '14px'}),
-#                         dcc.Store(id='sliders-store', data=r)
-                ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'}), False
+                    rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+
+                return dash.no_update, dash.no_update, html.Div([
+                        dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '95%', 'height': '100%'}),
+                        html.Div(id='radar-sliders', style={'display': 'none'})
+                    ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between'}), False
+        else:
+            raise PreventUpdate
         return dash.no_update, dash.no_update, dash.no_update, False
+
+    
     return dash.no_update, dash.no_update, dash.no_update, False
 
 @app.callback(
-    Output('radar-sliders', 'children'),
+    Output('selected-radar-pts-store', 'data'),
     Input('radar-chart', 'selectedData'),
-    State('decision-values-store', 'data'),
+    Input({
+        "type": "dec-sliders",
+        "index": ALL
+    }, "value"),
     prevent_initial_call=True
 )
 
-def filter_sliders(radar_values, stored_sliders):
-    print('stored-sliders', stored_sliders)
-    if radar_values is None:
-        tmp_sliders = []
-        for i in range(len(stored_sliders)):
-            tmp_sliders.append(
-                html.Div([
-                    html.P(f"x{i+1}", style={'fontSize': '18px'}),
-                    dcc.Slider(
-                        id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, 
-                        min=0, max=1, step=0.1, 
-                        marks=new_markers,
-                        tooltip={
-                            "placement": "bottom",
-                            "always_visible": True
-                        },
-                        value=stored_sliders[i],
-                        className='slider-5'
-                    )
-                ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
-            )
-#             tmp_sliders.append(html.P(f"Decision Variable - {i+1}"))
-#             tmp_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{stored_sliders[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[i]))
-        return tmp_sliders
-    else:
-        filtered = list(set([d['theta'] for d in radar_values['points']]))
+def save_selection(selectedData, dec_sliders):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
+    if 'rad-slider-' in changed_id[0]:
+        raise PreventUpdate
+    return selectedData
+
+@app.callback(
+    Output('radar-sliders', 'children'),
+    Output('radar-sliders', 'style'),
+    Output('radar-chart', 'style'),
+    Output('radar-chart', 'figure'),
+    Output('selection-bbox', 'data'),
+    Input('radar-chart', 'selectedData'),
+    Input('radar-chart', 'figure'),
+    State('decision-values-store', 'data'),
+    State('decision-variables-store', 'data'),
+    
+    prevent_initial_call=True
+)
+
+def filter_sliders(selected_radar_values, fig, stored_sliders, decision_vars):
+    if selected_radar_values:
+        filtered = list(set([d['theta'] for d in selected_radar_values['points']]))
+
         t = sorted([int(el.split('x')[1]) for el in filtered])
         new_sliders = []
         for i in range(len(filtered)):
@@ -368,78 +350,106 @@ def filter_sliders(radar_values, stored_sliders):
                     )
                 ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
             )
-#             new_sliders.append(html.P(f"Decision Variable - {t[i]}"))
-#             new_sliders.append(dcc.Slider(id={'type': 'dec-sliders', 'index': f'rad-slider-{t[i]}'}, min=0, max=1, step=0.1, value=stored_sliders[t[i]-1]))
-        return new_sliders
+
+        new_th = decision_vars
+        new_th.append(decision_vars[0])
+        
+        new_r = stored_sliders
+        new_r.append(stored_sliders[0])
+        
+        chartAxisRange = fig['layout']['polar']['radialaxis']['range']
+        boundingBox = selected_radar_values['range']
+        
+        converted_x = []
+        converted_y = []
+        for x in boundingBox['x']:
+            # convert scale to use chart axis range
+            tmp_x = x+chartAxisRange[1]
+            # calculate percentage on scale
+            perc_x = tmp_x/(chartAxisRange[1]*2)
+            # re-calculate on a different scale
+            converted_x.append(perc_x)
+            
+            
+        for y in boundingBox['y']:
+            # convert scale to use chart axis range
+            tmp_y = y+chartAxisRange[1]
+            # calculate percentage on scale
+            perc_y = tmp_y/(chartAxisRange[1]*2)
+            # re-calculate on a different scale
+            converted_y.append(perc_y*(0.85-0.15)+0.15)          
+        
+        rad_fig = go.Figure(data=go.Scatterpolar(r=new_r, theta=new_th, line_color='red', selectedpoints=[decision_vars.index(x) for x in filtered]))
+        rad_fig.add_shape(
+            type="rect",
+            x0=converted_x[0], x1=converted_x[1], 
+            y0=converted_y[0], y1=converted_y[1],
+            xref='x domain', yref='y domain',  
+            xsizemode='scaled', ysizemode='scaled',
+            line=dict(color="#a3a5a9", dash='dot', width=1),
+        )
+
+        rad_fig.update_layout(dragmode='select', margin=dict(l=0, r=0, t=0, b=0))
+        
+        return new_sliders, {'display': 'block', 'width': '45%'}, {'width': '50%', 'height': '100%'}, rad_fig, {'x': converted_x, 'y': converted_y}
+    else:
+        th = decision_vars
+        th.append(decision_vars[0])
+        
+        r = stored_sliders
+        r.append(stored_sliders[0])
+        
+        rad_fig = go.Figure(data=go.Scatterpolar(r=r, theta=th, line_color='red'))
+        rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+
+        return dash.no_update, {'display': 'none'}, {'width': '95%', 'height': '100%'}, rad_fig, {}
 
 @app.callback(
-    Output('radar-chart', 'figure'),
-    Output('decision-values-store', 'data'),
-    Output('slider-change-status', 'data', allow_duplicate=True),
+    Output('decision-values-store', 'data', allow_duplicate=True),
     Input({
-            "type": "dec-sliders",
-            "index": ALL
-        }, "value"),
-    Input('radar-sliders', 'children'),
-    Input('radar-chart', 'selectedData'),
+        "type": "dec-sliders",
+        "index": ALL
+    }, "value"),
     State('decision-values-store', 'data'),
     State('decision-variables-store', 'data'),
+    State('radar-chart', 'selectedData'),
+#     State('selected-radar-pts-store', 'data'),
     prevent_initial_call=True
 )
 
-def update_radar(slider_values, slider_elements, radar_selected, slider_store, decision_vars):
-#     print('update_radar', slider_store)
-    th = decision_vars
-    th.append(th[0])
-#     print('th', th)
+def save_decision_values(slider_values, curr_dec_values, dec_variables, selected_points):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
+    
+    if len(changed_id) == 1:
+        if 'rad-slider-' in changed_id[0]:
+            filtered_labels = sorted(list(set([d['theta'] for d in selected_points['points']])))
+            filtered_labels_indices = [dec_variables.index(label) for label in filtered_labels]
 
-    triggered_id = [p['prop_id'] for p in ctx.triggered]
-#     print('triggered_id', triggered_id)
-    if 'radar-chart.selectedData' in triggered_id:
-        return dash.no_update, dash.no_update, dash.no_update
-#     elif 'rad-slider-' in triggered_id[0]:
-#         return dash.no_update, dash.no_update, True
-    else:
-        if radar_selected is not None:
-#             print(slider_values)
-#             print(slider_store)
-            filtered_labels = list(set([d['theta'] for d in radar_selected['points']]))
-            filtered_labels_indices = [decision_vars.index(label) for label in filtered_labels]
-
-            new_r = slider_store
+            new_r = curr_dec_values
             for i, x in enumerate(filtered_labels_indices):
                 new_r[x] = slider_values[i]
-            new_r.append(new_r[0])
-
-            fig = go.Figure(data=go.Scatterpolar(
-                r=new_r,
-                theta=th,
-                line_color='red'
-            , selectedpoints=radar_selected))
-            fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
-            return fig, new_r, dash.no_update
-
-        else:
-#             print(slider_values, 'me')
-#             print(triggered_id, 'Check')
-            new_r = slider_values
-            new_r.append(new_r[0])
-#             new_r.append(slider_values[0])
-            fig = go.Figure(data=go.Scatterpolar(
-                r=new_r,
-                theta=th,
-                line_color='red'
-            ))
-            fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
-            if 'rad-slider-' in triggered_id[0]:
-                return fig, dash.no_update, True
+            print('new_r', new_r)
+            return new_r
+        raise PreventUpdate
+    else:
+        raise PreventUpdate
         
-            return fig, new_r, False
+@app.callback(
+    Output('radar-chart', 'figure', allow_duplicate=True),
+    Input({
+        'type': 'dec-sliders',
+        'index': ALL,
+    }, 'value'),
+    State('radar-chart', 'figure'),
+    prevent_initial_call=True
+)    
 
-
-
-
-
+def test(dec_slider_values, fig):
+    triggered_id = [p['prop_id'] for p in ctx.triggered]
+    if 'rad-slider-' in triggered_id[0]:
+        return fig
+    raise PreventUpdate
+    
 @app.callback(
     Output({
         "type": "ds-sliders",
@@ -495,17 +505,14 @@ def slider_output(click_data, my_data, slider_ids):
                                 return [], list(dff[decision_variables].values[0])
                 else:
                     trace_index = click_data["points"][0]["curveNumber"]
-#                     print('trace_index', trace_index)
                     if 0 <= trace_index < len(df):
                         slider_values = df.iloc[
                             trace_index, :num_decision_vars].tolist()
-#                         print('checking', [float(x) for x in slider_values])
                         if num_decision_vars >= 5:
                             return [], [float(x) for x in slider_values]
                         return [float(x) for x in slider_values], []
                     
     return [0 for _ in slider_ids], [0 for _ in slider_ids]
-
 
 @app.callback(
     Output('graph1', "figure"),
@@ -556,7 +563,6 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
 
         DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
         dff = DTLZ2.evaluate(np.array([0 if x is None else x for x in slider_values ]))
-        print('checking...', [0 if x is None else x for x in slider_values ], dff)
         df = pd.DataFrame(data)
         num_objectives = len(
             [col for col in df.columns if col.startswith('f')])
@@ -638,9 +644,10 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                                      dimensions=dimensions))
                 else:
                     fig.data[1].dimensions = dimensions
-
-    fig.update_layout(showlegend=False)
-    return fig
+                    
+        fig.update_layout(showlegend=False)
+        return fig
+    
 
 if __name__ == "__main__":
     app.run_server(debug=True, host="0.0.0.0", port=5001)
