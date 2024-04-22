@@ -294,8 +294,8 @@ def update_output(contents, filename, tab, slider_values, click_data, dimensions
                             html.Div(id='radar-sliders', style={'display': 'none'})
                         ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'width': '100%', 'height': '100%'})
                     ], style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'space-between'}), False
-        else:
-            raise PreventUpdate
+#         else:
+#             raise PreventUpdate
         return dash.no_update, dash.no_update, dash.no_update, False
 
     
