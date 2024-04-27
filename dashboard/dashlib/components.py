@@ -113,11 +113,12 @@ def gen_graph(df):
                     fig.add_trace(
                         go.Scatter(x=df.index.values[df.index.str.startswith('f')],
                                    y=df[col][df.index.str.startswith('f')],
-                                   mode='lines',
+                                   mode='lines+markers',
                                    name=str(col)))
 
                 fig.update_layout(
                     showlegend=False,
+                    dragmode='select',
                     xaxis=dict(
                         tickmode='array',
                         tickvals=np.arange(len(df)),
@@ -126,7 +127,7 @@ def gen_graph(df):
                         title_font=dict(size=20)
                     ),
                     # yaxis=dict(title='Values'),
-                    clickmode='event+select',
+#                     clickmode='event+select',
                     hovermode='closest',
                     paper_bgcolor='rgb(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
