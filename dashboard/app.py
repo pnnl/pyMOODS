@@ -613,7 +613,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
 #             return fig
         if data is None:
             return curr_fig
-        
+    df= pd.DataFrame.from_dict(data)
     fig = gen_graph(pd.DataFrame.from_dict(data))
 
     # if len(fig.data) > 1:
@@ -692,9 +692,44 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
             if isinstance(fig.data[0], go.Scatter):
                 f1_point = click_data['points'][0]['x']
                 f2_point = click_data['points'][0]['y']
+                selected_trace_index = click_data['points'][0]['curveNumber']
+                selected_trace = fig.data[selected_trace_index]
+
+                # if selected_trace:
+                if isinstance(selected_trace,
+                              go.Scatter) and selected_trace.mode == 'lines':
+                    selected_trace.line.color = 'black'
+                    selected_trace.line.width = 10
+                    selected_values = df.iloc[selected_trace_index].values
+                    x_labels = [f'f{i+1}' for i in range(len(selected_values))]
+                    selected_trace.text = '<br>'.join([
+                        f'{label}: {value: .2f}'
+                        for label, value in zip(x_labels, selected_values)
+                    ])
+                    selected_trace.hoverinfo = 'text'
+                    for i, trace in enumerate(fig.data):
+                        if isinstance(
+                                trace, go.Scatter
+                        ) and trace.mode == 'lines' and i != selected_trace_index:
+                            trace.line.color = 'rgb(203, 195, 227)'
+
                 fig.add_scatter(x=[f1_point],
                                 y=[f2_point],
-                                marker=dict(color='LightSeaGreen', size=30))
+                                mode='lines+markers',
+                                line=dict(color='black', width=30),
+                                marker=dict(color='black', size=30),
+                                hoverlabel=dict(font_size=28),
+                                hovertemplate=None,
+                                hoverinfo='text',
+                                text='<br>'.join([
+                        f'{label}: {value: .2f}'
+                        for label, value in zip([f1_point], [f2_point])
+                    ]),
+                                name="")
+                fig.update_traces(visible= True)
+                # fig.add_scatter(x=[f1_point],
+                #                 y=[f2_point],
+                #                 marker=dict(color='LightSeaGreen', size=30))
                 # fig.update_traces(
                 #     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
             elif isinstance(fig.data[0], go.Scatter3d):
@@ -705,25 +740,28 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                                   y=[f2_point],
                                   z=[f3_point],
                                   mode='markers',
-                                  marker=dict(color='LightSeaGreen', size=30))
+                                  marker=dict(color=f"rgb(32,178,170)", size=30),
+                                  text=
+                    f'f1: {f1_point: .2f}<br>f2: {f2_point: .2f}<br>f3: {f3_point: .2f}',
+                    hoverlabel=dict(font_size=28))
                 fig.update_traces(
                     hovertemplate=
                     'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>')
-            elif isinstance(fig.data[0], go.Parcoords):
-                coords = [
-                    click_data['points'][0]['dimension_values'][i]
-                    for i in range(len(data[0]))
-                ]
-                dimensions = [{
-                    "label": f"Objective {i+1}",
-                    "values": [coords[i]]
-                } for i in range(len(coords))]
-                if len(fig.data) == 1:
-                    fig.add_trace(
-                        go.Parcoords(line=dict(color='LightSeaGreen', size=30),
-                                     dimensions=dimensions))
-                else:
-                    fig.data[1].dimensions = dimensions
+            # elif isinstance(fig.data[0], go.Parcoords):
+            #     coords = [
+            #         click_data['points'][0]['dimension_values'][i]
+            #         for i in range(len(data[0]))
+            #     ]
+            #     dimensions = [{
+            #         "label": f"Objective {i+1}",
+            #         "values": [coords[i]]
+            #     } for i in range(len(coords))]
+            #     if len(fig.data) == 1:
+            #         fig.add_trace(
+            #             go.Parcoords(line=dict(color='LightSeaGreen', size=30),
+            #                          dimensions=dimensions))
+            #     else:
+            #         fig.data[1].dimensions = dimensions
                     
     fig.update_layout(showlegend=False)
     return fig
