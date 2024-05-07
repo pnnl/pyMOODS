@@ -33,13 +33,14 @@ def gen_graph(df):
                                         size=20,
                                         line=dict(color='MediumPurple',
                                                   width=2)),
+                            hoverlabel=dict(font_size=28),
                             # selected=go.scatter.Selected(marker={
                             #     'size': 40,
                             #     "color": "LightSeaGreen"
                             # })
                         ))
                     fig.update_traces(
-                     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
+                     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>', hoverlabel=dict(font_size=28))
                     fig.update_layout(
                         xaxis=dict(title='f1',
                                    showgrid=True,
@@ -69,7 +70,7 @@ def gen_graph(df):
                         # font_color='black',
                         # template=None,
                         font_family="Helvetica",
-                        margin=dict(l=10, r=20, t=20, b=0),
+                        margin=dict(l=10, r=20, t=20, b=28),
                         paper_bgcolor='rgb(0,0,0,0)',
                         plot_bgcolor='rgba(0,0,0,0)',
                     )
@@ -113,8 +114,10 @@ def gen_graph(df):
                     fig.add_trace(
                         go.Scatter(x=df.index.values[df.index.str.startswith('f')],
                                    y=df[col][df.index.str.startswith('f')],
-                                   mode='lines+markers',
-                                   name=str(col)))
+                                   mode='lines',
+                                   name=str(col),
+                                   line=dict(color='Mediumpurple')
+                                   ))
 
                 fig.update_layout(
                     showlegend=False,
@@ -127,12 +130,12 @@ def gen_graph(df):
                         title_font=dict(size=20)
                     ),
                     # yaxis=dict(title='Values'),
-#                     clickmode='event+select',
+                    # clickmode='event+select',
                     hovermode='closest',
                     paper_bgcolor='rgb(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    font=dict(color="black", size=22),
-                    margin=dict(l=10, r=20, t=20, b=0),
+                    font=dict(color="black", size=24),
+                    margin=dict(l=10, r=20, t=20, b=28),
                 )
 
          
