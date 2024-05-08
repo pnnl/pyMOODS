@@ -31,22 +31,71 @@ interface_layout = dbc.Container(
         ],
                 className="header-row"),
         dcc.Store(id="stored-df"),
+        dcc.Store(id="data-generated"),
         dbc.Row(
             [
-                dbc.Col(dcc.Upload(
-                    id="upload-data",
-                    children=html.Div([
-                        html.Div(html.H3("DATA UPLOAD")),
-                        html.Hr(),
-                        dbc.Button('Upload Pareto Front',
-                                   outline=True,
-                                   color="dark",
-                                   size="lg"),
-                        html.Div(id='summary-table'),
-                    ]),
-                    className='upload-section',
-                    multiple=True,
-                ),
+                dbc.Col(html.Div([
+                    html.H3("Data Input"),
+                    html.Hr(),
+                    dbc.Label("Test:", style={'fontSize': '20px'}),
+                    dcc.Dropdown(id='test-dropdown',
+                                 options=[
+                                     {
+                                         'label': 'DTLZ4',
+                                         'value': 'DTLZ4'
+                                     },
+                                     {
+                                         'label': 'DTLZ3',
+                                         'value': 'DTLZ3'
+                                     },
+                                 ],
+                                 value='DTLZ4'),
+                    dbc.Label('#Decision variables:',
+                              style={
+                                  'marginTop': '1rem',
+                                  'fontSize': '20px'
+                              }),
+                    dbc.Input(
+                        id="num-decision-vars",
+                        placeholder="Enter the number of Decision variables",
+                        type="number", 
+                        min=2, max=20
+                        ),
+                    dbc.Label('#Objective variables:',
+                              style={
+                                  'marginTop': '1rem',
+                                  'fontSize': '20px'
+                              }),
+                    dbc.Input(
+                        id="num-objective-vars",
+                        placeholder="Enter the number of Objective variables",
+                        type="number", 
+                        min=2,max=20
+                        ),
+                    dbc.Button('Generate Data', 
+                                       color="dark",
+                                       size="lg",
+                                id='generated-dtlz4-button',
+                                n_clicks=0,style={
+                                  'marginTop': '2rem',
+                                #   'fontSize': '20px'
+                              } ),
+                    dcc.Upload(
+                        id="upload-data",
+                        children=html.Div([
+                            # html.Div(html.H3("DATA UPLOAD")),
+                            html.Hr(),
+                            html.Div(html.H4("OR")),
+                            dbc.Button('Upload Pareto Front',
+                                    #    outline=True,
+                                       color="dark",
+                                       size="lg"),
+                            html.Div(id='summary-table'),
+                        ]),
+                        multiple=True,
+                    ),
+                ],
+                                 className='upload-section'),
                         width={'size': 3},
                         className='h-75 d-inline-block',
                         style={

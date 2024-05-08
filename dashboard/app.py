@@ -1,4 +1,4 @@
-import base64
+import base64, io
 import json
 import pandas as pd
 import numpy as np
@@ -9,10 +9,12 @@ import dash_bootstrap_components as dbc
 from pymoo.problems import get_problem
 import plotly.graph_objs as go
 from dashlib.layout import interface_layout
-from dashlib.components import gen_graph
+from dashlib.components import gen_graph, blank_figure
 from data.parser import parse_data
 from logger.custom import NumpyEncoder
 from dash.exceptions import PreventUpdate
+from pymoo.optimize import minimize
+from pymoo.algorithms.moo.nsga2 import NSGA2
 
 app = dash.Dash(
     __name__,
@@ -34,7 +36,25 @@ labelFlex = {
     'fontFamily': "Helvetica",
 }
 
-# app.layout = interface_layout
+def generate_data_dtlz4(n_var, n_obj):
+    problem = get_problem('dtlz4', n_var=n_var, n_obj=n_obj)
+    algorithm = NSGA2(pop_size=300)
+    res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
+
+    X = res.X
+    F = res.F
+    n_var = problem.n_var
+    n_obj = problem.n_obj
+    var_cols = [f'x{i}' for i in range(1, n_var + 1)]
+    obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
+    df = pd.DataFrame(X, columns=var_cols)
+    for i in range(n_obj):
+        df[obj_cols[i]] = F[:, i]
+
+    # front = res.F
+    print("Generated Data: ")
+    print(df.head())
+    return df
 
 app.layout = html.Div([
     dcc.Store(id="slider-values-store", data={}),
@@ -44,8 +64,25 @@ app.layout = html.Div([
     dcc.Store(id="decision-values-store", data=[]),
     dcc.Store(id='selected-radar-pts-store', data=[]),
     dcc.Store(id='temp-summary-min-max', data=[]),
-    interface_layout
+    interface_layout,
+    html.Div(id="radar-sliders", style={'display': 'none'})
 ])
+
+@app.callback(Output("data-generated", "data"), [
+    Input("generated-dtlz4-button", "n_clicks")
+], [State("num-decision-vars", "value"),
+    State("num-objective-vars", "value"),
+    ])
+def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
+    if n_var is None or n_obj is None:
+        raise dash.exceptions.PreventUpdate("Please enter")
+    if n_clicks is None:
+        raise PreventUpdate
+    
+    df_generated = generate_data_dtlz4(n_var=n_var, n_obj=n_obj)
+    filename = "data_generated.json"
+    print("Generated JSON: ",df_generated.to_json(orient='records'))
+    return df_generated.to_json(orient='records')
 
 @app.callback(
     Output("summary-table", 'style'), 
@@ -54,18 +91,22 @@ app.layout = html.Div([
     Output('decision-variables-store', 'data'),
     Output('decision-values-store', 'data'),
     [Input('upload-data', 'contents'),
-     Input('upload-data', 'filename')])
+     Input('upload-data', 'filename'),
+     Input("data-generated", "data")])
 
-def update_summary(contents, filename):
-    if contents is None:
+def update_summary(contents, filename, generated_data):
+    if generated_data:
+        generated_data_io = io.StringIO(generated_data)
+        df = pd.read_json(generated_data_io, orient='records')
+    elif contents is None:
         return {'display': 'none'}, [], {}, [], dash.no_update
-
+    else:
     #parse the uploaded file
-    content_type, content_string = contents[0].split(',')
-    decoded = base64.b64decode(content_string)
-    file = json.loads(decoded)
+        content_type, content_string = contents[0].split(',')
+        decoded = base64.b64decode(content_string)
+        file = json.loads(decoded)
 
-    df = pd.DataFrame(file)
+        df = pd.DataFrame(file)
 
     decision_variables = [col for col in df.columns if col.startswith('x')]
     objective_functions = [col for col in df.columns if col.startswith('f')]
@@ -140,22 +181,29 @@ def update_summary(contents, filename):
               Input('df-dimensions', 'data'),
               Input('decision-variables-store', 'data'),
               Input('decision-values-store', 'data'),
+              Input("data-generated", "data"),
               State('selected-radar-pts-store', 'data'),
               prevent_initial_call=True)
 
-def update_output(contents, filename, tab, slider_values, click_data, selected_data, dimensions, decision_vars, decision_values, selection_store):
+def update_output(contents, filename, tab, slider_values, click_data, selected_data, dimensions, decision_vars, decision_values, selection_store, generated_data):
 #     print('update output callback')
     
     if len(dimensions) == 0:
         raise PreventUpdate
 
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     
-    if contents is not None:
+    if generated_data:
+        df, decision_variables, objective_functions = parse_data(generated_data)
+      
+    elif contents is not None:
         contents = contents[0]
         filename = filename[0]
         df, decision_variables, objective_functions = parse_data(
             contents, filename)
+    else:
+        df = pd.DataFrame()
+    
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     
     if df is None:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
@@ -670,7 +718,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
         #     return fig
 
             
-        raise PreventUpdate
+        # raise PreventUpdate
 
         # fig = gen_graph(pd.DataFrame.from_dict(data))
         if click_data:
@@ -697,8 +745,9 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                                 trace, go.Scatter
                         ) and trace.mode == 'lines' and i != selected_trace_index:
                             trace.line.color = 'rgb(203, 195, 227)'
+                            trace.opacity = 0.2
 
-                fig.add_scatter(x=[f1_point],
+                highlighted_trace = go.Scatter(x=[f1_point],
                                 y=[f2_point],
                                 mode='lines+markers',
                                 line=dict(color='black', width=30),
@@ -712,11 +761,24 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                     ]),
                                 name="")
                 fig.update_traces(visible= True)
-                # fig.add_scatter(x=[f1_point],
-                #                 y=[f2_point],
-                #                 marker=dict(color='LightSeaGreen', size=30))
-                # fig.update_traces(
-                #     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>')
+                highlighted_index = None
+                for i, trace in enumerate(fig.data):
+                    if isinstance(trace, go.Scatter) and trace.mode == 'lines+markers':
+                        highlighted_index = i
+                        break
+                        
+                if highlighted_index is not None:
+                    fig.data.pop(highlighted_index)
+                
+                fig.add_trace(highlighted_trace)
+                    
+                if selected_data:
+                    for point in selected_data['points']:
+                        selected_trace_index = point['curveNumber']
+                        if selected_trace_index != highlighted_index:
+                            selected_trace = fig.data[selected_trace_index]
+                            selected_trace.opacity = 1.0
+                            selected_trace.line.color = 'black'
             elif isinstance(fig.data[0], go.Scatter3d):
                 f1_point = click_data['points'][0]['x']
                 f2_point = click_data['points'][0]['y']
