@@ -74,6 +74,7 @@ app.layout = html.Div([
     State("num-objective-vars", "value"),
     ])
 def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
+    print(n_clicks, n_var, n_obj)
     if n_var is None or n_obj is None:
         raise dash.exceptions.PreventUpdate("Please enter")
     if n_clicks is None:
@@ -81,7 +82,7 @@ def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
     
     df_generated = generate_data_dtlz4(n_var=n_var, n_obj=n_obj)
     filename = "data_generated.json"
-    print("Generated JSON: ",df_generated.to_json(orient='records'))
+    # print("Generated JSON: ",df_generated.to_json(orient='records'))
     return df_generated.to_json(orient='records')
 
 @app.callback(
@@ -191,7 +192,6 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
     if len(dimensions) == 0:
         raise PreventUpdate
 
-    
     if generated_data:
         df, decision_variables, objective_functions = parse_data(generated_data)
       
@@ -212,6 +212,7 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
     if 'slider' in changed_id[0]:
         return dash.no_update, dash.no_update, dash.no_update, True, dash.no_update
     elif ('upload-data' in changed_id[0]) | ('data-generated.data' in changed_id):
+        print('checking...')
         categorized_data = {
             "Decision Variables": {
                 key: {
@@ -316,21 +317,21 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
                         values = [solution[i] for solution in decision_values if len(solution) == len(decision_vars)]
 
                         if len(values) > 0:
-                            merged[var] = {'min': min(values), 'max': max(values)}
-
+                            merged[var] = {'min': min(values), 'max': max(values)}  
+                            
                     if len(merged) > 0:
                         # print('minimum', [merged[x]['min'] for x in new_th])
                         rad_fig.add_trace(go.Scatterpolar(r=[merged[x]['min'] for x in new_th] , theta=new_th, fill='toself', mode='lines', name='Min solutions'))
-                        rad_fig.add_trace(go.Scatterpolar(r=[merged[x]['max'] for x in new_th], theta=new_th, fill='toself', mode='lines', name='Max solutions'))
-
+                        rad_fig.add_trace(go.Scatterpolar(r=[merged[x]['max'] for x in new_th], theta=new_th, fill='toself', mode='lines', name='Max solutions')) 
+                    
                     for solution in decision_values:
                         new_r = solution
                         new_r.append(solution[0])
                         
                         rad_fig.add_trace(go.Scatterpolar(r=new_r, theta=new_th))
-
-
-
+                    
+                    
+                    
                 rad_fig.update_layout(showlegend=False, dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
                         
                 return dash.no_update, dash.no_update, html.Div([
@@ -391,17 +392,65 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
     
     return dash.no_update, dash.no_update, dash.no_update, False, dash.no_update
 
-def update_bounding_box(slider_values, radar_sliders_style, fig, radar_sliders, dec_values, radar_pts):
-#     print('update bounding box')
+@app.callback(
+    Output('radar-chart', 'figure', allow_duplicate=True),
+    Output('slider-change-status', 'data', allow_duplicate=True),
+    Input({
+        'type': 'dec-sliders',
+        'index': ALL,
+    }, 'value'),
+    State('radar-chart', 'figure'),
+    State('decision-values-store', 'data'),
+    State('decision-variables-store', 'data'),
+    State('selected-radar-pts-store', 'data'),
+    prevent_initial_call=True
+)
+
+def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     if radar_pts is None:
         return dash.no_update, False
     if 'shapes' in fig['layout']:
-        # filtered_ids = [el['props']['children'][0]['props']['children'] for el in radar_sliders]
-        # filtered_sliders = slider_values
-        # chartAxisRange = fig['layout']['polar']['radialaxis']['range']
         if len(changed_id) == 1:
-            return dash.no_update, True
+            filtered_th = sorted(list(set([obj['theta'] for obj in radar_pts['points']])))
+            curr_data = fig['data'].copy()
+            updated_slider = {}
+            for i, th in enumerate(filtered_th):
+                updated_slider[th] = slider_values[i]
+
+            area_obj = [d for d in curr_data if 'name' in d]
+            curr_solutions = [{'r': el, 'theta': dec_vars, 'type': 'scatterpolar'} for el in dec_values]
+            
+            # print('printing...')
+            # print('before modification', area_obj)
+            for obj in area_obj:
+                for k, v in updated_slider.items():
+                    i = dec_vars.index(k)
+                    if obj['name'] == 'Min solutions':
+                        obj['r'][i] = v[0]
+                        if i == 0:
+                            obj['r'][-1] = v[0]
+                    if obj['name'] == 'Max solutions':
+                        obj['r'][i] = v[1]
+                        if i == 0:
+                            obj['r'][-1] = v[1]
+                    
+            filtered_data = area_obj
+            # print('after modification', filtered_data)
+
+            # print(updated_slider)
+            for d in curr_solutions:
+                statuses = []
+                for k, v in updated_slider.items():
+                    i = dec_vars.index(k)
+                    # print(v[0], v[1])
+                    statuses.append((d['r'][i] >= v[0]) & (d['r'][i] <= v[1]))      
+                        
+                if sum(statuses) == len(filtered_th):
+                    print(d)
+                    filtered_data.append(d)
+            fig['data'] = filtered_data
+            return fig, True
         return dash.no_update, False
     raise PreventUpdate
 
@@ -438,6 +487,10 @@ def save_selection(radar_selected, dec_sliders, click_data, selected_data, dec_v
     Output('slider-change-status', 'data', allow_duplicate=True),
     Input('radar-chart', 'selectedData'),
     Input('radar-chart', 'figure'),
+    Input({
+        "type": "dec-sliders",
+        "index": ALL
+    }, "value"),
     State('temp-summary-min-max', 'data'),
     State('decision-values-store', 'data'),
     State('decision-variables-store', 'data'),
@@ -445,25 +498,28 @@ def save_selection(radar_selected, dec_sliders, click_data, selected_data, dec_v
     prevent_initial_call=True
 )
 
-def filter_sliders(selected_radar_values, fig, summary, stored_sliders, decision_vars, pc_fig):
-    # print('filter sliders callback')
+def filter_sliders(selected_radar_values, fig, dec_slider_values, summary, stored_sliders, decision_vars, pc_fig):
+    
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
+    print('filter sliders callback', changed_id)
     if selected_radar_values:
-        # print('printing...', selected_radar_values['points'])
-        filtered_vars = list(set([obj['theta'] for obj in selected_radar_values['points']]))
+        
+        filtered_vars = sorted(list(set([obj['theta'] for obj in selected_radar_values['points']])))
         filtered_indices = [decision_vars.index(x) for x in filtered_vars]
-
-        # Get filtered ranges by theta
-        combined = {}
-        for obj in selected_radar_values['points']:
-            if obj['theta'] in combined:
-                combined[obj['theta']]['values'].append(obj['r'])
-            else:
-                combined[obj['theta']] = {'values': [obj['r']]}
                 
-        new_sliders = []        
+        new_sliders = [] 
+        # print('selected radar values', selected_radar_values)
+        # print('dec_slider_values', dec_slider_values)
+        # print('stored_sliders', stored_sliders)
         for v in filtered_vars:
             idx = decision_vars.index(v)
+            val = [min([values[idx] for values in stored_sliders]), max([values[idx] for values in stored_sliders])]
+            if ('rad-slider' in changed_id[0]) | (changed_id[0] == 'radar-chart.figure'):
+                # print('here', changed_id)
+                i = filtered_vars.index(v)
+                val = [dec_slider_values[i][0], dec_slider_values[i][1]]
+                # print(val2)
+            # print('val', val)
             new_sliders.append(
                 html.Div([
                     html.P(f"{v}", style={'fontSize': '18px'}),
@@ -475,11 +531,12 @@ def filter_sliders(selected_radar_values, fig, summary, stored_sliders, decision
                             "placement": "bottom",
                             "always_visible": True
                         },
-                        value=[min([values[idx] for values in stored_sliders]), max([values[idx] for values in stored_sliders])],
+                        value=val,
                         className='slider-5'
                     )
                 ], style={'display': 'flex', 'alignItems': 'center', 'width': '100%', 'padding': '2%'})
             )
+        # print('new_sliders', new_sliders)
             
         new_th = decision_vars
         new_th.append(decision_vars[0])
@@ -522,23 +579,23 @@ def filter_sliders(selected_radar_values, fig, summary, stored_sliders, decision
         )
 
         rad_fig.update_layout(showlegend=False, dragmode='select', margin=dict(l=0, r=0, t=0, b=0))
-        
         return new_sliders, {'display': 'block', 'width': '45%'}, {'width': '50%', 'height': '100%'}, rad_fig, 'Move the sliders to modify the values of filtered variables and double-click on an empty area in the chart to deselect.', False
     else:
         if len(decision_vars) >= 5:
+#             print('check id', changed_id)
             th = decision_vars
             th.append(decision_vars[0])
 
             rad_fig = go.Figure()
             if len(summary) > 0:
                 rad_fig.add_trace(go.Scatterpolar(r=[summary[x]['min'] for x in th] , theta=th, fill='toself', mode='lines', name='Minimum'))
-                rad_fig.add_trace(go.Scatterpolar(r=[summary[x]['max'] for x in th], theta=th, fill='toself', mode='lines', name='Maximum'))
+                rad_fig.add_trace(go.Scatterpolar(r=[summary[x]['max'] for x in th], theta=th, fill='toself', mode='lines', name='Maximum')) 
             for solution in stored_sliders:
                 r = solution
                 r.append(solution[0])
                 rad_fig.add_trace(go.Scatterpolar(r=r, theta=th))
 
-
+            
 
             rad_fig.update_layout(showlegend=False, dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
 
@@ -714,7 +771,9 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                         hoverlabel=dict(font_size=22))
     else:
 #         print('check', changed_id)
-#         if selected_data:
+        if selected_data:
+            # print('data selected: ', selected_data)
+            raise PreventUpdate
         # if ('slider-change-status.data' in changed_id) & (selection_store is None) & len(changed_id) < 3:
         #     return fig
 

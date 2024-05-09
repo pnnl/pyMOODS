@@ -114,7 +114,7 @@ def gen_graph(df):
                     fig.add_trace(
                         go.Scatter(x=df.index.values[df.index.str.startswith('f')],
                                    y=df[col][df.index.str.startswith('f')],
-                                   mode='lines',
+                                   mode='lines+markers',
                                    name=str(col),
                                    line=dict(color='Mediumpurple')
                                    ))
