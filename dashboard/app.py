@@ -185,7 +185,7 @@ def update_summary(contents, filename, generated_data):
               State('selected-radar-pts-store', 'data'),
               prevent_initial_call=True)
 
-def update_output(contents, filename, tab, slider_values, click_data, selected_data, dimensions, decision_vars, decision_values, selection_store, generated_data):
+def update_output(contents, filename, tab, slider_values, click_data, selected_data, dimensions, decision_vars, decision_values, generated_data, selection_store):
 #     print('update output callback')
     
     if len(dimensions) == 0:
@@ -211,7 +211,7 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
 #         return dash.no_update, dash.no_update, dash.no_update, False
     if 'slider' in changed_id[0]:
         return dash.no_update, dash.no_update, dash.no_update, True, dash.no_update
-    elif 'upload-data' in changed_id[0]:
+    elif ('upload-data' in changed_id[0]) | ('data-generated.data' in changed_id):
         categorized_data = {
             "Decision Variables": {
                 key: {
@@ -267,6 +267,7 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
         sliders = [
             html.Div(
                 [
+                    html.H6(id='help'),
                     html.Div(col, style=labelFlex, className="slider-label"),
                     dcc.Graph(id='radar-chart', style={'display': 'none'}),
                     html.Div(id='radar-sliders', style={'display': 'none'}),
