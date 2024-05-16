@@ -510,7 +510,7 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary, store
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     # print('filter sliders callback', changed_id)
     if selected_radar_values:
-        filtered_vars = sorted(list(set([obj['theta'] for obj in selected_radar_values['points']])))
+        filtered_vars = sorted(list(set([obj['theta'] for obj in selected_radar_values['points']])), key=lambda x: int(x.split('x')[1]))
         filtered_indices = [decision_vars.index(x) for x in filtered_vars]
                 
         new_sliders = [] 
@@ -871,7 +871,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                 fig.update_traces(visible= True)
                 highlighted_index = None
                 for i, trace in enumerate(fig.data):
-                    if isinstance(trace, go.Scatter) and trace.mode == 'lines+markers':
+                    if instance(trace, go.Scatter) and trace.mode == 'lines+markers':
                         highlighted_index = i
                         break
                         
