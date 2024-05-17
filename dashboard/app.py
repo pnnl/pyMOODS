@@ -62,6 +62,7 @@ app.layout = html.Div([
     dcc.Store(id="df-dimensions", data={}),
     dcc.Store(id='decision-variables-store', data={}),
     dcc.Store(id="decision-values-store", data=[]),
+    dcc.Store(id='temp-decision-values-store', data=[]),
     dcc.Store(id='selected-radar-pts-store', data=[]),
     dcc.Store(id='selected-obj-pts-store', data=[]),
     dcc.Store(id='temp-summary-min-max', data=[]),
@@ -75,7 +76,6 @@ app.layout = html.Div([
     State("num-objective-vars", "value"),
     ])
 def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
-    print('in callback', n_clicks, n_var, n_obj)
     if n_var is None or n_obj is None:
         raise dash.exceptions.PreventUpdate("Please enter")
     if n_clicks is None:
@@ -97,7 +97,6 @@ def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
      Input("data-generated", "data")])
 
 def update_summary(contents, filename, generated_data):
-    print('update summary')
     if generated_data:
         generated_data_io = io.StringIO(generated_data)
         df = pd.read_json(generated_data_io, orient='records')
@@ -215,7 +214,7 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
     if 'slider' in changed_id[0]:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update, True
     elif ('upload-data' in changed_id[0]) | ('data-generated.data' in changed_id):
-        # print('checking...')
+        
         categorized_data = {
             "Decision Variables": {
                 key: {
@@ -234,11 +233,8 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
             json.dump(categorized_data, outfile, cls=NumpyEncoder, indent=4)
 
         fig = gen_graph(df)
-        # fig.update_traces(customdata=df.index)
-        # print('check', fig)
 
         if dimensions['dec'] >= 5:
-            # print('to edit', fig['layout'])
             
             rad_sliders = []
             default_r = [0]*len(decision_variables.keys())
@@ -335,11 +331,16 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
                         new_r.append(solution[0])
                         
                         rad_fig.add_trace(go.Scatterpolar(r=new_r, theta=new_th))
-                    
-                rad_fig.update_layout(showlegend=False, dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
+                
+                rad_fig.update_layout(
+                    showlegend=False, dragmode='select', margin=dict(l=20, r=20, t=20, b=20),
+                    polar = dict(
+                        radialaxis = dict(range=[0, max(list(map(max, decision_values)))+0.1], showticklabels=True)
+                    )
+                )
                         
                 return dash.no_update, dash.no_update, html.Div([
-                        html.H6(id='help', children='Click and drag to draw a box around the area containing the points to filter.'),
+                        html.H6(id='help', children='Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)'),
                         html.Div([
                             dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '95%', 'height': '95%'}),
                             html.Div(id='radar-sliders', style={'display': 'none'})
@@ -383,7 +384,7 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
                     rad_fig.update_layout(dragmode='select', margin=dict(l=20, r=20, t=20, b=20))
 
                 return dash.no_update, dash.no_update, html.Div([
-                        html.H6(id='help', children='Click and drag to draw a box around the area containing the points to filter.'),
+                        html.H6(id='help', children='Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)'),
                         html.Div([
                             dcc.Graph(id='radar-chart', figure=rad_fig, style={'width': '95%', 'height': '95%'}),
                             html.Div(id='radar-sliders', style={'display': 'none'})
@@ -406,27 +407,34 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
     State('decision-values-store', 'data'),
     State('decision-variables-store', 'data'),
     State('selected-radar-pts-store', 'data'),
+    State('selected-obj-pts-store', 'data'),
+    State('stored-df', 'data'),
     prevent_initial_call=True
 )
 
-def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts):
+def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts, obj_pts, data):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    # print('in here', changed_id)
+
     if radar_pts is None:
         return dash.no_update, False, dash.no_update
     if 'radar-chart.figure' in changed_id:
         return dash.no_update, False, dash.no_update
     if 'shapes' in fig['layout']:
         if len(changed_id) == 1:
-            print('length is 1 so should return true for status')
             filtered_th = sorted(list(set([obj['theta'] for obj in radar_pts['points']])))
+
+            if obj_pts['points']:
+                df = pd.DataFrame(data)
+                trace_indices = [obj['curveNumber'] for obj in obj_pts["points"]]
+                subset = df.iloc[trace_indices, :len(dec_vars)].astype(float)
+                
             curr_data = fig['data'].copy()
             updated_slider = {}
             for i, th in enumerate(filtered_th):
                 updated_slider[th] = slider_values[i]
 
             area_obj = [d for d in curr_data if 'name' in d]
-            curr_solutions = [{'r': el, 'theta': dec_vars, 'type': 'scatterpolar'} for el in dec_values]
+            curr_solutions = [{'r': el, 'theta': dec_vars, 'type': 'scatterpolar'} for el in subset.values.tolist()]
 
             for obj in area_obj:
                 for k, v in updated_slider.items():
@@ -441,9 +449,7 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
                             obj['r'][-1] = v[1]
                     
             filtered_data = area_obj
-            # print('after modification', filtered_data)
 
-            # print(updated_slider)
             for d in curr_solutions:
                 statuses = []
                 for k, v in updated_slider.items():
@@ -453,6 +459,7 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
                 if sum(statuses) == len(filtered_th):
                     filtered_data.append(d)
             solutions = [d for d in filtered_data if 'name' not in d.keys()]
+  
             fig['data'] = filtered_data
             return fig, True, [sol['r'] for sol in solutions]
         return dash.no_update, dash.no_update, dash.no_update
@@ -519,7 +526,7 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary, store
             idx = decision_vars.index(v)
             val = [min([values[idx] for values in stored_sliders]), max([values[idx] for values in stored_sliders])]
             if ('rad-slider' in changed_id[0]) | (changed_id[0] == 'radar-chart.figure'):
-                # print('here', changed_id)
+                
                 i = filtered_vars.index(v)
                 val = [dec_slider_values[i][0], dec_slider_values[i][1]]
 
@@ -601,8 +608,8 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary, store
             if (len(changed_id) == 1) & (changed_id[0] == 'radar-chart.selectedData'):
                 fig['layout'].update(shapes=[])
                 
-                return dash.no_update, {'display': 'none'}, {'width': '95%', 'height': '100%'}, fig, 'Click and drag to draw a box around the area containing the points to filter.', False
-            return dash.no_update, {'display': 'none'}, {'width': '95%', 'height': '100%'}, dash.no_update, 'Click and drag to draw a box around the area containing the points to filter.', dash.no_update
+                return dash.no_update, {'display': 'none'}, {'width': '95%', 'height': '100%'}, fig, 'Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)', False
+            return dash.no_update, {'display': 'none'}, {'width': '95%', 'height': '100%'}, dash.no_update, 'Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)', dash.no_update
         raise PreventUpdate
 
 @app.callback(
@@ -702,7 +709,6 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     print('pareto', changed_id, change_status)
     
-    print('compare', selected_data == obj_pts_store)
     slider_values = ds_slider_values
     if dims['dec'] >= 5:   
         slider_values = dec_values_store
@@ -776,15 +782,12 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
     else:
         test = curr_fig['data']
         num_symbols = len([d for d in test if ('marker' in d.keys())])
-        print(num_symbols)
+        
         if selected_data:
             if selected_data['points']:
-                # print(changed_id, len(changed_id), 'checking')
-                # print('check for shapes', curr_fig['layout']['shapes'])
                 if len(changed_id) == 5:
                     curr_shapes = curr_fig['layout']['shapes']
-                    print(curr_shapes)
-                    # fig['layout'].update(shapes=[sh for sh in curr_shapes if sh['type'] == 'line'])
+                    
                     ranges = obj_pts_store['range']
                     selection_bounds = {
                         "x0": ranges["x"][0],
@@ -805,7 +808,6 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                     raise PreventUpdate
             else:
                 if num_symbols > 0:
-                    print('pareto front exists on the graph')
                     fig.update(data=[d for d in test if ('marker' not in d.keys())])
                     ranges = obj_pts_store['range']
 
