@@ -15,6 +15,7 @@ from logger.custom import NumpyEncoder
 from dash.exceptions import PreventUpdate
 from pymoo.optimize import minimize
 from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 
 app = dash.Dash(
     __name__,
@@ -873,7 +874,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                 fig.update_traces(visible= True)
                 highlighted_index = None
                 for i, trace in enumerate(fig.data):
-                    if instance(trace, go.Scatter) and trace.mode == 'lines+markers':
+                    if isinstance(trace, go.Scatter) and trace.mode == 'lines+markers':
                         highlighted_index = i
                         break
                         
@@ -924,6 +925,152 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                     
     fig.update_layout(showlegend=False)
     return fig
+
+@app.callback([
+    Output("mop-objective-graph", "figure"),
+    Output("mop-decision-graph", "figure")
+], Input("tests", "value"))
+def update_mop_graphs(test_selection):
+    if test_selection == 'DTLZ1':
+        n_var = 2  # Number of decision variables
+        n_obj = 2  # Number of objectives
+
+        # Get the DTLZ1 problem from pymoo
+        problem = get_problem("dtlz1", n_var=n_var, n_obj=n_obj)
+
+        # Define the grid resolution
+        GRID_RESOLUTION = 100
+        grid_x = np.linspace(0.0, 1.0, GRID_RESOLUTION)
+        grid_y = np.linspace(0.0, 1.0, GRID_RESOLUTION)
+        # Generate the cost landscape
+
+
+        cost_landscape = np.full((GRID_RESOLUTION, GRID_RESOLUTION), np.inf)
+
+# List to store all solutions and their objectives
+        solutions = []
+        objectives = []
+
+        for i, x1 in enumerate(grid_x):
+            for j, x2 in enumerate(grid_y):
+        # Create a solution with the current grid coordinates
+                solution = np.array([x1, x2] + [0.5] * (n_var - n_obj))
+        # Evaluate the solution to get the objectives
+                f = problem.evaluate(solution)
+                if any(np.isinf(f)) or any(np.isnan(f)):
+                    f = np.ones_like(f) * 1e6
+        # Store the solution and its objectives
+                solutions.append(solution)
+                objectives.append(f)
+
+# Convert the lists to numpy arrays
+        solutions = np.array(solutions)
+        objectives = np.array(objectives)
+        normalized_objectives = objectives/np.max(objectives)
+# Perform non-dominated sorting to get the Pareto fronts
+        fronts = NonDominatedSorting().do(objectives, only_non_dominated_front=False)
+ 
+# Assign the Pareto rank to each solution as its cost
+        for rank, front in enumerate(fronts, start=1):
+            avg_objectives = np.mean(normalized_objectives[front], axis=0)
+            for idx in front:
+                i, j = divmod(idx, GRID_RESOLUTION)
+                cost_landscape[i, j] = np.mean(avg_objectives)
+    
+        objective_fig =  go.Figure(data=[go.Heatmap(z = cost_landscape.T, x = grid_x, y= grid_y, colorscale="Viridis")])
+        objective_fig.update_layout(
+            xaxis_title = 'f1',
+            yaxis_title = 'f2',
+            scene=dict(
+                xaxis = dict(title='f1', title_font= dict(size=30, family='Arial', color='black')),
+                yaxis = dict(title='f2'),
+                zaxis = dict(title='Cost'),
+            ),
+        )
+        objective_fig.update_traces(hovertemplate='f1: %{x}<br>f2: %{y}<br><extra></extra>')
+        decision_fig =  go.Figure(data=[go.Heatmap(z = cost_landscape.T, x = grid_x, y= grid_y, colorscale="Viridis")])
+        decision_fig.update_layout(xaxis_title = 'x1',
+            yaxis_title = 'x2',
+            scene=dict(
+                xaxis = dict(title='x1', title_font=dict(size=24)),
+                yaxis = dict(title='x2', title_font=dict(size=24)),
+                zaxis = dict(title='Cost', title_font=dict(size=24)),
+            )
+        )
+        decision_fig.update_traces(hovertemplate='x1: %{x}<br>x2: %{y}<br><extra></extra>')
+        return objective_fig, decision_fig
+    
+    elif test_selection == 'Aspar':
+        def aspar(x):
+            x1, x2 = x
+            if x1 == 0:
+                x1 = 1e-10
+            if x2 == 0:
+                x2 = 1e-10
+            f1 = x1**4 - 2*x1**2 + 2*x2**2 + 1
+            f2 = (x1 + 0.5)**2 + (x2 - 2)**2
+            return np.array([f1, f2])
+ 
+# Define the grid resolution
+        GRID_RESOLUTION = 100
+        grid_x = np.linspace(-2.0, 2.0, GRID_RESOLUTION)
+        grid_y = np.linspace(-2.0, 2.0, GRID_RESOLUTION)
+ 
+# Generate the cost landscape
+        cost_landscape = np.full((GRID_RESOLUTION, GRID_RESOLUTION), np.inf)
+ 
+# List to store all solutions and their objectives
+        solutions = []
+        objectives = []
+ 
+        for i, x1 in enumerate(grid_x):
+            for j, x2 in enumerate(grid_y):
+        # Create a solution with the current grid coordinates
+                solution = np.array([x1, x2])
+        # Evaluate the solution to get the objectives
+                f = aspar(solution)
+        # Store the solution and its objectives
+                solutions.append(solution)
+                objectives.append(f)
+ 
+# Convert the lists to numpy arrays
+        solutions = np.array(solutions)
+        objectives = np.array(objectives)
+        normalized_objectives = objectives/np.max(objectives)
+ 
+# Perform non-dominated sorting to get the Pareto fronts
+        fronts = NonDominatedSorting().do(objectives, only_non_dominated_front=False)
+ 
+# Assign the Pareto rank to each solution as its cost
+        for rank, front in enumerate(fronts, start=1):
+            avg_objectives = np.mean(normalized_objectives[front], axis=0)
+            for idx in front:
+                i, j = divmod(idx, GRID_RESOLUTION)
+                # cost_landscape[i, j] = rank
+                cost_landscape[i, j] = np.mean(avg_objectives)
+        objective_fig =  go.Figure(data=[go.Heatmap(z = cost_landscape.T, x = grid_x, y= grid_y, colorscale="Viridis")])
+        objective_fig.update_layout(
+            xaxis_title = 'f1',
+            yaxis_title = 'f2',
+            scene=dict(
+                xaxis = dict(title='f1', title_font=dict(size=32)),
+                yaxis = dict(title='f2', title_font=dict(size=28)),
+                zaxis = dict(title='Cost', title_font=dict(size=28)),
+            )
+        )
+        objective_fig.update_traces(hovertemplate='f1: %{x}<br>f2: %{y}<br><extra></extra>')
+        decision_fig =  go.Figure(data=[go.Heatmap(z = cost_landscape.T, x = grid_x, y= grid_y, colorscale="Viridis")])
+        decision_fig.update_layout(xaxis_title = 'x1',
+            yaxis_title = 'x2',
+            scene=dict(
+                xaxis = dict(title='x1', title_font=dict(size=28)),
+                yaxis = dict(title='x2', title_font=dict(size=28)),
+                zaxis = dict(title='Cost', title_font=dict(size=28)),
+            )
+        )
+        decision_fig.update_traces(hovertemplate='x1: %{x}<br>x2: %{y}<br><extra></extra>')
+        return objective_fig, decision_fig
+
 
 if __name__ == "__main__":
     app.run_server(debug=True, host="0.0.0.0", port=5001)

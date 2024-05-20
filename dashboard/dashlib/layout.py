@@ -227,7 +227,7 @@ interface_layout = dbc.Container(
                                                                 "textAlign":"center"
                                                                 # "marginLeft":"15rem"
                                                             }),
-                                                        width=6),
+                                                        width=5),
                                                     dbc.Col(
                                                         html.H4(
                                                             "Decision Space",
@@ -238,7 +238,25 @@ interface_layout = dbc.Container(
                                                                 "margin":"40px"
                                                                 # "margin":"50px", "marginLeft":"15rem"
                                                             }),
-                                                        width=6)
+                                                        width=5),
+                                                     dbc.Col(children=html.Div([
+                                                        dbc.Label(
+                                                            "Test Problems",
+                                                            style={
+                                                                "fontWeight":
+                                                                "600",
+                                                                "fontFamily":
+                                                                "Helvetica",
+                                                                "margin":
+                                                                "40px",
+                                                                "textAlign":
+                                                                "center",
+                                                                "fontSize": "22px",
+                                                            }
+                                                            ),
+                                                    ]),
+                                                         width=2
+                                                            ),
                                                 ],
                                                 className=
                                                 "my-custom-container-style",
@@ -252,14 +270,29 @@ interface_layout = dbc.Container(
                                                             "mop-objective-graph",
                                                             figure=blank_figure(
                                                             )),
-                                                        width=6),
+                                                        width=5),
                                                     dbc.Col(
                                                         dcc.Graph(
                                                             id=
                                                             "mop-decision-graph",
                                                             figure=blank_figure(
                                                             )),
-                                                        width=6),
+                                                        width=5),
+                                                    dbc.Col(
+                                                         dcc.Dropdown(
+                                                            id='tests',
+                                                            options=[
+                                                                {
+                                                                    'label':'DTLZ1',
+                                                                    'value':'DTLZ1'
+                                                                },
+                                                                {
+                                                                    'label':'Aspar',
+                                                                    'value':'Aspar'
+                                                                },
+                                                            ],
+                                                            value='DTLZ1'),
+                                                        ),
                                                 ],
                                                 className=
                                                 "my-custom-container-style"),
