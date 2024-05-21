@@ -42,6 +42,7 @@ def gen_graph(df):
                     fig.update_traces(
                      hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>', hoverlabel=dict(font_size=28))
                     fig.update_layout(
+                        dragmode='select',
                         xaxis=dict(title='f1',
                                    showgrid=True,
                                    showline=True,
