@@ -85,7 +85,7 @@ def gen_graph(df):
                             hovertemplate=
                             'f1: %{x}<br>f2: %{y}<br>f3: %{z}<extra></extra>',
                             mode="markers",
-                            marker=dict(size=20,
+                            marker=dict(size=15,
                                         line=dict(color='MediumPurple',
                                                   width=2),
                                         symbol='circle'),
