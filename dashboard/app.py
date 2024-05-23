@@ -119,6 +119,7 @@ def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
     Output('decision-variables-store', 'data'),
     Output('decision-values-store', 'data'),
     Output('selected-obj-pts-store', 'data'),
+    Output('selected-radar-pts-store', 'data'),
     [Input('upload-data', 'contents'),
      Input('upload-data', 'filename'),
      Input("data-generated", "data")], prevent_initial_call=True)
@@ -129,7 +130,7 @@ def update_summary(contents, filename, generated_data):
         df = pd.read_json(generated_data_io, orient='records')
         # print(df.shape)
     elif contents is None:
-        return {'display': 'none'}, [], {}, [], dash.no_update, []
+        return {'display': 'none'}, [], {}, [], dash.no_update, [], []
     else:
     #parse the uploaded file
         content_type, content_string = contents[0].split(',')
@@ -191,7 +192,7 @@ def update_summary(contents, filename, generated_data):
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
         'width': '82%'
-    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables, [[0]]*len(decision_variables), []
+    }, summary_table, {'obj': len(objective_functions), 'dec': len(decision_variables)}, decision_variables, [[0]]*len(decision_variables), [], []
 
 
 @app.callback(Output("graph1", "figure", allow_duplicate=True),
@@ -464,6 +465,7 @@ def update_output(contents, filename, tab, slider_values, click_data, selected_d
     Output('radar-chart', 'figure', allow_duplicate=True),
     Output('slider-change-status', 'data', allow_duplicate=True),
     Output('decision-values-store', 'data', allow_duplicate=True),
+    Output('no-data-alert', 'is_open'),
     Input({
         'type': 'dec-sliders',
         'index': ALL,
@@ -482,14 +484,14 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
 
     if radar_pts is None:
-        return dash.no_update, False, dash.no_update
+        return dash.no_update, False, dash.no_update, False
     if 'radar-chart.figure' in changed_id:
-        return dash.no_update, False, dash.no_update
+        return dash.no_update, False, dash.no_update, dash.no_update
     if 'shapes' in fig['layout']:
         # slider value changed
         if len(changed_id) == 1:
             filtered_th = sorted(list(set([obj['theta'] for obj in radar_pts['points']])))
-            print('filtered_th', filtered_th)
+#             print('filtered_th', filtered_th)
             if obj_pts['points']:
                 df = pd.DataFrame(data)
                 if dims['obj'] < 4:
@@ -498,7 +500,7 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
                 else:
                     trace_indices = [obj['curveNumber'] for obj in obj_pts["points"]]
                 subset = df.iloc[trace_indices, :len(dec_vars)].astype(float)
-            print('checking', trace_indices, subset)
+#             print('checking', trace_indices, subset)
             
             curr_data = fig['data'].copy()
             updated_slider = {}
@@ -534,14 +536,16 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
   
             fig['data'] = filtered_data
             if len(solutions) > 0:
-                return fig, True, [sol['r'] for sol in solutions]
-            raise PreventUpdate
+                return fig, True, [sol['r'] for sol in solutions], False
+            else:
+                print('here, set is_open to True')
+                return dash.no_update, dash.no_update, dash.no_update, True
             
         raise PreventUpdate
     raise PreventUpdate
 
 @app.callback(
-    Output('selected-radar-pts-store', 'data'),
+    Output('selected-radar-pts-store', 'data', allow_duplicate=True),
     Output('selected-obj-pts-store', 'data', allow_duplicate=True),
     Input('radar-chart', 'selectedData'),
     Input({
@@ -559,10 +563,6 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
 def save_selection(radar_selected, dec_sliders, click_data, selected_data, shift, dec_vars, curr_obj_pts):
     if len(dec_vars) >= 5:
         changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-#         print('changed_id--', changed_id)
-#         print('here', click_data)
-        if click_data is None:
-            raise PreventUpdate
         if 'rad-slider-' in changed_id[0]:
             raise PreventUpdate
         if ('shift-is-clicked.data' in changed_id):
@@ -829,7 +829,6 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
     
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
 #     print('pareto', changed_id, change_status)
-#     print('decision-values', dec_values_store)
     
     slider_values = ds_slider_values
     if dims['dec'] >= 5:   
@@ -858,13 +857,9 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
         n_obj = dims['obj']
 
         DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
-#         print('slider_values', slider_values)
-#         print('array', np.array([0 if x is None else x for x in slider_values]))
         dff = DTLZ2.evaluate(np.array([0 if x is None else x for x in slider_values]))
-        print('dff check', dff)
         df = pd.DataFrame(data)
         num_objectives = len([col for col in df.columns if col.startswith('f')])
-
         
         if num_objectives == 2:
             if isinstance(fig.data[0], go.Scatter):
@@ -912,17 +907,11 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
     else:
         test = curr_fig['data']
         num_symbols = len([d for d in test if ('marker' in d.keys())])
-
-        if selected_data:
-            # print('if selected_data')
-            if selected_data['points']:
+        if dims['obj'] != 3:
+#         if selected_data:
+            if selected_data:
                 # print('if selected_data points')
                 if len(changed_id) == 5:
-                    # print('if changed id length is 5')
-                    # curr_shapes=[]
-                    # if 'shapes' in curr_fig['layout']:
-                    #     curr_shapes = curr_fig['layout']['shapes']
-                    
                     ranges = obj_pts_store['range']
                     selection_bounds = {
                         "x0": ranges["x"][0],
@@ -969,7 +958,8 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
         # fig = gen_graph(pd.DataFrame.from_dict(data))
 
         # REMOVE CLICK
-        if click_data:
+        if dims['obj'] == 3:
+#         if click_data:
             if isinstance(fig.data[0], go.Scatter3d):
                 if 'points' in obj_pts_store:
                     for pt in obj_pts_store['points']:
@@ -1067,4 +1057,4 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
     return fig
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5002)
+    app.run_server(debug=True, host="0.0.0.0", port=5001)

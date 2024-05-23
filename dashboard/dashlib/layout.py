@@ -168,6 +168,9 @@ interface_layout = dbc.Container(
                                                         html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
                                                         # className="sliders-container"
                                                         width=6),
+                                                    dbc.Col(
+                                                            dbc.Alert('No data exists reflecting that change', id='no-data-alert', color='danger', is_open=False, dismissable=True, style={'position': 'absolute', 'top': '15%', 'left': '50%', 'zIndex': 999})
+                                                    )
                                                 ],
                                                 className=
                                                 "my-custom-container-style"),
