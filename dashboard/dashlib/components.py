@@ -143,5 +143,4 @@ def gen_graph(df):
 
     else:
         print("Invalid data format")
-        # return fig
     return fig
