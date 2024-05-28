@@ -190,7 +190,10 @@ def update_summary(contents, filename, generated_data):
         'padding': '1.7rem',
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
-        'width': '82%'
+        'width': '82%',
+        'display':'flex',
+        'flexDirection':'column',
+        'alignItems':'center',
     }, summary_table, {
         'obj': len(objective_functions),
         'dec': len(decision_variables)
@@ -297,14 +300,15 @@ def update_output(contents, filename, tab, slider_values, click_data,
                                     "placement": "bottom",
                                     "always_visible": True
                                 },
-                                # className="slider-input",
+                                className="slider-input",
                             )
                         ],
                         style={
                             'display': 'flex',
-                            'flexDirection': 'column',
+                            'alignItems':'center',
+                            # 'flexDirection': 'column',
                             'padding': '10px',
-                            'width': '100%'
+                            'width': '100%',
                         },
                         # className='slider-5'
                     ))
@@ -334,9 +338,10 @@ def update_output(contents, filename, tab, slider_values, click_data,
                                                             'flexDirection':
                                                             'column',
                                                             'alignItems':
-                                                            'center',
-                                                            'justifyContent':
-                                                            'center'
+                                                            'center','width': '100%',
+                            'padding': '2%'
+                                                            # 'justifyContent':
+                                                            # 'center'
                                                         }), False, {}
 
         if dimensions['dec'] >= 5:
@@ -369,7 +374,6 @@ def update_output(contents, filename, tab, slider_values, click_data,
                             'display': 'flex',
                             'alignItems': 'center',
                             'width': '100%',
-                            'padding': '2%'
                         }))
 
             rad_fig = go.Figure(data=go.Scatterpolar(

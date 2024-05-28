@@ -90,6 +90,7 @@ font-size: 25px;
   display: inline;
   margin-top: 1rem;
   font-size: 22px;
+  color: black;
 }
 
 .slider-label {
@@ -102,6 +103,14 @@ font-size: 25px;
   flex-grow: 1;
 }
 
+.rc-slider-track{
+  background-color:lightgray !important;
+}
+
+.rc-slider-handle{
+  border:2px solid lightgray !important;
+} 
+
 .rc-slider-mark-text {
   font-size: 14px;
   color: gray;
@@ -110,6 +119,17 @@ font-size: 25px;
 .rc-slider-mark-text-active {
   color: black;
 }
+
+/* .rc-slider-track-1{
+  background-color: lightblue !important;
+}
+
+.rc-slider-handle:active, .rc-slider-handle:hover, .rc-slider-handle:focus{
+  background-color: lightblue !important;
+  border: 2px solid lightblue !important;
+  color: lightblue !important;
+} */
+
 
 .slider-5 {
   width: 100%;
