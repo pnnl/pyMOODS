@@ -312,13 +312,14 @@ interface_layout = dbc.Container(
                                                                    className=
                                                                    "card-title"
                                                                    ),
-                                                                # html.Div([html.H5("The above plots show the Cost Landscape Plot for Objective and Decision Space"),
-                                                                # html.H6("Objective Space"),
-                                                                # html.P("#Objective functions: 2"),
-                                                                # html.P("#Decision variables: 7"),
-                                                                # html.H6("Decision Space"),
-                                                                # html.P("#Objective functions: 2"),
-                                                                # html.P("#Decision variables: 2"),], className="plot-des")
+                                                                html.Div([html.H5("The above plots show the Cost Landscape Plot for Objective and Decision Space."),
+                                                                          html.H6("Test: DTLZ1"),
+                                                                html.H6("Objective Space:"),
+                                                                html.P("#Objective functions: 2"),
+                                                                html.P("#Decision variables: 7"),
+                                                                html.H6("Decision Space:"),
+                                                                html.P("#Objective functions: 2"),
+                                                                html.P("#Decision variables: 2"),], className="plot-des")
                                                                 
                                                             ]))
                                                     ],

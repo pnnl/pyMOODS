@@ -163,3 +163,25 @@ font-size: 25px;
   font-weight: bold;
   color: rgb(13, 13, 12);
 }
+
+.plot-des{
+  font-size: larger;
+  color: rgb(57, 56, 56);
+}
+
+.plot-des h5{
+  margin-top: 1.2rem;
+  color:#141e30;
+}
+
+.plot-des h6{
+  font-size: larger;
+  font-weight: bold;
+  color:#141e30;
+  margin-top: 0.5rem;
+}
+
+.plot-des p{
+  margin-left: 1.2rem;
+  line-height:90%;
+}

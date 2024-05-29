@@ -1337,16 +1337,10 @@ def update_mop_graphs(test_selection):
         objective_fig.update_layout(
             xaxis_title='Objective 1',
             yaxis_title='Objective 2',
-            scene=dict(
-                xaxis=dict(title='Objective 1',
-                           title_font=dict(size=30,
-                                           family='Arial',
-                                           color='black')),
-                yaxis=dict(title='Objective 2'),
-                zaxis=dict(title='Cost'),
-            ),
-            paper_bgcolor='rgb(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
+            xaxis = dict(showgrid=False, zeroline=True, zerolinecolor='black', showline=True,linecolor='black', gridwidth=1, title_font=dict(size=20, color='black')),
+            yaxis = dict(showgrid=False, zeroline=True, zerolinecolor='black', showline=True,linecolor='black', gridwidth=1, title_font=dict(size=20, color='black')),
+            # paper_bgcolor='rgb(0,0,0,0)',
+            plot_bgcolor='white',
         )
         objective_fig.update_traces(
             hovertemplate='f1: %{x}<br>f2: %{y}<br><extra></extra>')
@@ -1401,15 +1395,9 @@ def update_mop_graphs(test_selection):
                 z=cost_landscape.T, x=grid_x, y=grid_y, colorscale="Viridis")
         ])
         decision_fig.update_layout(xaxis_title='Decision Variable 1',
-                                   yaxis_title='Decision Variable 2',
-                                   scene=dict(
-                                       xaxis=dict(title='Decision Variable 1',
-                                                  title_font=dict(size=24)),
-                                       yaxis=dict(title='Decision Variable 2',
-                                                  title_font=dict(size=24)),
-                                       zaxis=dict(title='Cost',
-                                                  title_font=dict(size=24)),
-                                   ))
+                                   yaxis_title='Decision Variable 2',xaxis = dict(title_font=dict(size=20, color='black')),
+            yaxis = dict(title_font=dict(size=20, color='black')),
+                                  )
         decision_fig.update_traces(
             hovertemplate='x1: %{x}<br>x2: %{y}<br><extra></extra>')
         return objective_fig, decision_fig
