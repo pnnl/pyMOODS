@@ -43,15 +43,15 @@ interface_layout = dbc.Container(
                     dcc.Dropdown(id='test-dropdown',
                                  options=[
                                      {
-                                         'label': 'DTLZ4',
-                                         'value': 'DTLZ4'
+                                         'label': 'DTLZ1',
+                                         'value': 'DTLZ1'
                                      },
-                                     {
-                                         'label': 'DTLZ3',
-                                         'value': 'DTLZ3'
-                                     },
+                                    #  {
+                                    #      'label': 'DTLZ3',
+                                    #      'value': 'DTLZ3'
+                                    #  },
                                  ],
-                                 value='DTLZ4'),
+                                 value='DTLZ1'),
                     dbc.Label('#Decision variables:',
                               style={
                                   'marginTop': '1rem',
@@ -232,7 +232,7 @@ interface_layout = dbc.Container(
                                                                 "textAlign":"center"
                                                                 # "marginLeft":"15rem"
                                                             }),
-                                                        width=5),
+                                                        width=6),
                                                     dbc.Col(
                                                         html.H4(
                                                             "Decision Space",
@@ -243,25 +243,25 @@ interface_layout = dbc.Container(
                                                                 "margin":"40px"
                                                                 # "margin":"50px", "marginLeft":"15rem"
                                                             }),
-                                                        width=5),
-                                                     dbc.Col(children=html.Div([
-                                                        dbc.Label(
-                                                            "Test Problems",
-                                                            style={
-                                                                "fontWeight":
-                                                                "600",
-                                                                "fontFamily":
-                                                                "Helvetica",
-                                                                "margin":
-                                                                "40px",
-                                                                "textAlign":
-                                                                "center",
-                                                                "fontSize": "22px",
-                                                            }
-                                                            ),
-                                                    ]),
-                                                         width=2
-                                                            ),
+                                                        width=6),
+                                                    #  dbc.Col(children=html.Div([
+                                                    #     dbc.Label(
+                                                    #         "Test Problems",
+                                                    #         style={
+                                                    #             "fontWeight":
+                                                    #             "600",
+                                                    #             "fontFamily":
+                                                    #             "Helvetica",
+                                                    #             "margin":
+                                                    #             "40px",
+                                                    #             "textAlign":
+                                                    #             "center",
+                                                    #             "fontSize": "22px",
+                                                    #         }
+                                                    #         ),
+                                                    # ]),
+                                                    #      width=2
+                                                    #         ),
                                                 ],
                                                 className=
                                                 "my-custom-container-style",
@@ -275,14 +275,14 @@ interface_layout = dbc.Container(
                                                             "mop-objective-graph",
                                                             figure=blank_figure(
                                                             )),
-                                                        width=5),
+                                                        width=6),
                                                     dbc.Col(
                                                         dcc.Graph(
                                                             id=
                                                             "mop-decision-graph",
                                                             figure=blank_figure(
                                                             )),
-                                                        width=5),
+                                                        width=6),
                                                     dbc.Col(
                                                          dcc.Dropdown(
                                                             id='tests',
@@ -296,7 +296,7 @@ interface_layout = dbc.Container(
                                                                     'value':'Aspar'
                                                                 },
                                                             ],
-                                                            value='DTLZ1'),
+                                                            value='DTLZ1', style={'display': 'none'})
                                                         ),
                                                 ],
                                                 className=
@@ -311,7 +311,15 @@ interface_layout = dbc.Container(
                                                                 H4("Plot Description",
                                                                    className=
                                                                    "card-title"
-                                                                   )
+                                                                   ),
+                                                                # html.Div([html.H5("The above plots show the Cost Landscape Plot for Objective and Decision Space"),
+                                                                # html.H6("Objective Space"),
+                                                                # html.P("#Objective functions: 2"),
+                                                                # html.P("#Decision variables: 7"),
+                                                                # html.H6("Decision Space"),
+                                                                # html.P("#Objective functions: 2"),
+                                                                # html.P("#Decision variables: 2"),], className="plot-des")
+                                                                
                                                             ]))
                                                     ],
                                                             className=

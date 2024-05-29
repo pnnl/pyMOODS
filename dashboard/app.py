@@ -39,7 +39,7 @@ event = {"event": "click", "props": ['shiftKey']}
 
 
 def generate_data_dtlz4(n_var, n_obj):
-    problem = get_problem('dtlz4', n_var=n_var, n_obj=n_obj)
+    problem = get_problem('dtlz1', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
 
@@ -191,9 +191,9 @@ def update_summary(contents, filename, generated_data):
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
         'width': '82%',
-        'display':'flex',
-        'flexDirection':'column',
-        'alignItems':'center',
+        'display': 'flex',
+        'flexDirection': 'column',
+        'alignItems': 'center',
     }, summary_table, {
         'obj': len(objective_functions),
         'dec': len(decision_variables)
@@ -305,7 +305,7 @@ def update_output(contents, filename, tab, slider_values, click_data,
                         ],
                         style={
                             'display': 'flex',
-                            'alignItems':'center',
+                            'alignItems': 'center',
                             # 'flexDirection': 'column',
                             'padding': '10px',
                             'width': '100%',
@@ -331,18 +331,17 @@ def update_output(contents, filename, tab, slider_values, click_data,
                             slider['props']['children'][1]['props'][
                                 'value'] = [min_val, max_val]
 
-            return fig, df.to_dict('records'), html.Div(sliders,
-                                                        style={
-                                                            'display':
-                                                            'flex',
-                                                            'flexDirection':
-                                                            'column',
-                                                            'alignItems':
-                                                            'center','width': '100%',
-                            'padding': '2%'
-                                                            # 'justifyContent':
-                                                            # 'center'
-                                                        }), False, {}
+            return fig, df.to_dict('records'), html.Div(
+                sliders,
+                style={
+                    'display': 'flex',
+                    'flexDirection': 'column',
+                    'alignItems': 'center',
+                    'width': '100%',
+                    'padding': '2%'
+                    # 'justifyContent':
+                    # 'center'
+                }), False, {}
 
         if dimensions['dec'] >= 5:
 
@@ -1288,6 +1287,70 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data,
 ], Input("tests", "value"))
 def update_mop_graphs(test_selection):
     if test_selection == 'DTLZ1':
+        n_var_obj = 7  # Number of decision variables
+        n_obj = 2  # Number of objectives
+
+        # Get the DTLZ1 problem from pymoo
+        problem_obj = get_problem("dtlz1", n_var=n_var_obj, n_obj=n_obj)
+
+        # Define the grid resolution
+        GRID_RESOLUTION = 100
+        grid = np.linspace(0.0, 1.0, GRID_RESOLUTION)
+
+        # List to store all solutions and their objectives
+        solutions_obj = []
+        objectives = []
+
+        for x1 in grid:
+            for x2 in grid:
+                # Create a solution with the current grid coordinates
+                solution = np.array([x1, x2] + [0.5] * (problem_obj.n_var - 2))
+                # Evaluate the solution to get the objectives
+                f = problem_obj.evaluate(solution, return_values_of=["F"])
+                # if any(np.isinf(f)) or any(np.isnan(f)):
+                #     f = np.ones_like(f) * 1e6
+                # Store the solution and its objectives
+                solutions_obj.append(solution)
+                objectives.append(f)
+
+# Convert the lists to numpy arrays
+        solutions_obj = np.array(solutions_obj)
+        objectives = np.array(objectives)
+        # normalized_objectives = objectives / np.max(objectives)
+        # Perform non-dominated sorting to get the Pareto fronts
+        # fronts = NonDominatedSorting().do(objectives,
+        #                                   only_non_dominated_front=False)
+
+        # Assign the Pareto rank to each solution as its cost
+        # for rank, front in enumerate(fronts, start=1):
+        #     avg_objectives = np.mean(normalized_objectives[front], axis=0)
+        #     for idx in front:
+        #         i, j = divmod(idx, GRID_RESOLUTION)
+        #         cost_landscape[i, j] = np.mean(avg_objectives)
+
+        objective_fig = go.Figure(data=[
+            go.Scatter(x=objectives[:, 0],
+                       y=objectives[:, 1],
+                       mode='markers',
+                       marker=dict(size=2))
+        ])
+        objective_fig.update_layout(
+            xaxis_title='Objective 1',
+            yaxis_title='Objective 2',
+            scene=dict(
+                xaxis=dict(title='Objective 1',
+                           title_font=dict(size=30,
+                                           family='Arial',
+                                           color='black')),
+                yaxis=dict(title='Objective 2'),
+                zaxis=dict(title='Cost'),
+            ),
+            paper_bgcolor='rgb(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+        )
+        objective_fig.update_traces(
+            hovertemplate='f1: %{x}<br>f2: %{y}<br><extra></extra>')
+
         n_var = 2  # Number of decision variables
         n_obj = 2  # Number of objectives
 
@@ -1333,34 +1396,16 @@ def update_mop_graphs(test_selection):
                 i, j = divmod(idx, GRID_RESOLUTION)
                 cost_landscape[i, j] = np.mean(avg_objectives)
 
-        objective_fig = go.Figure(data=[
-            go.Heatmap(
-                z=cost_landscape.T, x=grid_x, y=grid_y, colorscale="Viridis")
-        ])
-        objective_fig.update_layout(
-            xaxis_title='f1',
-            yaxis_title='f2',
-            scene=dict(
-                xaxis=dict(title='f1',
-                           title_font=dict(size=30,
-                                           family='Arial',
-                                           color='black')),
-                yaxis=dict(title='f2'),
-                zaxis=dict(title='Cost'),
-            ),
-        )
-        objective_fig.update_traces(
-            hovertemplate='f1: %{x}<br>f2: %{y}<br><extra></extra>')
         decision_fig = go.Figure(data=[
             go.Heatmap(
                 z=cost_landscape.T, x=grid_x, y=grid_y, colorscale="Viridis")
         ])
-        decision_fig.update_layout(xaxis_title='x1',
-                                   yaxis_title='x2',
+        decision_fig.update_layout(xaxis_title='Decision Variable 1',
+                                   yaxis_title='Decision Variable 2',
                                    scene=dict(
-                                       xaxis=dict(title='x1',
+                                       xaxis=dict(title='Decision Variable 1',
                                                   title_font=dict(size=24)),
-                                       yaxis=dict(title='x2',
+                                       yaxis=dict(title='Decision Variable 2',
                                                   title_font=dict(size=24)),
                                        zaxis=dict(title='Cost',
                                                   title_font=dict(size=24)),
