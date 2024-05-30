@@ -72,7 +72,7 @@ app.layout = html.Div([
     interface_layout,
     html.Div(id="radar-sliders", style={'display': 'none'}),
     dcc.Store(id='shift-is-clicked', data=False),
-    # dcc.Graph(id="radar-chart"),
+    dcc.Graph(id="radar-chart", style={'display': 'none'}),
 ])
 
 
