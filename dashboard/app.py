@@ -1489,4 +1489,4 @@ def update_mop_graphs(test_selection):
         return objective_fig, decision_fig
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5002)
+    app.run_server(debug=True, host="0.0.0.0", port=5001)
