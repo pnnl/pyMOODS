@@ -158,6 +158,7 @@ interface_layout = dbc.Container(
                                                 [
                                                     dbc.Col(
                                                         children=[
+                                                            html.Div(html.H6("Click and drag to draw a box around the area containing the points to select."), style={"textAlign":"center"}),
                                                             EventListener(
                                                                 dcc.Graph(figure=blank_figure(), id='graph1'),
                                                                 events=[{"event": "click", "props": ['shiftKey']}], id='el'
