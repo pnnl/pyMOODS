@@ -165,16 +165,22 @@ font-size: 25px;
 }
 
 .plot-des{
-  font-size: larger;
+  font-size:medium;
   color: rgb(57, 56, 56);
 }
 
 .plot-des h5{
   margin-top: 1.2rem;
   color:#141e30;
+  display: list-item;                                                       
+  list-style-type: square;     
+  list-style-position: inside; 
 }
 
 .plot-des h6{
+  display: list-item;                                                       
+  list-style-type: square;     
+  list-style-position: inside; 
   font-size: larger;
   font-weight: bold;
   color:#141e30;
@@ -183,5 +189,6 @@ font-size: 25px;
 
 .plot-des p{
   margin-left: 1.2rem;
-  line-height:90%;
+  line-height:60%;
+  font-size: 19px;
 }

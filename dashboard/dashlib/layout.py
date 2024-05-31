@@ -312,12 +312,12 @@ interface_layout = dbc.Container(
                                                                    className=
                                                                    "card-title"
                                                                    ),
-                                                                html.Div([html.H5("The above plots show the Cost Landscape Plot for Objective and Decision Space."),
+                                                                html.Div([html.H5("Cost Landscape provide valuable insights into the problem's landscape, revealing the challenges and help in identifying potential difficulties, such as discontinuities or multimodality that make MOO hard to solve."),
                                                                           html.H6("Test: DTLZ1"),
-                                                                html.H6("Objective Space:"),
+                                                                html.H6("Objective Space: Pareto front plots show the trade-offs between objectives in the objective space"),
                                                                 html.P("#Objective functions: 2"),
                                                                 html.P("#Decision variables: 7"),
-                                                                html.H6("Decision Space:"),
+                                                                html.H6("Decision Space:The alternating blue and yellow lines suggest that the Pareto optimal set is not continuous in the decision space but rather consists of discrete region."),
                                                                 html.P("#Objective functions: 2"),
                                                                 html.P("#Decision variables: 2"),], className="plot-des")
                                                                 
