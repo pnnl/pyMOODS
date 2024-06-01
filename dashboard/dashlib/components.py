@@ -30,17 +30,17 @@ def gen_graph(df):
                             # hovertemplate='(x = %{x}, y= %{y})<extra></extra>',
                             mode="markers",
                             marker=dict(color='rgba(0,0,0,0)',
-                                        size=20,
+                                        size=18,
                                         line=dict(color='MediumPurple',
                                                   width=2)),
-                            hoverlabel=dict(font_size=28),
+                            hoverlabel=dict(font_size=18),
                             # selected=go.scatter.Selected(marker={
                             #     'size': 40,
                             #     "color": "LightSeaGreen"
                             # })
                         ))
                     fig.update_traces(
-                     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>', hoverlabel=dict(font_size=28))
+                     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>', hoverlabel=dict(font_size=18))
                     fig.update_layout(
                         dragmode='select',
                         xaxis=dict(title='f1',
@@ -49,7 +49,7 @@ def gen_graph(df):
                                    zeroline=False,
                                    linewidth=2,
                                    linecolor='black',
-                                   title_font=dict(size=28),
+                                   title_font=dict(size=18),
                                    title_standoff=5,
                                    automargin=True),
                         yaxis=dict(title='f2',
@@ -58,10 +58,10 @@ def gen_graph(df):
                                    showline=True,
                                    linewidth=2,
                                    linecolor='black',
-                                   title_font=dict(size=28),
+                                   title_font=dict(size=18),
                                    title_standoff=5,
                                    automargin=True),
-                        font=dict(color="black", size=22),
+                        font=dict(color="black", size=18),
                         clickmode='event+select',
                         mapbox={
                             'style': "stamen-terrain",
@@ -71,7 +71,7 @@ def gen_graph(df):
                         # font_color='black',
                         # template=None,
                         font_family="Helvetica",
-                        margin=dict(l=10, r=20, t=20, b=28),
+                        margin=dict(l=20, r=20, t=20, b=20),
                         paper_bgcolor='rgb(0,0,0,0)',
                         plot_bgcolor='rgba(0,0,0,0)',
                     )
@@ -90,11 +90,11 @@ def gen_graph(df):
                                                   width=2),
                                         symbol='circle'),
                         ))
-                    fig.update_layout(scene=dict(xaxis=dict(title='f1', title_font=dict(size=24), backgroundcolor='rgba(0,0,0,0)', 
+                    fig.update_layout(scene=dict(xaxis=dict(title='f1', title_font=dict(size=18), backgroundcolor='rgba(0,0,0,0)', 
                                         showline= True, showgrid=True, zeroline=False, linewidth=2,linecolor='black', zerolinecolor="black"),
-                                                 yaxis=dict(title='f2', title_font=dict(size=24), backgroundcolor='rgba(0,0,0,0)', 
+                                                 yaxis=dict(title='f2', title_font=dict(size=18), backgroundcolor='rgba(0,0,0,0)', 
                                         showline= True,showgrid=True, zeroline=False, linewidth=2,linecolor='black', zerolinecolor="black"),
-                                                 zaxis=dict(title='f3', title_font=dict(size=24), backgroundcolor='rgba(0,0,0,0)', 
+                                                 zaxis=dict(title='f3', title_font=dict(size=18), backgroundcolor='rgba(0,0,0,0)', 
                                          showline= True,showgrid=True, zeroline=False, linewidth=2,linecolor='black', zerolinecolor="black")),
                                       clickmode='event+select',
                                       hovermode='closest',
@@ -128,20 +128,19 @@ def gen_graph(df):
                         tickvals=np.arange(len(df)),
                         ticktext=[col for col in f_colss],
                         automargin=True,
-                        title_font=dict(size=20)
+                        title_font=dict(size=18)
                     ),
                     # yaxis=dict(title='Values'),
                     # clickmode='event+select',
                     hovermode='closest',
                     paper_bgcolor='rgb(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    font=dict(color="black", size=24),
-                    margin=dict(l=10, r=20, t=20, b=28),
+                    font=dict(color="black", size=18),
+                    margin=dict(l=20, r=20, t=30, b=10),
                 )
 
          
 
     else:
         print("Invalid data format")
-        # return fig
     return fig

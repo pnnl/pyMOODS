@@ -31,7 +31,7 @@ button {
   margin-left: 0.5rem;
   border-radius: 5px;
   padding:20px;
-  height: calc(100vh - 150px);
+  height: calc(100vh - 121px);
   overflow:hidden ;
   text-align: center;
 }
@@ -88,8 +88,10 @@ font-size: 25px;
 
 #sliders{
   display: inline;
-  margin-top: 1rem;
-  font-size: 22px;
+  /* position: relative;
+  top:27.4%; */
+  font-size: 18px;
+  color: black;
 }
 
 .slider-label {
@@ -98,9 +100,22 @@ font-size: 25px;
   padding: 1rem 0 1rem 0;
 }
 
+/* .custom-slider{
+  position: relative !important;
+  top:-30%;
+} */
+
 .slider-input {
   flex-grow: 1;
 }
+
+.rc-slider-track{
+  background-color:lightgray !important;
+}
+
+.rc-slider-handle{
+  border:2px solid lightgray !important;
+} 
 
 .rc-slider-mark-text {
   font-size: 14px;
@@ -110,6 +125,17 @@ font-size: 25px;
 .rc-slider-mark-text-active {
   color: black;
 }
+
+/* .rc-slider-track-1{
+  background-color: lightblue !important;
+}
+
+.rc-slider-handle:active, .rc-slider-handle:hover, .rc-slider-handle:focus{
+  background-color: lightblue !important;
+  border: 2px solid lightblue !important;
+  color: lightblue !important;
+} */
+
 
 .slider-5 {
   width: 100%;
@@ -130,6 +156,7 @@ font-size: 25px;
   margin-left: -0.8rem;
   flex-grow: 1;
   overflow: hidden;
+  margin-right: 0rem;
 }
 
 .main-container{
@@ -142,4 +169,33 @@ font-size: 25px;
   text-align: center;
   font-weight: bold;
   color: rgb(13, 13, 12);
+}
+
+.plot-des{
+  font-size:medium;
+  color: rgb(57, 56, 56);
+}
+
+.plot-des h5{
+  margin-top: 1.2rem;
+  color:#141e30;
+  display: list-item;                                                       
+  list-style-type: square;     
+  list-style-position: inside; 
+}
+
+.plot-des h6{
+  display: list-item;                                                       
+  list-style-type: square;     
+  list-style-position: inside; 
+  font-size: larger;
+  font-weight: bold;
+  color:#141e30;
+  margin-top: 0.5rem;
+}
+
+.plot-des p{
+  margin-left: 1.2rem;
+  line-height:60%;
+  font-size: 19px;
 }
