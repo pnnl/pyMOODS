@@ -31,7 +31,7 @@ button {
   margin-left: 0.5rem;
   border-radius: 5px;
   padding:20px;
-  height: calc(100vh - 150px);
+  height: calc(100vh - 121px);
   overflow:hidden ;
   text-align: center;
 }
@@ -88,8 +88,9 @@ font-size: 25px;
 
 #sliders{
   display: inline;
-  margin-top: 1rem;
-  font-size: 22px;
+  /* position: relative;
+  top:27.4%; */
+  font-size: 18px;
   color: black;
 }
 
@@ -98,6 +99,11 @@ font-size: 25px;
   margin-right: 1rem;
   padding: 1rem 0 1rem 0;
 }
+
+/* .custom-slider{
+  position: relative !important;
+  top:-30%;
+} */
 
 .slider-input {
   flex-grow: 1;
@@ -150,6 +156,7 @@ font-size: 25px;
   margin-left: -0.8rem;
   flex-grow: 1;
   overflow: hidden;
+  margin-right: 0rem;
 }
 
 .main-container{

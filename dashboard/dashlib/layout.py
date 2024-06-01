@@ -166,7 +166,8 @@ interface_layout = dbc.Container(
                                                         ],
                                                         width=6),
                                                     dbc.Col(
-                                                        html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
+                                                        # html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
+                                                        html.Div(id="sliders", children=[]),
                                                         # className="sliders-container"
                                                         width=6),
                                                     dbc.Col(
