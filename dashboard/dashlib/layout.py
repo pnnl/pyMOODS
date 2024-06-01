@@ -169,7 +169,11 @@ interface_layout = dbc.Container(
                                                     dbc.Col(
                                                         children=[
                                                             html.H6(id='dec-help', style={'textAlign': 'center'}),
-                                                            html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
+                                                                                                                                                                                            # html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
+                                                        html.Div(id="sliders", children=[]),
+
+
+                                                           
                                                         ],
                                                         width=6
                                                     ),
