@@ -158,18 +158,23 @@ interface_layout = dbc.Container(
                                                 [
                                                     dbc.Col(
                                                         children=[
+                                                            html.H6(id='obj-help', style={'textAlign': 'center'}),
                                                             EventListener(
                                                                 dcc.Graph(figure=blank_figure(), id='graph1'),
                                                                 events=[{"event": "click", "props": ['shiftKey']}], id='el'
                                                             )
                                                         ],
-                                                        width=6),
+                                                        width=6
+                                                    ),
                                                     dbc.Col(
-                                                        html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
-                                                        # className="sliders-container"
-                                                        width=6),
+                                                        children=[
+                                                            html.H6(id='dec-help', style={'textAlign': 'center'}),
+                                                            html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
+                                                        ],
+                                                        width=6
+                                                    ),
                                                     dbc.Col(
-                                                            dbc.Alert('No data exists reflecting that change', id='no-data-alert', color='danger', is_open=False, dismissable=True, style={'position': 'absolute', 'top': '15%', 'left': '50%', 'zIndex': 999})
+                                                        dbc.Alert('No data exists reflecting that change', id='no-data-alert', color='danger', is_open=False, dismissable=True, duration=5000, style={'position': 'absolute', 'top': '15%', 'left': '50%', 'zIndex': 999})
                                                     )
                                                 ],
                                                 className=
