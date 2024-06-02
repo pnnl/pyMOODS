@@ -330,7 +330,9 @@ def update_output(contents, filename, tab, slider_values, click_data,
                             'display': 'flex',
                             'alignItems': 'center',
                             'width': '100%',
-                        }))
+                        }
+                    )
+                )
 
             rad_fig = go.Figure(data=go.Scatterpolar(
                 r=default_r, theta=default_th, line_color='red'))
@@ -365,7 +367,8 @@ def update_output(contents, filename, tab, slider_values, click_data,
                 sliders.append(
                     html.Div(
                         [
-                            html.Label(f'{var}',
+                            html.Label(id=f'{var}',
+                                       children=f'{var}',
                                        style=labelFlex,
                                        className="slider-label"),
                             dcc.RangeSlider(
@@ -428,8 +431,6 @@ def update_output(contents, filename, tab, slider_values, click_data,
                     'padding': '2%',
                     'position':'relative',
                     'top':'27%',
-                    # 'justifyContent':
-                    # 'center'
                 }), False, {}, dash.no_update
 
         
@@ -602,7 +603,7 @@ def update_output(contents, filename, tab, slider_values, click_data,
 @app.callback(Output('radar-chart', 'figure', allow_duplicate=True),
               Output('slider-change-status', 'data', allow_duplicate=True),
               Output('decision-values-store', 'data', allow_duplicate=True),
-              Output('no-data-alert', 'is_open'),
+              Output('no-data-alert', 'is_open', allow_duplicate=True),
               Input({
                   'type': 'dec-sliders',
                   'index': ALL,
@@ -1062,6 +1063,8 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
 
 @app.callback(
     Output('graph1', "figure"),
+    Output('no-data-alert', 'is_open'),
+    
     [
         Input({
             "type": "ds-sliders",
@@ -1112,23 +1115,32 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
     df = pd.DataFrame.from_dict(data)
     fig = gen_graph(pd.DataFrame.from_dict(data))
     
-    if 'points' in obj_pts_store:
-        print('obj_pts_store', len(obj_pts_store['points']))
+#     if 'points' in obj_pts_store:
+#         print('obj_pts_store', len(obj_pts_store['points']))
     # if len(fig.data) > 1:
     #     fig.data = [fig.data[0]]
     # Adding new scatter trace for the newly selected point:
     if change_status is True:
-        print('changed_id', changed_id)
+#         print('changed_id', changed_id)
         print('slider_values', slider_values)
         if (changed_id[0] == 'graph1.selectedData') & (len(changed_id) > 1):
             current = curr_fig.copy()
-
-            current['data'] = [x for x in curr_fig['data'] if 'symbol' not in x['marker']]
-#             print(current['data'])
-            return current
+            if dims['obj'] < 4:
+                current['data'] = [x for x in curr_fig['data'] if 'symbol' not in x['marker']]
+                return current, dash.no_update
+            else:
+                new_data = []
+                for x in curr_fig['data']:
+                    if 'marker' not in x:
+#                         if 'symbol' not in x['marker']:
+#                             new_data.append(x)
+#                     else:
+                        new_data.append(x)
+                current['data'] = new_data
+                return current, dash.no_update
 #             raise PreventUpdate
         if not slider_values or all(slider == 0 for slider in slider_values):
-            return fig
+            return fig, True
         
         # click_data = None
         n_var = dims['dec']
@@ -1137,6 +1149,9 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
 
         DTLZ2 = get_problem("dtlz2", n_var=n_var, n_obj=n_obj)
         dff = DTLZ2.evaluate(np.array([0 if x is None else x for x in slider_values]))
+        if len(dff) == 0:
+            return dash.no_update, True
+        
         df = pd.DataFrame(data)
         num_objectives = len([col for col in df.columns if col.startswith('f')])
 
@@ -1207,7 +1222,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
                         )
                     )
                     fig.update_layout(showlegend=False)
-                    return fig
+                    return fig, dash.no_update
                 else:
                     raise PreventUpdate
             else:
@@ -1335,7 +1350,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
             #         fig.data[1].dimensions = dimensions
                     
     fig.update_layout(showlegend=False)
-    return fig
+    return fig, dash.no_update
 
 
 @app.callback([
