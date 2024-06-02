@@ -354,7 +354,7 @@ def update_output(contents, filename, tab, slider_values, click_data,
                                     "placement": "bottom",
                                     "always_visible": True
                                 },
-                                className="slider-input",
+                                className="slider-5",
                             )
                         ],
                         style={
