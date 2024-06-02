@@ -250,29 +250,34 @@ def update_output(contents, filename, tab, slider_values, click_data,
 #     if len(changed_id) == len(decision_variables) + 1:
 #         return dash.no_update, dash.no_update, dash.no_update, False
     if 'slider' in changed_id[0]:
-        if dimensions['obj'] == 2:
+        if dimensions['obj'] < 4:
             trace_indices = [
                 obj['pointNumber'] for obj in selected_obj_pts["points"]
             ]
             subset = df.iloc[trace_indices, :len(decision_vars)].astype(float)
+        elif dimensions['obj'] == 4:
+            trace_indices = [
+                obj['curveNumber'] for obj in selected_obj_pts["points"]
+            ]
+            subset = df.iloc[trace_indices, :len(decision_vars)].astype(float)
             
-            curr_solutions = subset.values.tolist()
-            
-            updated_slider = {}
-            for i, val in enumerate(slider_values):
-                updated_slider[decision_vars[i]] = val
-            print('updated_slider', updated_slider)
-                
-            new_solutions = []
-            for d in curr_solutions:
-                statuses = []
-                for k, v in updated_slider.items():
-                    i = decision_vars.index(k)
-                    statuses.append((d[i] >= v[0]) & (d[i] <= v[1]))
-                    
-                if sum(statuses) == len(decision_vars):
-                    new_solutions.append(d)
-            print('new', len(new_solutions))
+        curr_solutions = subset.values.tolist()
+
+        updated_slider = {}
+        for i, val in enumerate(slider_values):
+            updated_slider[decision_vars[i]] = val
+        print('updated_slider', updated_slider)
+
+        new_solutions = []
+        for d in curr_solutions:
+            statuses = []
+            for k, v in updated_slider.items():
+                i = decision_vars.index(k)
+                statuses.append((d[i] >= v[0]) & (d[i] <= v[1]))
+
+            if sum(statuses) == len(decision_vars):
+                new_solutions.append(d)
+        print('new', len(new_solutions))
                 
         return dash.no_update, dash.no_update, dash.no_update, True, True, new_solutions
     elif ('upload-data' in changed_id[0]) | ('data-generated.data'
@@ -1541,4 +1546,4 @@ def update_mop_graphs(test_selection):
         return objective_fig, decision_fig
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5003)
+    app.run_server(debug=True, host="0.0.0.0", port=5001)
