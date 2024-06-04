@@ -46,10 +46,10 @@ interface_layout = dbc.Container(
                                          'label': 'DTLZ1',
                                          'value': 'DTLZ1'
                                      },
-                                    #  {
-                                    #      'label': 'DTLZ3',
-                                    #      'value': 'DTLZ3'
-                                    #  },
+                                     {
+                                         'label': 'DTLZ3',
+                                         'value': 'DTLZ3'
+                                     },
                                  ],
                                  value='DTLZ1'),
                     dbc.Label('#Decision variables:',
@@ -77,7 +77,7 @@ interface_layout = dbc.Container(
                     dbc.Button('Generate Data', 
                                        color="dark",
                                        size="lg",
-                                id='generated-dtlz4-button',
+                                id='generated-dtlz-button',
                                 n_clicks=0,style={
                                   'marginTop': '2rem',
                                 #   'fontSize': '20px'

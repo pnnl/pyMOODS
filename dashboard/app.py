@@ -38,8 +38,28 @@ labelFlex = {
 event = {"event": "click", "props": ['shiftKey']}
 
 
-def generate_data_dtlz4(n_var, n_obj):
+def generate_data_dtlz1(n_var, n_obj):
     problem = get_problem('dtlz1', n_var=n_var, n_obj=n_obj)
+    algorithm = NSGA2(pop_size=300)
+    res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
+
+    X = res.X
+    F = res.F
+    n_var = problem.n_var
+    n_obj = problem.n_obj
+    var_cols = [f'x{i}' for i in range(1, n_var + 1)]
+    obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
+    df = pd.DataFrame(X, columns=var_cols)
+    for i in range(n_obj):
+        df[obj_cols[i]] = F[:, i]
+
+    # front = res.F
+    # print("Generated Data: ")
+    # print(df.head())
+    return df
+
+def generate_data_dtlz3(n_var, n_obj):
+    problem = get_problem('dtlz3', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
 
@@ -95,17 +115,23 @@ def click_event(n_events, e, click_data, curr_shift, obj_pts_store):
 
 
 @app.callback(Output("data-generated", "data"),
-              [Input("generated-dtlz4-button", "n_clicks")], [
+              [Input("generated-dtlz-button", "n_clicks")], [
                   State("num-decision-vars", "value"),
                   State("num-objective-vars", "value"),
+                  State("test-dropdown", "value"),
               ])
-def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
+def generate_data_dtlz4_callback(n_clicks, n_var, n_obj, test):
     if n_var is None or n_obj is None:
         raise dash.exceptions.PreventUpdate("Please enter")
     if n_clicks is None:
         raise PreventUpdate
-
-    df_generated = generate_data_dtlz4(n_var=n_var, n_obj=n_obj)
+    
+    if test == 'DTLZ1':
+        df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj)
+    elif test == 'DTLZ3':
+        df_generated = generate_data_dtlz3(n_var=n_var, n_obj=n_obj)
+    else:
+        raise PreventUpdate
     # filename = "data_generated.json"
     # print("Generated JSON: ",df_generated.to_json(orient='records'))
     return df_generated.to_json(orient='records')
@@ -1081,7 +1107,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
         Input('graph1', "figure"),
         Input('radar-sliders', 'style'),
         Input('selected-obj-pts-store', 'data'),
-        Input('generated-dtlz4-button', 'n_clicks'),
+        Input('generated-dtlz-button', 'n_clicks'),
     ],
     [
         State('stored-df', 'data'),
@@ -1228,7 +1254,7 @@ def pareto_front(ds_slider_values, dec_slider_values, dec_values_store, click_da
             else:
                 if num_symbols > 0:
                     fig.update(data=[d for d in test if ('marker' not in d.keys())])
-                    if 'generated-dtlz4-button.n_clicks' in changed_id:
+                    if 'generated-dtlz-button.n_clicks' in changed_id:
                         fig['layout'].update(shapes=[])
                     else:
                         if 'range' in obj_pts_store:
