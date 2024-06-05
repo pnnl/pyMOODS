@@ -78,6 +78,43 @@ def generate_data_dtlz3(n_var, n_obj):
     # print(df.head())
     return df
 
+@app.callback(
+    Output("num-decision-vars", "disabled"),
+    Output("num-objective-vars", "disabled"),
+    Input("test-dropdown", "value"),
+)
+def toggle_inputs(test):
+    if test == "RealTimeData":
+        return True, True
+    return False, False
+
+@app.callback(
+    Output("data-generated", "data", allow_duplicate=True),
+    [Input("test-dropdown", "value")], prevent_initial_call=True
+)
+def generate_data_real_time(test):
+    if test == "RealTimeData":
+        df = pd.read_csv('real_time_data.csv')
+        return df.to_json(orient='records')
+    else:
+        raise dash.exceptions.PreventUpdate
+    # print(df.head())
+    # decision_variables = [col for col in df.columns if col.startswith('x')]
+    # objective_variables = [col for col in df.columns if col.startswith('f')]
+    
+    # data_records = []
+    
+    # for index, row in df.iterrows():
+    #     data_record ={'x': [], 'f': []}
+    #     for var in decision_variables:
+    #         data_record['x'].append(row[var])
+    #     for var in objective_variables:
+    #         data_record['f'].append(row[var])
+    #     data_records.append(data_record)
+    
+    # return json.dumps(data_records)
+    
+
 
 app.layout = html.Div([
     dcc.Store(id="slider-values-store", data={}),
@@ -133,6 +170,10 @@ def generate_data_dtlz4_callback(n_clicks, n_var, n_obj, test):
         df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj)
     elif test == 'DTLZ3':
         df_generated = generate_data_dtlz3(n_var=n_var, n_obj=n_obj)
+    elif test == 'RealTimeData':
+         df_generated = generate_data_real_time()
+        # df_generated, decision_variables, objective_variables = generate_data_real_time()
+        # return df_generated.to_json(orient='records')
     else:
         raise PreventUpdate
 
@@ -167,6 +208,9 @@ def update_summary(contents, filename, generated_data):
         #parse the uploaded file
         content_type, content_string = contents[0].split(',')
         decoded = base64.b64decode(content_string)
+        # if 'csv' in filename.lower():
+        #     file = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+        # else:
         file = json.loads(decoded)
 
         df = pd.DataFrame(file)
@@ -244,10 +288,11 @@ def update_summary(contents, filename, generated_data):
     State('df-dimensions', 'data'),
     State('decision-variables-store', 'data'),
     State('graph1', 'figure'),
+    State('test-dropdown', 'value'),
     prevent_initial_call=True
 )
 
-def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_values, dims, dec_vars, curr_fig):
+def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_values, dims, dec_vars, curr_fig, test):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
     print('changed', changed_id)
     
@@ -261,7 +306,16 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
             if dims['dec'] < 5:
                 sliders = []
                 for var, (min_val, max_val) in zip(dec_vars, [(0, 1)] * len(dec_vars)):
-                    sliders.append(
+                    if test == 'RealTimeData':
+                        min_val, max_val = 5, 20
+                        step = 5
+                        # marks ={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 1, step)}
+                    # else:
+                        # step=0.01,
+                        # marks={i: f'{i: .2f}'
+                        #         for i in np.arange(min_val, max_val + 0.1, 0.25)
+                        #             },
+                        sliders.append(
                         html.Div(
                             [
                                 html.Label(id=f'{var}',
@@ -273,10 +327,33 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
                                     min=min_val,
                                     max=max_val,
                                     step=0.01,
-                                    marks={
-                                        i: f'{i: .2f}'
-                                        for i in np.arange(min_val, max_val + 0.1, 0.25)
-                                    },
+                                    # marks=marks,
+                                    marks={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.5, 3.75)},
+                                    tooltip={"placement": "bottom", "always_visible": True},
+                                    className="slider-5",
+                                )
+                            ],
+                            style={
+                                'display': 'flex',
+                                'alignItems': 'center',
+                                'width': '100%',
+                            },
+                        ))
+                    else:
+                        sliders.append(
+                        html.Div(
+                            [
+                                html.Label(id=f'{var}',
+                                           children=f'{var}',
+                                           style=labelFlex,
+                                           className="slider-label"),
+                                dcc.RangeSlider(
+                                    id={'type': 'ds-sliders', 'index': f'slider-{var}'},
+                                    min=min_val,
+                                    max=max_val,
+                                    step=0.01,
+                                    # marks=marks,
+                                    marks={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.1, 0.25)},
                                     tooltip={"placement": "bottom", "always_visible": True},
                                     className="slider-5",
                                 )
@@ -761,11 +838,14 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary,
           "type": "ds-sliders",
           "index": ALL
       }, "id"),
-      State('decision-variables-store', 'data')
+      State('decision-variables-store', 'data'),
+    #   State('test-dropdown', 'value')
     ],
     prevent_initial_call=True)
 
 def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids, dec_vars):
+    # if test == 'RealTimeData':
+    #     min_val, max_val = 8, 20
     if my_data:
         df = pd.DataFrame(my_data)
         num_objectives = len([col for col in df.columns if col.startswith('f')])
@@ -829,13 +909,19 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                             subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
                             print('subset', subset.shape)
                         slider_values = []
-                        for slider_id in slider_ids:
-                            var = slider_id['index'].split('-')[-1]
-                            if var in subset:
-                                min_val = subset[var].min()
-                                max_val = subset[var].max()
-                                print(var, min_val, max_val)
-                                slider_values.append([min_val, max_val])
+                        # for slider_id in slider_ids:
+                        #     var = slider_id['index'].split('-')[-1]
+                        #     if var in subset:
+                        #         min_val = subset[var].min()
+                        #         max_val = subset[var].max()
+                        #         print(var, min_val, max_val)
+                        #         slider_values.append([min_val, max_val])
+                        # print(slider_values)
+                        for col in subset.columns:
+                            min_val = subset[col].min()
+                            max_val = subset[col].max()
+                            # print(var, min_val, max_val)
+                            slider_values.append([min_val, max_val])
                         print(slider_values)
                         return slider_values, []      
     raise PreventUpdate
