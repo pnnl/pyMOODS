@@ -87,9 +87,10 @@ font-size: 25px;
 } */
 
 #sliders{
-  display: inline;
+/*   display: inline; */
   /* position: relative;
   top:27.4%; */
+  margin-top: 5%;
   font-size: 18px;
   color: black;
 }

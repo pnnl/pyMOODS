@@ -169,11 +169,7 @@ interface_layout = dbc.Container(
                                                     dbc.Col(
                                                         children=[
                                                             html.H6(id='dec-help', style={'textAlign': 'center'}),
-                                                                                                                                                                                            # html.Div(id="sliders", children=[dcc.Graph(id='radar-chart', style={'display': 'none'})]),
-                                                        html.Div(id="sliders", children=[]),
-
-
-                                                           
+                                                            html.Div(id="sliders", children=[]),
                                                         ],
                                                         width=6
                                                     ),
@@ -181,8 +177,7 @@ interface_layout = dbc.Container(
                                                         dbc.Alert('No data exists reflecting that change', id='no-data-alert', color='danger', is_open=False, dismissable=True, duration=5000, style={'position': 'absolute', 'top': '15%', 'left': '50%', 'zIndex': 999})
                                                     )
                                                 ],
-                                                className=
-                                                "my-custom-container-style"),
+                                                className="my-custom-container-style"),
                                             # ]),
                                             dbc.Row(
                                                 [
@@ -196,8 +191,7 @@ interface_layout = dbc.Container(
                                                                    )
                                                             ]))
                                                     ],
-                                                            className=
-                                                            "card-container"
+                                                            className="card-container"
                                                             # width=6
                                                             ),
                                                     dbc.Col([
@@ -205,8 +199,7 @@ interface_layout = dbc.Container(
                                                             dbc.CardBody([
                                                                 html.
                                                                 H4("Fairness Index (Future Capability)",
-                                                                   className=
-                                                                   "card-title2"
+                                                                   className="card-title2"
                                                                    )
                                                             ]))
                                                     ],
