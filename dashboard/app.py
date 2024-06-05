@@ -38,8 +38,28 @@ labelFlex = {
 event = {"event": "click", "props": ['shiftKey']}
 
 
-def generate_data_dtlz4(n_var, n_obj):
+def generate_data_dtlz1(n_var, n_obj):
     problem = get_problem('dtlz1', n_var=n_var, n_obj=n_obj)
+    algorithm = NSGA2(pop_size=300)
+    res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
+
+    X = res.X
+    F = res.F
+    n_var = problem.n_var
+    n_obj = problem.n_obj
+    var_cols = [f'x{i}' for i in range(1, n_var + 1)]
+    obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
+    df = pd.DataFrame(X, columns=var_cols)
+    for i in range(n_obj):
+        df[obj_cols[i]] = F[:, i]
+
+    # front = res.F
+    # print("Generated Data: ")
+    # print(df.head())
+    return df
+
+def generate_data_dtlz3(n_var, n_obj):
+    problem = get_problem('dtlz3', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
 
@@ -98,17 +118,24 @@ def click_event(n_events, click_data, e, curr_shift, obj_pts_store):
 
 
 @app.callback(Output("data-generated", "data"),
-              [Input("generated-dtlz4-button", "n_clicks")], [
+              [Input("generated-dtlz-button", "n_clicks")], [
                   State("num-decision-vars", "value"),
                   State("num-objective-vars", "value"),
+                  State("test-dropdown", "value")
               ])
-def generate_data_dtlz4_callback(n_clicks, n_var, n_obj):
+def generate_data_dtlz4_callback(n_clicks, n_var, n_obj, test):
     if n_var is None or n_obj is None:
         raise dash.exceptions.PreventUpdate("Please enter")
     if n_clicks is None:
         raise PreventUpdate
 
-    df_generated = generate_data_dtlz4(n_var=n_var, n_obj=n_obj)
+    if test == 'DTLZ1':
+        df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj)
+    elif test == 'DTLZ3':
+        df_generated = generate_data_dtlz3(n_var=n_var, n_obj=n_obj)
+    else:
+        raise PreventUpdate
+
     # filename = "data_generated.json"
     # print("Generated JSON: ",df_generated.to_json(orient='records'))
     return df_generated.to_json(orient='records')
@@ -229,7 +256,8 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
     else:
         df = pd.DataFrame(data)
         fig = gen_graph(df)
-        if 'stored-df.data' in changed_id:
+
+        if ('stored-df.data' in changed_id) | (len(obj_pts_store) == 0):
             if dims['dec'] < 5:
                 sliders = []
                 for var, (min_val, max_val) in zip(dec_vars, [(0, 1)] * len(dec_vars)):
@@ -241,31 +269,22 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
                                            style=labelFlex,
                                            className="slider-label"),
                                 dcc.RangeSlider(
-                                    id={
-                                        'type': 'ds-sliders',
-                                        'index': f'slider-{var}'
-                                    },
+                                    id={'type': 'ds-sliders', 'index': f'slider-{var}'},
                                     min=min_val,
                                     max=max_val,
                                     step=0.01,
                                     marks={
                                         i: f'{i: .2f}'
-                                        for i in np.arange(min_val, max_val +
-                                                           0.1, 0.25)
+                                        for i in np.arange(min_val, max_val + 0.1, 0.25)
                                     },
-                                    tooltip={
-                                        "placement": "bottom",
-                                        "always_visible": True
-                                    },
+                                    tooltip={"placement": "bottom", "always_visible": True},
                                     className="slider-5",
                                 )
                             ],
                             style={
-
                                 'display': 'flex',
                                 'alignItems': 'center',
                                 'width': '100%',
-
                             },
                         ))
                 return fig, html.Div(sliders, style={
@@ -293,10 +312,7 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
                                     max=1,
                                     step=0.01,
                                     marks=new_markers,
-                                    tooltip={
-                                        "placement": "bottom",
-                                        "always_visible": True
-                                    },
+                                    tooltip={"placement": "bottom","always_visible": True},
                                     value=default_r[x],
                                     className='slider-5'
                                 )
@@ -314,8 +330,7 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
 
                 return fig, html.Div(
                     [
-                        dcc.Graph(id='radar-chart',
-                                  figure=rad_fig,
+                        dcc.Graph(id='radar-chart', figure=rad_fig,
                                   style={'width': '95%', 'height': '100%'}
                                  ),
                         html.Div(id='radar-sliders', style={'display': 'none'}),
@@ -392,7 +407,8 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
                             html.Div(id='radar-sliders', style={'display': 'none'})
                         ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'width': '100%', 'height': '100%'})
                     ], style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'space-between'})
-            
+        
+        # slider changes -> filter active solutions on graph1  
         if 'slider' in changed_id[0]:
             # updated_slider ex) {'x1': [0, 0.6], 'x2': [0.2, 0.4], ...}
             updated_slider = {}
@@ -418,7 +434,7 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
                         d['line']['color'] = 'rgba(147,112,219, 1)'
             return new_fig, dash.no_update
 
-#             TEMP
+        # PLACEHOLDER
         raise PreventUpdate
 
 
@@ -438,6 +454,7 @@ def clean_callback(data, selected_data, obj_pts_store, ds_slider_values, dec_val
               State('stored-df', 'data'),
               State('df-dimensions', 'data'),
               prevent_initial_call=True)
+
 def update_radar_from_slider(slider_values, fig, dec_values, dec_vars,
                              radar_pts, obj_pts, data, dims):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
@@ -844,7 +861,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
 #         Input('graph1', "figure"),
 #         Input('radar-sliders', 'style'),
 #         Input('selected-obj-pts-store', 'data'),
-#         Input('generated-dtlz4-button', 'n_clicks'),
+#         Input('generated-dtlz-button', 'n_clicks'),
 #     ],
 #     [
 #         State('stored-df', 'data'),
@@ -986,7 +1003,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
 #             else:
 #                 if num_symbols > 0:
 #                     fig.update(data=[d for d in test if ('marker' not in d.keys())])
-#                     if 'generated-dtlz4-button.n_clicks' in changed_id:
+#                     if 'generated-dtlz-button.n_clicks' in changed_id:
 #                         fig['layout'].update(shapes=[])
 #                     else:
 #                         if 'range' in obj_pts_store:
