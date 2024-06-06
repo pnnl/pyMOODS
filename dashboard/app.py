@@ -215,8 +215,8 @@ def update_summary(contents, filename, generated_data):
 
         df = pd.DataFrame(file)
 
-    decision_variables = [col for col in df.columns if col.startswith('x')]
-    objective_functions = [col for col in df.columns if col.startswith('f')]
+    decision_variables = [col for col in df.columns if col.startswith('x') or col.startswith('B')]
+    objective_functions = [col for col in df.columns if col.startswith('f') or col.startswith('o')]
 
     size = len(df)
     help_text = 'Click and drag to select an area containing the points to filter.'
@@ -848,7 +848,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
     #     min_val, max_val = 8, 20
     if my_data:
         df = pd.DataFrame(my_data)
-        num_objectives = len([col for col in df.columns if col.startswith('f')])
+        num_objectives = len([col for col in df.columns if col.startswith('f') or col.startswith('o')])
         num_decision_vars = len(df.columns) - num_objectives
         
         if click_data:
