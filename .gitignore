@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 LOCALREADME.md
+.DS_Store
