@@ -32,7 +32,7 @@ def get_cluster_hulls(X, y, color=lightgray, s=5, ax=None):
     
     polys = PolyCollection(
         [
-            dfk.iloc[ConvexHull(dfk).vertices]
+            dfk.iloc[ConvexHull(dfk).vertices] if len(dfk) > 3 else dfk
             for k, dfk in grouped
         ],
         closed=True,
