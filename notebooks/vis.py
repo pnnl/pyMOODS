@@ -59,8 +59,10 @@ def seriate_olo(X):
         get_index_order(X.values.T)
     ]
     
-def explain_cluster(X, y, order=None, lw=2, threshold=.5, label='left', ax=None):
+def explain_cluster(X, y, order=None, lw=2, threshold=.55, label='left', ax=None):
     ax = ax or plt.gca()
+    if order is None:
+        order = np.unique(y)
 
     clf = LogisticRegression().fit(X, y)
     coef = pd.DataFrame(clf.coef_, columns=X.columns)
@@ -72,7 +74,7 @@ def explain_cluster(X, y, order=None, lw=2, threshold=.5, label='left', ax=None)
 
     all_points = []
     l, r = '25%', '75%'
-    for i, ci in enumerate(order if order is not None else np.unique(y)):
+    for i, ci in enumerate(order):
         mask = coef.loc[ci] > threshold
         points = ranges.loc[ci]\
             .unstack()[[l, r]]\
