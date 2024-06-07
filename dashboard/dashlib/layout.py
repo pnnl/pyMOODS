@@ -51,7 +51,7 @@ interface_layout = dbc.Container(
                                          'value': 'DTLZ3'
                                      },
                                      {
-                                         'label': 'REAL-TIME DATA',
+                                         'label': 'Real World Data',
                                          'value': 'RealTimeData'
                                      },
                                  ],
