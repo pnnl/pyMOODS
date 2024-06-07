@@ -79,13 +79,13 @@ def generate_data_dtlz3(n_var, n_obj):
     return df
 
 @app.callback(
-    Output("num-decision-vars", "disabled"),
-    Output("num-objective-vars", "disabled"),
+    Output("num-decision-vars", "value"),
+    Output("num-objective-vars", "value"),
     Input("test-dropdown", "value"),
 )
 def toggle_inputs(test):
     if test == "RealTimeData":
-        return True, True
+        return 2, 2
     return False, False
 
 @app.callback(
