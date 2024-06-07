@@ -24,7 +24,7 @@ def gen_graph(df):
                 if num_objective_functions == 2:
                     x_column, y_column = f_cols[:2]
                     fig.add_trace(
-                            go.Scatter(
+                        go.Scattergl(
                             x=df[x_column],
                             y=df[y_column],
                             # hovertemplate='(x = %{x}, y= %{y})<extra></extra>',
@@ -79,7 +79,6 @@ def gen_graph(df):
                     )
                 # elif num_objective_functions == 3:
                 else:
-                    x_column, y_column, z_column = f_cols[:3]
                     fig.add_trace(
                         go.Scatter3d(
                             x=df[f_cols[0]],

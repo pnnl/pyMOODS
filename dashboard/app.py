@@ -405,15 +405,21 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                                 'width': '100%',
                             },
                         ))
-                return fig, html.Div(sliders, style={
-                    'display': 'flex',
-                    'flexDirection': 'column',
-                    'alignItems': 'center',
-                    'width': '100%',
-                    'padding': '2%',
-                    'position':'relative',
-                    'top':'27%'
-                })
+                        default = html.Div([
+                            html.Div(sliders),
+                            dcc.Graph(id='radar-chart', style={'display': 'none'}),
+                            html.Div(id='radar-sliders', style={'display': 'none'})   
+                        ])
+                return fig, default
+#                 return fig, html.Div(sliders, style={
+#                     'display': 'flex',
+#                     'flexDirection': 'column',
+#                     'alignItems': 'center',
+#                     'width': '100%',
+#                     'padding': '2%',
+#                     'position':'relative',
+#                     'top':'27%'
+#                 })
             else:
                 rad_sliders = []
                 default_r = [0] * len(dec_vars)
