@@ -357,59 +357,61 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                         #         for i in np.arange(min_val, max_val + 0.1, 0.25)
                         #             },
                         sliders.append(
-                        html.Div(
-                            [
-                                html.Label(id=f'{var}',
-                                           children=f'{var}',
-                                           style=labelFlex,
-                                           className="slider-label"),
-                                dcc.RangeSlider(
-                                    id={'type': 'ds-sliders', 'index': f'slider-{var}'},
-                                    min=min_val,
-                                    max=max_val,
-                                    step=0.01,
-                                    # marks=marks,
-                                    marks={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.5, 3.75)},
-                                    tooltip={"placement": "bottom", "always_visible": True},
-                                    className="slider-5",
-                                )
-                            ],
-                            style={
-                                'display': 'flex',
-                                'alignItems': 'center',
-                                'width': '100%',
-                            },
-                        ))
+                            html.Div(
+                                [
+                                    html.Label(id=f'{var}',
+                                               children=f'{var}',
+                                               style=labelFlex,
+                                               className="slider-label"),
+                                    dcc.RangeSlider(
+                                        id={'type': 'ds-sliders', 'index': f'slider-{var}'},
+                                        min=min_val,
+                                        max=max_val,
+                                        step=0.01,
+                                        # marks=marks,
+                                        marks={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.5, 3.75)},
+                                        tooltip={"placement": "bottom", "always_visible": True},
+                                        className="slider-5",
+                                    )
+                                ],
+                                style={
+                                    'display': 'flex',
+                                    'alignItems': 'center',
+                                    'width': '100%',
+                                },
+                            )
+                        )
                     else:
                         sliders.append(
-                        html.Div(
-                            [
-                                html.Label(id=f'{var}',
-                                           children=f'{var}',
-                                           style=labelFlex,
-                                           className="slider-label"),
-                                dcc.RangeSlider(
-                                    id={'type': 'ds-sliders', 'index': f'slider-{var}'},
-                                    min=min_val,
-                                    max=max_val,
-                                    step=0.01,
-                                    # marks=marks,
-                                    marks={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.1, 0.25)},
-                                    tooltip={"placement": "bottom", "always_visible": True},
-                                    className="slider-5",
-                                )
-                            ],
-                            style={
-                                'display': 'flex',
-                                'alignItems': 'center',
-                                'width': '100%',
-                            },
-                        ))
-                        default = html.Div([
-                            html.Div(sliders),
-                            dcc.Graph(id='radar-chart', style={'display': 'none'}),
-                            html.Div(id='radar-sliders', style={'display': 'none'})   
-                        ])
+                            html.Div(
+                                [
+                                    html.Label(id=f'{var}',
+                                               children=f'{var}',
+                                               style=labelFlex,
+                                               className="slider-label"),
+                                    dcc.RangeSlider(
+                                        id={'type': 'ds-sliders', 'index': f'slider-{var}'},
+                                        min=min_val,
+                                        max=max_val,
+                                        step=0.01,
+                                        # marks=marks,
+                                        marks={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 0.1, 0.25)},
+                                        tooltip={"placement": "bottom", "always_visible": True},
+                                        className="slider-5",
+                                    )
+                                ],
+                                style={
+                                    'display': 'flex',
+                                    'alignItems': 'center',
+                                    'width': '100%',
+                                },
+                            )
+                        )
+                default = html.Div([
+                    html.Div(sliders),
+                    dcc.Graph(id='radar-chart', style={'display': 'none'}),
+                    html.Div(id='radar-sliders', style={'display': 'none'})   
+                ])
                 return fig, default
 #                 return fig, html.Div(sliders, style={
 #                     'display': 'flex',
@@ -473,6 +475,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                 )
                 
         if ('selected-obj-pts-store.data' in changed_id) | (('decision-values-store.data' in changed_id) & (any('slider' in t for t in changed_id) == False)):
+            print('obj_pts_store', obj_pts_store)
             if obj_pts_store:
                 if dims['obj'] < 4:
                     active_pts = [pt['pointNumber'] for pt in obj_pts_store['points']]
@@ -481,28 +484,28 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                     for d in fig['data']:
                         if int(d['name']) not in active_pts:
                             d['line']['color'] = 'rgba(147,112,219, 0.1)'
+                
+                if dims['obj'] != 3:
+                    ranges = obj_pts_store['range']
+                    selection_bounds = {
+                        "x0": ranges["x"][0],
+                        "x1": ranges["x"][1],
+                        "y0": ranges["y"][0],
+                        "y1": ranges["y"][1],
+                    }
 
-                ranges = obj_pts_store['range']
-                selection_bounds = {
-                    "x0": ranges["x"][0],
-                    "x1": ranges["x"][1],
-                    "y0": ranges["y"][0],
-                    "y1": ranges["y"][1],
-                }
-
-                fig.add_shape(
-                    dict(
-                        {"type": "rect", "line": {"width": 1.5, "dash": "dot", "color": "black"}},
-                        **selection_bounds
+                    fig.add_shape(
+                        dict(
+                            {"type": "rect", "line": {"width": 1.5, "dash": "dot", "color": "black"}},
+                            **selection_bounds
+                        )
                     )
-                )
 
-                fig.update_traces(selectedpoints=active_pts)
+                    fig.update_traces(selectedpoints=active_pts)
                 
             if dims['dec'] < 5:
                 return fig, dash.no_update
             else:
-#                 print('in here', len(dec_values))
                 rad_fig = go.Figure()
                 if len(dec_values) > 0:
                     merged = {}
@@ -513,7 +516,6 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                         values = [solution[i] for solution in dec_values if len(solution) == len(dec_vars)]
                         if len(values) > 0:
                             merged[var] = {'min': min(values), 'max': max(values)}
-#                     print('merged', merged)
 
 #                     if len(merged) > 0:
 #                         rad_fig.add_trace(go.Scatterpolar(r=[merged[x]['min'] for x in new_th] , theta=new_th, fill='toself', mode='lines', name='Min solutions'))
@@ -546,10 +548,6 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
 
         # slider changes -> filter active solutions on graph1  
         if (('slider' in changed_id[0]) & (len(changed_id) == 1)) | (all('slider' in t for t in changed_id)) | (('temp-summary-min-max.data' in changed_id ) & (any('slider' in t for t in changed_id))):
-#             print(curr_rad_fig['layout'])
-#             print('if statement called')
-
-#             print('dec_range_store', dec_range_store)
             dec_slider_values = [list(x.values()) for x in dec_range_store.values()]
 
             slider_vals = ds_slider_values
@@ -557,8 +555,6 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                 if list(curr_rad_fig['layout'].keys())[-1] != 'template':
                     raise PreventUpdate
                 slider_vals = dec_slider_values
-#             print('dec', dec_slider_values)
-#             print('checking...', changed_id)
 
             # updated_slider ex) {'x1': [0, 0.6], 'x2': [0.2, 0.4], ...}
             updated_slider = {}
