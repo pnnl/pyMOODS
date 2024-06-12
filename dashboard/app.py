@@ -200,7 +200,6 @@ def update_summary(contents, filename, generated_data):
     if generated_data:
         generated_data_io = io.StringIO(generated_data)
         df = pd.read_json(generated_data_io, orient='records')
-        # print(df.shape)
     elif contents is None:
         return [], {'display': 'none'}, [], dash.no_update, {}, [], dash.no_update, [], []
     else:
@@ -260,7 +259,7 @@ def update_summary(contents, filename, generated_data):
                     })
         ]),
     ])
-
+    
     return df.to_dict(orient='records'), {
         'margin': '10rem auto auto auto',
         'fontWeight': '500',

@@ -16,7 +16,7 @@ def gen_graph(df):
     fig = go.Figure()
     if ('tab-1-example-graph') and df is not None and isinstance(
             df, pd.DataFrame):
-        f_cols = [col for col in df.columns if col.startswith('f')]
+        f_cols = [col for col in df.columns if col.startswith('f') or col.startswith('o')]
         num_objective_functions = len(f_cols)
 
         if num_objective_functions >= 2:
