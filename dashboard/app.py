@@ -919,11 +919,11 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
     #     min_val, max_val = 8, 20
     if my_data:
         df = pd.DataFrame(my_data)
-        num_objectives = len([col for col in df.columns if col.startswith('f') or col.startswith('T') or col.startswith('P')])
-        num_decision_vars = len(df.columns) - num_objectives
+        num_objectives = [col for col in df.columns if col.startswith(('f','T','P'))]
+        num_decision_vars = [col for col in df.columns if col.startswith(('x','B'))]
         
         if click_data:
-            if num_objectives == 3:
+            if len(num_objectives) == 3:
                 x_key = 'x'
                 y_key = 'y'
                 z_key = 'z' 
@@ -931,7 +931,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                 if 'points' in obj_pts_store and len(obj_pts_store['points']) > 0:
                     trace_indices = [obj['pointNumber'] for obj in obj_pts_store["points"]]
 #                     print('trace_indices checking', trace_indices)
-                    subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
+                    subset = df.loc[trace_indices, num_decision_vars].astype(float)
 #                     print('subset', subset.values.tolist())
                     
                     slider_values = []
@@ -945,31 +945,34 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                     
         if selected_data:
             if 'points' in selected_data and len(selected_data['points']) > 0:
-                if num_objectives > 0:
+                if len(num_objectives) > 0:
                     # Extracting x, y, z coordinates if applicable
                     x_key = 'x'
                     y_key = 'y'
-                    z_key = 'z' if num_objectives >= 3 else None
+                    z_key = 'z' if len(num_objectives) >= 3 else None
 
-                    if num_decision_vars >= 5:
-                        if num_objectives < 3:
+                    if len(num_decision_vars) >= 5:
+                        if len(num_objectives) < 3:
                             trace_indices = [obj['pointNumber'] for obj in selected_data["points"]]
-                            subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
+                            subset = df.loc[trace_indices, num_decision_vars].astype(float)
+                            # print('print values < 3', subset.columns)
                         else:
                             trace_indices = [obj['curveNumber'] for obj in selected_data["points"]]
-                            subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
+                            subset = df.loc[trace_indices, num_decision_vars].astype(float)
                         print('trace indices', trace_indices)
-                        # print('print values', subset.values.tolist())
+                        # print('print values > 3', subset.values.tolist())
+                        print('print values > 3', subset.columns)
                         return [], subset.values.tolist()
                     
                     # num_decision_vars < 5
                     else:
-                        if num_objectives < 3:
+                        if len(num_objectives) < 3:
                             trace_indices = [
                                 obj['pointNumber']
                                 for obj in selected_data['points']
                             ]
-                            subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
+                            subset = df.loc[trace_indices, num_decision_vars].astype(float)
+                            print('print values < 3', subset.columns)
                         else:
                             trace_indices = [
                                 obj['curveNumber']
@@ -977,7 +980,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                             ]
                             
                             print('check size', len(trace_indices))
-                            subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
+                            subset = df.loc[trace_indices, num_decision_vars].astype(float)
                             print('subset', subset.shape)
                         slider_values = []
                         # for slider_id in slider_ids:
@@ -991,7 +994,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                         for col in subset.columns:
                             min_val = subset[col].min()
                             max_val = subset[col].max()
-                            # print(var, min_val, max_val)
+                            print("Min:",min_val,"Max:", max_val)
                             slider_values.append([min_val, max_val])
                         print(slider_values)
                         return slider_values, []      
