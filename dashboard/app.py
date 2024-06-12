@@ -218,8 +218,8 @@ def update_summary(contents, filename, generated_data):
 
     size = len(df)
     help_text = 'Click and drag to select an area containing the points to filter.'
-    if len(objective_functions) == 3:
-        help_text = 'Click to select a point and shift+click to select multiple points to filter.'
+#     if len(objective_functions) == 3:
+#         help_text = 'Click to select a point and shift+click to select multiple points to filter.'
 
     summary_table = html.Table([
         html.Tr([
@@ -474,9 +474,9 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                 )
                 
         if ('selected-obj-pts-store.data' in changed_id) | (('decision-values-store.data' in changed_id) & (any('slider' in t for t in changed_id) == False)):
-            print('obj_pts_store', obj_pts_store)
+#             print('obj_pts_store', obj_pts_store)
             if obj_pts_store:
-                if dims['obj'] < 4:
+                if dims['obj'] < 3:
                     active_pts = [pt['pointNumber'] for pt in obj_pts_store['points']]
                 else:
                     active_pts = [pt['curveNumber'] for pt in obj_pts_store['points']]
@@ -484,23 +484,23 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                         if int(d['name']) not in active_pts:
                             d['line']['color'] = 'rgba(147,112,219, 0.1)'
                 
-                if dims['obj'] != 3:
-                    ranges = obj_pts_store['range']
-                    selection_bounds = {
-                        "x0": ranges["x"][0],
-                        "x1": ranges["x"][1],
-                        "y0": ranges["y"][0],
-                        "y1": ranges["y"][1],
-                    }
+#                 if dims['obj'] != 3:
+                ranges = obj_pts_store['range']
+                selection_bounds = {
+                    "x0": ranges["x"][0],
+                    "x1": ranges["x"][1],
+                    "y0": ranges["y"][0],
+                    "y1": ranges["y"][1],
+                }
 
-                    fig.add_shape(
-                        dict(
-                            {"type": "rect", "line": {"width": 1.5, "dash": "dot", "color": "black"}},
-                            **selection_bounds
-                        )
+                fig.add_shape(
+                    dict(
+                        {"type": "rect", "line": {"width": 1.5, "dash": "dot", "color": "black"}},
+                        **selection_bounds
                     )
+                )
 
-                    fig.update_traces(selectedpoints=active_pts)
+                fig.update_traces(selectedpoints=active_pts)
                 
             if dims['dec'] < 5:
                 return fig, dash.no_update
@@ -573,7 +573,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
 #             print('check dec values', len(dec_values), dec_values)
 
             new_fig = go.Figure(curr_fig)
-            if dims['obj'] < 4:
+            if dims['obj'] < 3:
                 new_fig.update_traces(selectedpoints=new_solutions)
             else:
                 for d in new_fig['data']:
@@ -621,7 +621,7 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
 
             if obj_pts['points']:
                 df = pd.DataFrame(data)
-                if dims['obj'] < 4:
+                if dims['obj'] < 3:
                     trace_indices = [
                         obj['pointNumber'] for obj in obj_pts["points"]
                     ]
@@ -729,17 +729,17 @@ def save_selection(radar_selected, dec_sliders, click_data, selected_data, shift
 #                         tmp['points'].append(click_data['points'][0])
 #                     return None, tmp, dash.no_update
 #             raise PreventUpdate
-        if ('graph1.clickData' in changed_id) | ('shift-is-clicked.data' in changed_id):
-            print('shift', shift)
-            if click_data:
-                if shift:
-                    tmp = prev.copy()
-                    if click_data['points'][0] not in tmp['points']:
-                        tmp['points'].append(click_data['points'][0])
-                    print('tmp', tmp)
-                    return None, tmp, dash.no_update
-                return None, click_data, dash.no_update
-            raise PreventUpdate
+#         if ('graph1.clickData' in changed_id) | ('shift-is-clicked.data' in changed_id):
+#             print('shift', shift)
+#             if click_data:
+#                 if shift:
+#                     tmp = prev.copy()
+#                     if click_data['points'][0] not in tmp['points']:
+#                         tmp['points'].append(click_data['points'][0])
+#                     print('tmp', tmp)
+#                     return None, tmp, dash.no_update
+#                 return None, click_data, dash.no_update
+#             raise PreventUpdate
         if changed_id[0] == 'graph1.selectedData':
             if selected_data is None:
                 return None, [], dash.no_update
@@ -947,7 +947,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                     z_key = 'z' if num_objectives >= 3 else None
 
                     if num_decision_vars >= 5:
-                        if num_objectives < 4:
+                        if num_objectives < 3:
                             trace_indices = [obj['pointNumber'] for obj in selected_data["points"]]
                             subset = df.iloc[trace_indices, :num_decision_vars].astype(float)
                         else:
@@ -959,7 +959,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
                     
                     # num_decision_vars < 5
                     else:
-                        if num_objectives < 4:
+                        if num_objectives < 3:
                             trace_indices = [
                                 obj['pointNumber']
                                 for obj in selected_data['points']
