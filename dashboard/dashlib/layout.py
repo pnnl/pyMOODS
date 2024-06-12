@@ -51,8 +51,12 @@ interface_layout = dbc.Container(
                                          'value': 'DTLZ3'
                                      },
                                      {
-                                         'label': 'Real World Data',
+                                         'label': 'Optimal Battery Size (Offshore Wind)',
                                          'value': 'RealTimeData'
+                                     },
+                                     {
+                                         'label': 'Optimal Battery Size (Offshore Wind) - 2',
+                                         'value': 'RealTimeData2'
                                      },
                                  ],
                                  value='DTLZ1'),

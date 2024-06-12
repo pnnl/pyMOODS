@@ -84,7 +84,7 @@ def generate_data_dtlz3(n_var, n_obj):
     Input("test-dropdown", "value"),
 )
 def toggle_inputs(test):
-    if test == "RealTimeData":
+    if test == "RealTimeData" or test == "RealTimeData2":
         return 2, 2
     return False, False
 
@@ -95,6 +95,9 @@ def toggle_inputs(test):
 def generate_data_real_time(test):
     if test == "RealTimeData":
         df = pd.read_csv('real_time_data.csv')
+        return df.to_json(orient='records')
+    elif test == "RealTimeData2":
+        df = pd.read_csv('real_time_data2.csv')
         return df.to_json(orient='records')
     else:
         raise dash.exceptions.PreventUpdate
@@ -173,6 +176,8 @@ def generate_data_dtlz4_callback(n_clicks, n_var, n_obj, test):
          df_generated = generate_data_real_time()
         # df_generated, decision_variables, objective_variables = generate_data_real_time()
         # return df_generated.to_json(orient='records')
+    elif test == 'RealTimeData2':
+         df_generated = generate_data_real_time()
     else:
         raise PreventUpdate
 
@@ -214,7 +219,7 @@ def update_summary(contents, filename, generated_data):
         df = pd.DataFrame(file)
 
     decision_variables = [col for col in df.columns if col.startswith('x') or col.startswith('B')]
-    objective_functions = [col for col in df.columns if col.startswith('f') or col.startswith('o')]
+    objective_functions = [col for col in df.columns if col.startswith(('f','T','P'))]
 
     size = len(df)
     help_text = 'Click and drag to select an area containing the points to filter.'
@@ -346,7 +351,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
             if dims['dec'] < 5:
                 sliders = []
                 for var, (min_val, max_val) in zip(dec_vars, [(0, 1)] * len(dec_vars)):
-                    if test == 'RealTimeData':
+                    if test == 'RealTimeData' or test == 'RealTimeData2':
                         min_val, max_val = 5, 20
                         step = 5
                         # marks ={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 1, step)}
@@ -914,7 +919,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids,
     #     min_val, max_val = 8, 20
     if my_data:
         df = pd.DataFrame(my_data)
-        num_objectives = len([col for col in df.columns if col.startswith('f') or col.startswith('o')])
+        num_objectives = len([col for col in df.columns if col.startswith('f') or col.startswith('T') or col.startswith('P')])
         num_decision_vars = len(df.columns) - num_objectives
         
         if click_data:

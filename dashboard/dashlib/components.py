@@ -16,7 +16,7 @@ def gen_graph(df):
     fig = go.Figure()
     if ('tab-1-example-graph') and df is not None and isinstance(
             df, pd.DataFrame):
-        f_cols = [col for col in df.columns if col.startswith('f') or col.startswith('o')]
+        f_cols = [col for col in df.columns if col.startswith('f') or col.startswith('T') or col.startswith('P')]
         num_objective_functions = len(f_cols)
 
         if num_objective_functions >= 2:
@@ -40,10 +40,10 @@ def gen_graph(df):
                             # })
                         ))
                     fig.update_traces(
-                     hovertemplate='f1: %{x}<br>f2: %{y}<extra></extra>', hoverlabel=dict(font_size=18))
+                     hovertemplate=f'{x_column}: %{{x}} <br>{y_column}: %{{y}}<extra></extra>', hoverlabel=dict(font_size=18))
                     fig.update_layout(
                         dragmode='select',
-                        xaxis=dict(title='f1',
+                        xaxis=dict(title=x_column,
                                    showgrid=True,
                                    showline=True,
                                    zeroline=False,
@@ -52,7 +52,7 @@ def gen_graph(df):
                                    title_font=dict(size=18),
                                    title_standoff=5,
                                    automargin=True),
-                        yaxis=dict(title='f2',
+                        yaxis=dict(title=y_column,
                                    showgrid=True,
                                    zeroline=False,
                                    showline=True,
