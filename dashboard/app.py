@@ -864,14 +864,13 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids)
     # if test == 'RealTimeData':
     #     min_val, max_val = 8, 20
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    print('slider_output', changed_id)
+#     print('slider_output', changed_id)
     if my_data:
         df = pd.DataFrame(my_data)
         objective_vars = [col for col in df.columns if col.startswith(('f','T','P'))]
         decision_vars = [col for col in df.columns if col.startswith(('x','B'))]
-                
+
         if 'graph1.clickData' in changed_id:
-            print('here', click_data)
 #             if 'points' in obj_pts_store and len(obj_pts_store['points']) > 0:
             if 'points' in click_data and len(click_data['points']) > 0: 
                 if len(objective_vars) < 3:
@@ -879,12 +878,17 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids)
                 else:
                     trace_indices = [obj['curveNumber'] for obj in click_data["points"]]
                 subset = df.loc[trace_indices, decision_vars].astype(float)
+
                 if len(decision_vars) >= 5:
                     return [], subset.values.tolist()
                 else:
                     slider_values = []
                     for slider_id in slider_ids:
-                        var = slider_id['index'].split('-')[-1]
+                        if len(slider_id['index'].split('-')) < 3:
+                            var = slider_id['index'].split('-')[-1]
+                        else:
+                            var = '-'.join(ts.split('-')[1:])
+
                         if var in subset:
                             min_val = subset[var].min()
                             max_val = subset[var].max()
