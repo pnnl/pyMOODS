@@ -3,7 +3,6 @@ import json
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-from dash_extensions import Keyboard, EventListener
 
 import pandas as pd
 from .components import blank_figure
@@ -167,10 +166,7 @@ interface_layout = dbc.Container(
                                                     dbc.Col(
                                                         children=[
                                                             html.H6(id='obj-help', style={'textAlign': 'center'}),
-                                                            EventListener(
-                                                                dcc.Graph(figure=blank_figure(), id='graph1'),
-                                                                events=[{"event": "click", "props": ['shiftKey']}], id='el'
-                                                            )
+                                                            dcc.Graph(figure=blank_figure(), id='graph1'),
                                                         ],
                                                         width=6
                                                     ),
