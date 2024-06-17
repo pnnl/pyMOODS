@@ -887,7 +887,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids)
                         if len(slider_id['index'].split('-')) < 3:
                             var = slider_id['index'].split('-')[-1]
                         else:
-                            var = '-'.join(ts.split('-')[1:])
+                            var = '-'.join(slider_id['index'].split('-')[1:])
 
                         if var in subset:
                             min_val = subset[var].min()
