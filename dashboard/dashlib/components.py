@@ -23,7 +23,7 @@ def gen_graph(df):
             if num_objective_functions == 2:
                 x_column, y_column = f_cols[:2]
                 fig.add_trace(
-                    go.Scattergl(
+                    go.Scatter(
                         x=df[x_column],
                         y=df[y_column],
                         # hovertemplate='(x = %{x}, y= %{y})<extra></extra>',
@@ -33,10 +33,16 @@ def gen_graph(df):
                                     line=dict(color='mediumpurple',
                                               width=2)),
                         hoverlabel=dict(font_size=18),
-                        # selected=go.scatter.Selected(marker={
-                        #     'size': 40,
-                        #     "color": "LightSeaGreen"
-                        # })
+                        selected=dict(marker={
+                            'size': 22,
+#                             'color': 'mediumpurple',
+#                             'color': 'rgba(0,0,0,0)',
+                            'opacity': 1,
+#                             'line': dict(color='mediumpurple', width=5)
+                        }),
+                        unselected=dict(marker={
+                            'opacity': 0.05
+                        })
                     ))
                 fig.update_traces(
                  hovertemplate=f'{x_column}: %{{x}} <br>{y_column}: %{{y}}<extra></extra>', hoverlabel=dict(font_size=18))

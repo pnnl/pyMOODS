@@ -464,7 +464,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                     active_pts = [pt['curveNumber'] for pt in obj_pts_store['points']]
                     for d in fig['data']:
                         if int(d['name']) not in active_pts:
-                            d['line']['color'] = 'rgba(147,112,219, 0.1)'
+                            d['line']['color'] = 'rgba(147,112,219, 0.05)'
 #                 print('active_pts', active_pts)
 #                 print('selected_data', selected_data)
                 
@@ -887,7 +887,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids)
                         if len(slider_id['index'].split('-')) < 3:
                             var = slider_id['index'].split('-')[-1]
                         else:
-                            var = '-'.join(ts.split('-')[1:])
+                            var = '-'.join(slider_id['index'].split('-')[1:])
 
                         if var in subset:
                             min_val = subset[var].min()
