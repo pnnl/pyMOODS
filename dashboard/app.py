@@ -438,7 +438,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                     polar = dict(
                         radialaxis = dict(range=[0, max(list(map(max, dec_values)))+0.1], showticklabels=False, ticks='')
                     ),
-                    template=None, dragmode='select', margin=dict(l=30, r=30, t=30, b=45))
+                    template=None, dragmode='select', margin=dict(l=30, r=30, t=40, b=45))
 
                 return fig, html.Div(
                     [
@@ -513,7 +513,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                 rad_fig.update_layout(
                     font=dict(size=16, color='black'),
                     template=None,
-                    showlegend=False, dragmode='select', margin=dict(l=30, r=30, t=30, b=45),
+                    showlegend=False, dragmode='select', margin=dict(l=40, r=40, t=40, b=45),
                     polar = dict(
                         radialaxis = dict(range=[0, max(list(map(max, dec_values)))+0.1], showticklabels=False, ticks='')
                     )
@@ -802,7 +802,7 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary,
 
         rad_fig.update_layout(showlegend=False,
                               dragmode='select',
-                              margin=dict(l=20, r=20, t=20, b=20))
+                              margin=dict(l=30, r=30, t=30, b=30))
         return new_sliders, {'display': 'block', 'width': '45%'}, {'width': '50%', 'height': '100%'}, rad_fig, 'Move the sliders to modify the values of filtered variables and double-click on an empty area in the chart to deselect.', dash.no_update
     else:
         if len(decision_vars) >= 5:
