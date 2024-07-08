@@ -366,18 +366,17 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
 def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slider_values, filtered_dec, dec_range_store, dec_values, use_cluster, dims, dec_vars,
                    curr_fig, curr_rad_fig, test):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    print('clean_callback', changed_id)
+#     print('clean_callback', changed_id)
     if data is None:
         raise PreventUpdate
     else:
         df = pd.DataFrame(data)
         objective_functions = [col for col in df.columns if col.startswith(('f','T','P'))]
         
-        print(use_cluster)
+#         print(use_cluster)
         fig = gen_graph(df, 'cluster' in use_cluster)
 
         if ('stored-df.data' in changed_id) | (len(obj_pts_store) == 0):
-            print('stored-df.data changed or obj_pts_store is NONE')
             if dims['dec'] < 5:
                 sliders = []
                 for var, (min_val, max_val) in zip(dec_vars, [(0, 1)] * len(dec_vars)):
@@ -531,7 +530,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                     active_pts = [pt['pointNumber'] for pt in obj_pts_store['points']]
                 else:
                     active_pts = [pt['curveNumber'] for pt in obj_pts_store['points']]
-                    print('active_pts', active_pts, len(active_pts))
+#                     print('active_pts', active_pts, len(active_pts))
                     for d in fig['data']:
                         name = int(d['name'])
                         if 'cluster' not in use_cluster:
@@ -566,7 +565,6 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                 fig.update_traces(selectedpoints=active_pts)
                 
             if dims['dec'] < 5:
-                print('return fig here')
                 return fig, dash.no_update
             else:
                 rad_fig = go.Figure()
@@ -623,7 +621,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
             updated_slider = {}
             for i, val in enumerate(slider_vals):
                 updated_slider[dec_vars[i]] = [float(v) for v in val]
-            print('updated_slider', updated_slider)
+#             print('updated_slider', updated_slider)
 
             new_solutions = []
             for idx, d in enumerate(df[dec_vars].values.tolist()):
@@ -633,26 +631,13 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                     statuses.append((float(d[i]) >= v[0]) & (float(d[i]) <= v[1]))
                 if sum(statuses) == len(dec_vars):
                     new_solutions.append(idx)
-            print('new_solutions', len(new_solutions))
+#             print('new_solutions', len(new_solutions))
 #             print('check dec values', len(dec_values), dec_values)
 
             new_fig = go.Figure(curr_fig)
             if dims['obj'] < 3:
                 new_fig.update_traces(selectedpoints=new_solutions)
             else:
-#                 for d in fig['data']:
-#                     name = int(d['name'])
-#                     if 'cluster' not in use_cluster:
-#                         if name not in active_pts:
-#                             d['line']['color'] = 'rgba(147,112,219, 0.05)'
-#                     else:
-#                         h = d['line']['color'].strip('#')
-#                         r, g, b = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-#                         if name not in active_pts:
-#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
-#                         else:
-#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
-
                 for d in new_fig['data']:
                     name = int(d['name'])
                     if 'cluster' not in use_cluster:
@@ -667,10 +652,6 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                             d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
                         else:
                             d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
-#                         if name not in new_solutions:
-#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
-#                         else:
-#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
                     
             return new_fig, dash.no_update
 
@@ -787,7 +768,7 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
 
 def save_selection(radar_selected, dec_sliders, click_data, selected_data, selected_cluster, dec_vars, curr_obj_pts, fig, stored_data):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    print('save_selection', changed_id)
+#     print('save_selection', changed_id)
 
     if len(dec_vars) >= 5:
         if 'rad-slider-' in changed_id[0]:
@@ -810,7 +791,6 @@ def save_selection(radar_selected, dec_sliders, click_data, selected_data, selec
             return None, {}, dash.no_update
         return radar_selected, dash.no_update, dash.no_update
     else:
-        print(selected_cluster)
         if 'graph1.clickData' in changed_id:
             return None, click_data, dash.no_update
         if changed_id[0] == 'graph1.selectedData':
@@ -995,7 +975,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, selected_cl
     # if test == 'RealTimeData':
     #     min_val, max_val = 8, 20
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-    print('slider_output', changed_id)
+#     print('slider_output', changed_id)
     if my_data:
         df = pd.DataFrame(my_data)
         objective_vars = [col for col in df.columns if col.startswith(('f','T','P'))]
@@ -1044,7 +1024,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, selected_cl
                 raise PreventUpdate
                 
         if 'graph1.selectedData' in changed_id:
-            print('obj', obj_pts_store)
+#             print('obj', obj_pts_store)
 #             print('print value', selected_data)
             if selected_data is None:
                 raise PreventUpdate
