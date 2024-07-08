@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.graph_objs as go
 import numpy as np
+import plotly.express as px
 
 
 def blank_figure():
@@ -12,7 +13,7 @@ def blank_figure():
     return fig
 
 
-def gen_graph(df):
+def gen_graph(df, use_cluster=False):
     fig = go.Figure()
     if ('tab-1-example-graph') and df is not None and isinstance(
             df, pd.DataFrame):
@@ -81,9 +82,12 @@ def gen_graph(df):
                     plot_bgcolor='rgba(0,0,0,0)',
                 )
             else:
+#                 df = df.T
                 df = df.T
                 f_colss = [col for col in df.index if col.startswith('f')]
-                
+                tmp_colors = px.colors.qualitative.Plotly
+                groups = []
+            
                 for col in f_colss:
                     fig.add_vline(x=col,
                                   line_width=3,
@@ -94,12 +98,24 @@ def gen_graph(df):
                         go.Scatter(x=df.index.values[df.index.str.startswith('f')],
                                    y=df[col][df.index.str.startswith('f')],
                                    mode='lines+markers',
+#                                    name=df[col]['labels'].astype(int).astype(str) if use_cluster else str(col),
+#                                    uid=str(col),
                                    name=str(col),
-                                   line=dict(color='Mediumpurple')
-                                   ))
+                                   text=[df[col]['labels'].astype(int).astype(str) for i in range(len(f_colss))] if use_cluster else None,
+#                                    legendgroup=df[col]['labels'].astype(int).astype(str) if use_cluster else None,
+#                                    name=df[col]['labels'].astype(int).astype(str),
+                                   marker_color=df[col]['labels'] if use_cluster else None,
+                                   line=dict(color=tmp_colors[int(df[col]['labels'])]) if use_cluster else dict(color='MediumPurple'),
+                                   showlegend=False,
+                                   hovertemplate='x: %{x}<br>' + 'y: %{y:.2f}<br>' + "cluster: %{text}" if use_cluster else None
+#                                    showlegend=df[col]['labels'].astype(int).astype(str) not in groups if use_cluster else False,
+#                                    visible=True
+                                  )
+                    )
+#                     if use_cluster:
+#                         groups.append(df[col]['labels'].astype(int).astype(str))
 
                 fig.update_layout(
-                    showlegend=False,
                     dragmode='select',
                     xaxis=dict(
                         tickmode='array',
@@ -108,6 +124,10 @@ def gen_graph(df):
                         automargin=True,
                         title_font=dict(size=18)
                     ),
+                    legend = dict(
+                        font=dict( family="Courier", size=18, color="black"), 
+                        bgcolor = 'white', bordercolor="Black", borderwidth=1
+                    ),
                     # yaxis=dict(title='Values'),
                     # clickmode='event+select',
                     hovermode='closest',
@@ -115,6 +135,7 @@ def gen_graph(df):
                     plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(color="black", size=18),
                     margin=dict(l=20, r=20, t=30, b=10),
+                    
                 )
 #                 if num_objective_functions == 2:
 
@@ -146,6 +167,7 @@ def gen_graph(df):
 #                                       margin=dict(l=0, r=0, t=0, b=28),
 #                                       paper_bgcolor='rgb(0,0,0,0)',
 #                                       plot_bgcolor='rgba(0,0,0,0)')
+
 
 
          

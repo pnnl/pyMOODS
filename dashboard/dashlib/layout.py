@@ -135,7 +135,7 @@ interface_layout = dbc.Container(
                                                                 "fontFamily":
                                                                 "Helvetica",
                                                                 "margin":
-                                                                "40px",
+                                                                "30px",
                                                                 "textAlign":
                                                                 "center"
                                                                 # "marginLeft":"15rem"
@@ -152,7 +152,7 @@ interface_layout = dbc.Container(
                                                                 "textAlign":
                                                                 "center",
                                                                 "margin":
-                                                                "40px"
+                                                                "30px"
                                                                 # "margin":"50px", "marginLeft":"15rem"
                                                             }),
                                                         width=6)
@@ -166,6 +166,28 @@ interface_layout = dbc.Container(
                                                     dbc.Col(
                                                         children=[
                                                             html.H6(id='obj-help', style={'textAlign': 'center'}),
+                                                            html.Div([
+                                                                
+                                                                dbc.Checklist(
+                                                                    id="use-cluster-toggle",
+                                                                    options=[
+                                                                        {"label": "Color by cluster", "value": 'cluster'},
+                                                                    ],
+                                                                    value=[],
+                                                                    inline=True,
+                                                                    switch=True,
+                                                                    style={'display': 'none',}
+                                                                ),
+                                                                
+                                                                dcc.Dropdown(
+                                                                    id='cluster-dropdown', 
+                                                                    options=[],
+                                                                    value=[],
+                                                                    multi=True,
+                                                                    placeholder='Select a cluster',
+                                                                    style={'display': 'none'}
+                                                                )
+                                                            ], style={'display': 'flex', 'alignItems': 'center'}),
                                                             dcc.Graph(figure=blank_figure(), id='graph1'),
                                                         ],
                                                         width=6
