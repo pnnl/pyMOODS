@@ -189,7 +189,7 @@ interface_layout = dbc.Container(
                                                                     style={'display': 'none'}
                                                                 )
                                                             ], style={'display': 'flex', 'alignItems': 'center'}),
-                                                            dcc.Graph(figure=blank_figure(), id='graph1'),
+                                                            dcc.Loading(id='loading-graph', children=[dcc.Graph(figure=blank_figure(), id='graph1')]),
                                                         ],
                                                         width=6
                                                     ),

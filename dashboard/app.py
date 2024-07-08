@@ -8,6 +8,7 @@ from dash.dependencies import Input, Output, State, ALL
 import dash_bootstrap_components as dbc
 from pymoo.problems import get_problem
 import plotly.graph_objs as go
+import plotly.express as px
 from dashlib.layout import interface_layout
 from dashlib.components import gen_graph, blank_figure
 from data.parser import parse_data
@@ -16,6 +17,7 @@ from dash.exceptions import PreventUpdate
 from pymoo.optimize import minimize
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
+from sklearn.cluster import KMeans
 
 app = dash.Dash(
     __name__,
@@ -133,7 +135,7 @@ app.layout = html.Div([
     interface_layout,
     html.Div(id="radar-sliders", style={'display': 'none'}),
     dcc.Graph(id="radar-chart", style={'display': 'none'}),
-    dcc.Store(id='obj-weights-store',data=[]),
+    dcc.Store(id='obj-weights-store',data=[])
 ])
 
 
@@ -188,6 +190,9 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
 
 @app.callback(
     Output('stored-df', 'data'),
+    Output('use-cluster-toggle', 'style'),
+    Output('cluster-dropdown', 'style'),
+    Output('cluster-dropdown', 'options'),
     Output("summary-table", 'style'),
     Output("summary-table", 'children'),
     Output('obj-help', 'children'),
@@ -201,15 +206,16 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
     [
       Input('upload-data', 'contents'),
       Input('upload-data', 'filename'),
-      Input("data-generated", "data")
+      Input("data-generated", "data"),
+      Input('use-cluster-toggle', 'value'),
     ],
     prevent_initial_call=True)
-def update_summary(contents, filename, generated_data):
+def update_summary(contents, filename, generated_data, cluster_switch):
     if generated_data:
         generated_data_io = io.StringIO(generated_data)
         df = pd.read_json(generated_data_io, orient='records')
     elif contents is None:
-        return [], {'display': 'none'}, [], dash.no_update, {}, [], dash.no_update, [], [], {}, {}
+        return [], {'display': 'none'}, {'display': 'none'}, [], {'display': 'none'}, [], dash.no_update, {}, [], dash.no_update, [], [], {}, {}
     else:
         #parse the uploaded file
         content_type, content_string = contents[0].split(',')
@@ -223,9 +229,28 @@ def update_summary(contents, filename, generated_data):
 
     decision_variables = [col for col in df.columns if col.startswith('x') or col.startswith('B')]
     objective_functions = [col for col in df.columns if col.startswith(('f','T','P'))]
+    
+    help_text = 'Click and drag to select an area containing the points to filter.'
+    
+    if 'cluster' in cluster_switch:
+        X = df[objective_functions].values
+        kmeans = KMeans(n_clusters=len(objective_functions), random_state=0, n_init="auto").fit(X)
+        df['labels'] = kmeans.labels_
+        options_list = []
+        tmp_colors = px.colors.qualitative.Plotly
+        colors_dict = {}
+        for i, x in enumerate(sorted(df.labels.unique())):
+            options_list.append({
+                'label': html.Div([ 
+                    html.Div(style={'width': '15px', 'height': '15px', 'background': tmp_colors[i]}),
+                    html.Div(x, style={'marginLeft': '3px'})
+                ], style={'display': 'flex', 'alignItems': 'center'}), 
+                'value': x}
+            )
+        help_text = 'Select cluster(s) on the dropdown or click and drag to select an area containing the points to filter.'
 
     size = len(df)
-    help_text = 'Click and drag to select an area containing the points to filter.'
+    
 
     summary_table = html.Table([
         html.Tr([
@@ -266,7 +291,7 @@ def update_summary(contents, filename, generated_data):
         ]),
     ])
     
-    return df.to_dict(orient='records'), {
+    return df.to_dict(orient='records'), {'display': 'block'} if len(objective_functions) >= 4 else {'display': 'none'},{'display': 'block', 'width': '10vw'} if 'cluster' in cluster_switch else {'display': 'none'}, options_list if 'cluster' in cluster_switch else [], {
         'margin': '10rem auto auto auto',
         'fontWeight': '500',
         'borderRadius': '10px',
@@ -313,7 +338,7 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
 
 # Clean up update_output callback function
 @app.callback(
-    Output('graph1', 'figure',allow_duplicate=True),
+    Output('graph1', 'figure', allow_duplicate=True),
     Output('sliders', 'children'),
     Input('stored-df', 'data'),
     Input('graph1', 'selectedData'),
@@ -329,6 +354,7 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
     }, "value"),
     Input('temp-summary-min-max', 'data'),
     Input('decision-values-store', 'data'),
+    Input('use-cluster-toggle', 'value'),
     State('df-dimensions', 'data'),
     State('decision-variables-store', 'data'),
     State('graph1', 'figure'),
@@ -337,18 +363,21 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
     prevent_initial_call=True
 )
 
-def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slider_values, filtered_dec, dec_range_store, dec_values, dims, dec_vars,
+def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slider_values, filtered_dec, dec_range_store, dec_values, use_cluster, dims, dec_vars,
                    curr_fig, curr_rad_fig, test):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-#     print('clean_callback', changed_id)
-    
+    print('clean_callback', changed_id)
     if data is None:
         raise PreventUpdate
     else:
         df = pd.DataFrame(data)
-        fig = gen_graph(df)
+        objective_functions = [col for col in df.columns if col.startswith(('f','T','P'))]
+        
+        print(use_cluster)
+        fig = gen_graph(df, 'cluster' in use_cluster)
 
         if ('stored-df.data' in changed_id) | (len(obj_pts_store) == 0):
+            print('stored-df.data changed or obj_pts_store is NONE')
             if dims['dec'] < 5:
                 sliders = []
                 for var, (min_val, max_val) in zip(dec_vars, [(0, 1)] * len(dec_vars)):
@@ -478,6 +507,22 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                         'justifyContent': 'space-between'
                     }
                 )
+#         if 'graph1.restyleData' in changed_id:
+#             print('checking...', obj_pts_store)
+#             if obj_pts_store:
+#                 if dims['obj'] < 3:
+#                     active_pts = [pt['pointNumber'] for pt in obj_pts_store['points']]
+#                 else:
+#                     active_pts = [pt['curveNumber'] for pt in obj_pts_store['points']]
+#                 print('active_pts', active_pts, len(active_pts))
+#                 for d in fig['data']:
+#                     name = int(d['uid'])
+#                     h = d['line']['color'].strip('#')
+#                     r, g, b = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+#                     print(name, r, g, b)
+#                     if name not in active_pts:
+#                         d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
+#             raise PreventUpdate
                 
         if ('selected-obj-pts-store.data' in changed_id) | (('decision-values-store.data' in changed_id) & (any('slider' in t for t in changed_id) == False)):
 #             print('obj_pts_store', obj_pts_store)
@@ -486,12 +531,22 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                     active_pts = [pt['pointNumber'] for pt in obj_pts_store['points']]
                 else:
                     active_pts = [pt['curveNumber'] for pt in obj_pts_store['points']]
+                    print('active_pts', active_pts, len(active_pts))
                     for d in fig['data']:
-                        if int(d['name']) not in active_pts:
-                            d['line']['color'] = 'rgba(147,112,219, 0.05)'
-#                 print('active_pts', active_pts)
+                        name = int(d['name'])
+                        if 'cluster' not in use_cluster:
+                            if name not in active_pts:
+                                d['line']['color'] = 'rgba(147,112,219, 0.05)'
+                        else:
+                            h = d['line']['color'].strip('#')
+                            r, g, b = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+                            if name not in active_pts:
+                                d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
+                            else:
+                                d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
+
 #                 print('selected_data', selected_data)
-                
+
                 if 'range' in obj_pts_store:
                     ranges = obj_pts_store['range']
                     selection_bounds = {
@@ -511,6 +566,7 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
                 fig.update_traces(selectedpoints=active_pts)
                 
             if dims['dec'] < 5:
+                print('return fig here')
                 return fig, dash.no_update
             else:
                 rad_fig = go.Figure()
@@ -584,13 +640,38 @@ def clean_callback(data, selected_data, obj_pts_store, radar_pts_store, ds_slide
             if dims['obj'] < 3:
                 new_fig.update_traces(selectedpoints=new_solutions)
             else:
+#                 for d in fig['data']:
+#                     name = int(d['name'])
+#                     if 'cluster' not in use_cluster:
+#                         if name not in active_pts:
+#                             d['line']['color'] = 'rgba(147,112,219, 0.05)'
+#                     else:
+#                         h = d['line']['color'].strip('#')
+#                         r, g, b = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+#                         if name not in active_pts:
+#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
+#                         else:
+#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
+
                 for d in new_fig['data']:
-                    if int(d['name']) not in new_solutions:
-                        d['line']['color'] = 'rgba(147,112,219, 0.1)'
+                    name = int(d['name'])
+                    if 'cluster' not in use_cluster:
+                        if name not in new_solutions:
+                            d['line']['color'] = 'rgba(147,112,219, 0.1)'
+                        else:
+                            d['line']['color'] = 'rgba(147,112,219, 1)'
+            
                     else:
-                        d['line']['color'] = 'rgba(147,112,219, 1)'
-
-
+                        r, g, b, a = d['line']['color'].strip('rgba').replace('(', '').replace(')', '').replace(' ', '').split(',')
+                        if name not in new_solutions:
+                            d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
+                        else:
+                            d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
+#                         if name not in new_solutions:
+#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 0.05)"
+#                         else:
+#                             d['line']['color'] = f"rgba({r}, {g}, {b}, 1)"
+                    
             return new_fig, dash.no_update
 
         # PLACEHOLDER
@@ -697,12 +778,17 @@ def update_radar_from_slider(slider_values, fig, dec_values, dec_vars, radar_pts
               }, "value"),
               Input('graph1', 'clickData'),
               Input('graph1', 'selectedData'),
+              Input('cluster-dropdown', 'value'),
               State('decision-variables-store', 'data'),
               State('selected-obj-pts-store', 'data'),
+              State('graph1', 'figure'),
+              State('stored-df', 'data'),
               prevent_initial_call=True)
-def save_selection(radar_selected, dec_sliders, click_data, selected_data, dec_vars, curr_obj_pts):
+
+def save_selection(radar_selected, dec_sliders, click_data, selected_data, selected_cluster, dec_vars, curr_obj_pts, fig, stored_data):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-#     print('save_selection', changed_id)
+    print('save_selection', changed_id)
+
     if len(dec_vars) >= 5:
         if 'rad-slider-' in changed_id[0]:
             raise PreventUpdate
@@ -710,17 +796,36 @@ def save_selection(radar_selected, dec_sliders, click_data, selected_data, dec_v
 #             print('save_selection_click', click_data)
             return None, click_data, dash.no_update
         if changed_id[0] == 'graph1.selectedData':
-            if len(selected_data['points']) == 0:
-                raise PreventUpdate
-            return None, selected_data, 'Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)'
+            if selected_data:
+                if len(selected_data['points']) == 0:
+                    raise PreventUpdate
+                return None, selected_data, 'Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)'
+            return None, {}, 'Click and drag to draw a box around the area containing the points to filter. (The box should contain points, not just lines.)'
+        if 'cluster-dropdown.value' in changed_id:
+            if selected_cluster:
+                df = pd.DataFrame(stored_data)
+                selected_obj = {}
+                selected_obj['points'] = [{'curveNumber': x} for x in list(df[df.labels.isin(selected_cluster)].index)]
+                return None, selected_obj, dash.no_update
+            return None, {}, dash.no_update
         return radar_selected, dash.no_update, dash.no_update
     else:
+        print(selected_cluster)
         if 'graph1.clickData' in changed_id:
             return None, click_data, dash.no_update
         if changed_id[0] == 'graph1.selectedData':
-            if len(selected_data['points']) == 0:
-                raise PreventUpdate
-            return None, selected_data, 'Move the sliders to modify the values of decision variables.'
+            if selected_data:
+                if len(selected_data['points']) == 0:
+                    raise PreventUpdate
+                return None, selected_data, 'Move the sliders to modify the values of decision variables.'
+            return None, {}, 'Move the sliders to modify the values of decision variables.'
+        if 'cluster-dropdown.value' in changed_id:
+            if selected_cluster:
+                df = pd.DataFrame(stored_data)
+                selected_obj = {}
+                selected_obj['points'] = [{'curveNumber': x} for x in list(df[df.labels.isin(selected_cluster)].index)]
+                return None, selected_obj, dash.no_update
+            return None, {}, dash.no_update
         raise PreventUpdate
 
 
@@ -873,8 +978,10 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary,
     Output('decision-values-store', 'data', allow_duplicate=True),
     Input('graph1', 'clickData'),
     Input('selected-obj-pts-store', 'data'),
-    Input('graph1', 'selectedData'), [
+    Input('graph1', 'selectedData'), 
+    [
       State('stored-df', 'data'),
+        State('cluster-dropdown', 'value'),
       State({
           "type": "ds-sliders",
           "index": ALL
@@ -884,11 +991,11 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary,
     ],
     prevent_initial_call=True)
 
-def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids):
+def slider_output(click_data, obj_pts_store, selected_data, my_data, selected_cluster, slider_ids):
     # if test == 'RealTimeData':
     #     min_val, max_val = 8, 20
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
-#     print('slider_output', changed_id)
+    print('slider_output', changed_id)
     if my_data:
         df = pd.DataFrame(my_data)
         objective_vars = [col for col in df.columns if col.startswith(('f','T','P'))]
@@ -918,8 +1025,30 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids)
                             max_val = subset[var].max()
                         slider_values.append([min_val, max_val])
                     return slider_values, []
-                    
+                
+        if 'selected-obj-pts-store.data' in changed_id:
+            if selected_cluster:
+                if 'points' in obj_pts_store:
+                    trace_indices = [obj['curveNumber'] for obj in obj_pts_store['points']]
+                    subset = df.loc[trace_indices, decision_vars].astype(float)
+                    if len(decision_vars) >= 5:    
+                        return [], subset.values.tolist()
+                    else:
+                        slider_values = []
+                        for col in subset.columns:
+                            min_val = subset[col].min()
+                            max_val = subset[col].max()
+                            slider_values.append([min_val, max_val])
+                        return slider_values, []
+                    raise PreventUpdate
+                raise PreventUpdate
+                
         if 'graph1.selectedData' in changed_id:
+            print('obj', obj_pts_store)
+#             print('print value', selected_data)
+            if selected_data is None:
+                raise PreventUpdate
+                
             if 'points' in selected_data and len(selected_data['points']) > 0:
                 if len(objective_vars) > 0:
                     if len(decision_vars) >= 5:
@@ -950,21 +1079,15 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, slider_ids)
                             subset = df.loc[trace_indices, decision_vars].astype(float)
                             print('subset', subset.shape)
                         slider_values = []
-                        # for slider_id in slider_ids:
-                        #     var = slider_id['index'].split('-')[-1]
-                        #     if var in subset:
-                        #         min_val = subset[var].min()
-                        #         max_val = subset[var].max()
-                        #         print(var, min_val, max_val)
-                        #         slider_values.append([min_val, max_val])
-                        # print(slider_values)
+                        
                         for col in subset.columns:
                             min_val = subset[col].min()
                             max_val = subset[col].max()
                             print("Min:",min_val,"Max:", max_val)
                             slider_values.append([min_val, max_val])
                         print(slider_values)
-                        return slider_values, []      
+                        return slider_values, []
+            
     raise PreventUpdate
 
 ### COMMENT OUT PARETO FRONT CALLBACK
