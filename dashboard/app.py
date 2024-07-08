@@ -36,40 +36,44 @@ labelFlex = {
     'fontFamily': "Helvetica",
 }
 
-def generate_data_dtlz1(n_var, n_obj):
+def generate_data_dtlz1(n_var, n_obj,obj_weights):
     problem = get_problem('dtlz1', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
 
     X = res.X
     F = res.F
+    print(f"Original objective function values (F): \n{F}")
+    weighted_F = F * np.array(obj_weights)
+    print(f"Weighted objective function values: \n{weighted_F}")
     n_var = problem.n_var
     n_obj = problem.n_obj
     var_cols = [f'x{i}' for i in range(1, n_var + 1)]
     obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
     df = pd.DataFrame(X, columns=var_cols)
     for i in range(n_obj):
-        df[obj_cols[i]] = F[:, i]
+        df[obj_cols[i]] = weighted_F[:, i]
 
     # front = res.F
     # print("Generated Data: ")
     # print(df.head())
     return df
 
-def generate_data_dtlz3(n_var, n_obj):
+def generate_data_dtlz3(n_var, n_obj, obj_weights):
     problem = get_problem('dtlz3', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
 
     X = res.X
     F = res.F
+    weighted_F = F * np.array(obj_weights)
     n_var = problem.n_var
     n_obj = problem.n_obj
     var_cols = [f'x{i}' for i in range(1, n_var + 1)]
     obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
     df = pd.DataFrame(X, columns=var_cols)
     for i in range(n_obj):
-        df[obj_cols[i]] = F[:, i]
+        df[obj_cols[i]] = weighted_F[:, i]
 
     # front = res.F
     # print("Generated Data: ")
@@ -129,25 +133,42 @@ app.layout = html.Div([
     interface_layout,
     html.Div(id="radar-sliders", style={'display': 'none'}),
     dcc.Graph(id="radar-chart", style={'display': 'none'}),
+    dcc.Store(id='obj-weights-store',data=[]),
 ])
 
 
-@app.callback(Output("data-generated", "data"),
-              [Input("generated-dtlz-button", "n_clicks")], [
+@app.callback([Output("data-generated", "data"),
+              Output('obj-weights-store','data'),
+              Output('graph1','figure'),
+            #   Output('update-message','children')
+              ],
+              [Input("generated-dtlz-button", "n_clicks"), Input('obj-weights-input','value')], [
                   State("num-decision-vars", "value"),
                   State("num-objective-vars", "value"),
-                  State("test-dropdown", "value")
-              ])
-def generate_data_dtlz4_callback(n_clicks, n_var, n_obj, test):
+                  State("test-dropdown", "value"),
+              ],prevent_initial_callbacks='initial_duplicate')
+def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
     if n_var is None or n_obj is None:
-        raise dash.exceptions.PreventUpdate("Please enter")
+        # return "", [], blank_figure(),"Please enter number of variables" 
+        raise dash.exceptions.PreventUpdate("Please enter number of variables")
     if n_clicks is None:
+        # return "", [], blank_figure(),""
         raise PreventUpdate
 
+    if test in ['DTLZ1', 'DTLZ3']:
+        if obj_weights_input:
+            obj_weights = [float(x) for x in obj_weights_input.split(',') if x.strip()]
+            # obj_weights = [float(obj_weights)] * n_obj
+            # obj_weights = list(map(float,obj_weights_input.split(',')))
+            # if len(obj_weights) != n_obj:
+            #     return "",[], blank_figure(),f"Number of weights provided ({len(obj_weights)}) does not match the number of objectives ({n_obj})."
+        else:
+            obj_weights = [1.0] * n_obj
+        print(f"Objective weights:{obj_weights}")
     if test == 'DTLZ1':
-        df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj)
+        df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj, obj_weights=obj_weights)
     elif test == 'DTLZ3':
-        df_generated = generate_data_dtlz3(n_var=n_var, n_obj=n_obj)
+        df_generated = generate_data_dtlz3(n_var=n_var, n_obj=n_obj, obj_weights=obj_weights)
     elif test == 'RealTimeData':
          df_generated = generate_data_real_time()
         # df_generated, decision_variables, objective_variables = generate_data_real_time()
@@ -156,10 +177,13 @@ def generate_data_dtlz4_callback(n_clicks, n_var, n_obj, test):
          df_generated = generate_data_real_time()
     else:
         raise PreventUpdate
-
+    print(f"Generated Data:\n{df_generated}")
+    fig = gen_graph(df_generated)
+    return df_generated.to_json(orient='records'),obj_weights, fig
     # filename = "data_generated.json"
+    
     # print("Generated JSON: ",df_generated.to_json(orient='records'))
-    return df_generated.to_json(orient='records')
+    # return df_generated.to_json(orient='records'),obj_weights, fig,"Graph updated successfully"
 
 
 @app.callback(
@@ -289,7 +313,7 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
 
 # Clean up update_output callback function
 @app.callback(
-    Output('graph1', 'figure'),
+    Output('graph1', 'figure',allow_duplicate=True),
     Output('sliders', 'children'),
     Input('stored-df', 'data'),
     Input('graph1', 'selectedData'),
