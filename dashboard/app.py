@@ -46,40 +46,41 @@ def generate_data_dtlz1(n_var, n_obj,obj_weights):
     X = res.X
     F = res.F
     print(f"Original objective function values (F): \n{F}")
-    weighted_F = F * np.array(obj_weights)
-    print(f"Weighted objective function values: \n{weighted_F}")
+    # weighted_F = F * np.array(obj_weights)
+    # print(f"Weighted objective function values: \n{weighted_F}")
+    # f_star = weighted_F.sum(axis=1)
     n_var = problem.n_var
     n_obj = problem.n_obj
     var_cols = [f'x{i}' for i in range(1, n_var + 1)]
     obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
     df = pd.DataFrame(X, columns=var_cols)
     for i in range(n_obj):
-        df[obj_cols[i]] = weighted_F[:, i]
-
-    # front = res.F
-    # print("Generated Data: ")
-    # print(df.head())
+        df[obj_cols[i]] = F[:, i]
+    if obj_weights:
+        f_star = np.dot(F, np.array(obj_weights))
+        df['f*'] = f_star
     return df
 
 def generate_data_dtlz3(n_var, n_obj, obj_weights):
     problem = get_problem('dtlz3', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
-
+ 
     X = res.X
     F = res.F
-    weighted_F = F * np.array(obj_weights)
+    # weighted_F = F * np.array(obj_weights)
+    # f_star = weighted_F.sum(axis=1)
     n_var = problem.n_var
     n_obj = problem.n_obj
     var_cols = [f'x{i}' for i in range(1, n_var + 1)]
     obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
     df = pd.DataFrame(X, columns=var_cols)
     for i in range(n_obj):
-        df[obj_cols[i]] = weighted_F[:, i]
-
-    # front = res.F
-    # print("Generated Data: ")
-    # print(df.head())
+        df[obj_cols[i]] = F[:, i]
+    if obj_weights:
+        f_star = np.dot(F, np.array(obj_weights))
+        df['f*'] = f_star
+    # df['f*'] = f_star
     return df
 
 @app.callback(
@@ -105,21 +106,6 @@ def generate_data_real_time(test):
         return df.to_json(orient='records')
     else:
         raise dash.exceptions.PreventUpdate
-    # print(df.head())
-    # decision_variables = [col for col in df.columns if col.startswith('x')]
-    # objective_variables = [col for col in df.columns if col.startswith('f')]
-
-    # data_records = []
-
-    # for index, row in df.iterrows():
-    #     data_record ={'x': [], 'f': []}
-    #     for var in decision_variables:
-    #         data_record['x'].append(row[var])
-    #     for var in objective_variables:
-    #         data_record['f'].append(row[var])
-    #     data_records.append(data_record)
-
-    # return json.dumps(data_records)
 
 
 
@@ -159,13 +145,16 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
 
     if test in ['DTLZ1', 'DTLZ3']:
         if obj_weights_input:
-            obj_weights = [float(x) for x in obj_weights_input.split(',') if x.strip()]
+            try:
+                obj_weights = [float(x) for x in obj_weights_input.split(',') if x.strip()]
             # obj_weights = [float(obj_weights)] * n_obj
             # obj_weights = list(map(float,obj_weights_input.split(',')))
-            # if len(obj_weights) != n_obj:
-            #     return "",[], blank_figure(),f"Number of weights provided ({len(obj_weights)}) does not match the number of objectives ({n_obj})."
+                if len(obj_weights) != n_obj:
+                    raise ValueError (f"Number of weights provided ({len(obj_weights)}) does not match the number of objectives ({n_obj}).")
+            except ValueError as e:
+                return dash.no_update, str(e), dash.no_update
         else:
-            obj_weights = [1.0] * n_obj
+            obj_weights = []
         print(f"Objective weights:{obj_weights}")
     if test == 'DTLZ1':
         df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj, obj_weights=obj_weights)
@@ -182,6 +171,7 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
     print(f"Generated Data:\n{df_generated}")
     fig = gen_graph(df_generated)
     return df_generated.to_json(orient='records'),obj_weights, fig
+          
     # filename = "data_generated.json"
     
     # print("Generated JSON: ",df_generated.to_json(orient='records'))
