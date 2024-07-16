@@ -46,41 +46,40 @@ def generate_data_dtlz1(n_var, n_obj,obj_weights):
     X = res.X
     F = res.F
     print(f"Original objective function values (F): \n{F}")
-    # weighted_F = F * np.array(obj_weights)
-    # print(f"Weighted objective function values: \n{weighted_F}")
-    # f_star = weighted_F.sum(axis=1)
+    weighted_F = F * np.array(obj_weights)
+    print(f"Weighted objective function values: \n{weighted_F}")
     n_var = problem.n_var
     n_obj = problem.n_obj
     var_cols = [f'x{i}' for i in range(1, n_var + 1)]
     obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
     df = pd.DataFrame(X, columns=var_cols)
     for i in range(n_obj):
-        df[obj_cols[i]] = F[:, i]
-    if obj_weights:
-        f_star = np.dot(F, np.array(obj_weights))
-        df['f*'] = f_star
+        df[obj_cols[i]] = weighted_F[:, i]
+
+    # front = res.F
+    # print("Generated Data: ")
+    # print(df.head())
     return df
 
 def generate_data_dtlz3(n_var, n_obj, obj_weights):
     problem = get_problem('dtlz3', n_var=n_var, n_obj=n_obj)
     algorithm = NSGA2(pop_size=300)
     res = minimize(problem, algorithm, ('n_gen', 300), seed=1, verbose=False)
- 
+
     X = res.X
     F = res.F
-    # weighted_F = F * np.array(obj_weights)
-    # f_star = weighted_F.sum(axis=1)
+    weighted_F = F * np.array(obj_weights)
     n_var = problem.n_var
     n_obj = problem.n_obj
     var_cols = [f'x{i}' for i in range(1, n_var + 1)]
     obj_cols = [f'f{i}' for i in range(1, n_obj + 1)]
     df = pd.DataFrame(X, columns=var_cols)
     for i in range(n_obj):
-        df[obj_cols[i]] = F[:, i]
-    if obj_weights:
-        f_star = np.dot(F, np.array(obj_weights))
-        df['f*'] = f_star
-    # df['f*'] = f_star
+        df[obj_cols[i]] = weighted_F[:, i]
+
+    # front = res.F
+    # print("Generated Data: ")
+    # print(df.head())
     return df
 
 @app.callback(
@@ -106,6 +105,21 @@ def generate_data_real_time(test):
         return df.to_json(orient='records')
     else:
         raise dash.exceptions.PreventUpdate
+    # print(df.head())
+    # decision_variables = [col for col in df.columns if col.startswith('x')]
+    # objective_variables = [col for col in df.columns if col.startswith('f')]
+
+    # data_records = []
+
+    # for index, row in df.iterrows():
+    #     data_record ={'x': [], 'f': []}
+    #     for var in decision_variables:
+    #         data_record['x'].append(row[var])
+    #     for var in objective_variables:
+    #         data_record['f'].append(row[var])
+    #     data_records.append(data_record)
+
+    # return json.dumps(data_records)
 
 
 
@@ -145,16 +159,13 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
 
     if test in ['DTLZ1', 'DTLZ3']:
         if obj_weights_input:
-            try:
-                obj_weights = [float(x) for x in obj_weights_input.split(',') if x.strip()]
+            obj_weights = [float(x) for x in obj_weights_input.split(',') if x.strip()]
             # obj_weights = [float(obj_weights)] * n_obj
             # obj_weights = list(map(float,obj_weights_input.split(',')))
-                if len(obj_weights) != n_obj:
-                    raise ValueError (f"Number of weights provided ({len(obj_weights)}) does not match the number of objectives ({n_obj}).")
-            except ValueError as e:
-                return dash.no_update, str(e), dash.no_update
+            # if len(obj_weights) != n_obj:
+            #     return "",[], blank_figure(),f"Number of weights provided ({len(obj_weights)}) does not match the number of objectives ({n_obj})."
         else:
-            obj_weights = []
+            obj_weights = [1.0] * n_obj
         print(f"Objective weights:{obj_weights}")
     if test == 'DTLZ1':
         df_generated = generate_data_dtlz1(n_var=n_var, n_obj=n_obj, obj_weights=obj_weights)
@@ -171,7 +182,6 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
     print(f"Generated Data:\n{df_generated}")
     fig = gen_graph(df_generated)
     return df_generated.to_json(orient='records'),obj_weights, fig
-          
     # filename = "data_generated.json"
     
     # print("Generated JSON: ",df_generated.to_json(orient='records'))
@@ -283,7 +293,7 @@ def update_summary(contents, filename, generated_data, cluster_switch):
         ]),
     ])
     
-    return df.to_dict(orient='records'), {'display': 'block'} if len(objective_functions) >= 4 else {'display': 'none'},{'display': 'block', 'width': '10vw'} if 'cluster' in cluster_switch else {'display': 'none'}, options_list if 'cluster' in cluster_switch else [], {
+    return df.to_dict(orient='records'), {'display': 'block'} if len(objective_functions) >= 3 else {'display': 'none'},{'display': 'block', 'width': '10vw'} if 'cluster' in cluster_switch else {'display': 'none'}, options_list if 'cluster' in cluster_switch else [], {
         'margin': '10rem auto auto auto',
         'fontWeight': '500',
         'borderRadius': '10px',
@@ -346,6 +356,7 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
     Input('temp-summary-min-max', 'data'),
     Input('decision-values-store', 'data'),
     Input('use-cluster-toggle', 'value'),
+    State('cluster-dropdown', 'value'),
     State('df-dimensions', 'data'),
     State('decision-variables-store', 'data'),
     State('graph1', 'figure'),
@@ -355,7 +366,7 @@ def temp_callback(dec_values, dec_vars, slider_values, slider_ids):
     prevent_initial_call=True
 )
 
-def clean_callback(data, obj_pts_store, radar_pts_store, ds_slider_values, filtered_dec, dec_range_store, dec_values, use_cluster, dims, dec_vars,
+def clean_callback(data, obj_pts_store, radar_pts_store, ds_slider_values, filtered_dec, dec_range_store, dec_values, use_cluster, selected_clusters, dims, dec_vars,
                    curr_fig, curr_rad_fig, test, selected_data):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
 #     print('clean_callback', changed_id, use_cluster)
@@ -378,12 +389,6 @@ def clean_callback(data, obj_pts_store, radar_pts_store, ds_slider_values, filte
                     if test == 'RealTimeData' or test == 'RealTimeData2':
                         min_val, max_val = 5, 20
                         step = 5
-                        # marks ={i: f'{i: .2f}' for i in np.arange(min_val, max_val + 1, step)}
-                    # else:
-                        # step=0.01,
-                        # marks={i: f'{i: .2f}'
-                        #         for i in np.arange(min_val, max_val + 0.1, 0.25)
-                        #             },
                         sliders.append(
                             html.Div(
                                 [
@@ -441,15 +446,7 @@ def clean_callback(data, obj_pts_store, radar_pts_store, ds_slider_values, filte
                     html.Div(id='radar-sliders', style={'display': 'none'})   
                 ])
                 return fig, default
-#                 return fig, html.Div(sliders, style={
-#                     'display': 'flex',
-#                     'flexDirection': 'column',
-#                     'alignItems': 'center',
-#                     'width': '100%',
-#                     'padding': '2%',
-#                     'position':'relative',
-#                     'top':'27%'
-#                 })
+
             else:
                 rad_sliders = []
                 default_r = [0] * len(dec_vars)
@@ -607,10 +604,14 @@ def clean_callback(data, obj_pts_store, radar_pts_store, ds_slider_values, filte
 #             print('updated_slider', updated_slider)
 
             trace_indices = [x['curveNumber'] for x in obj_pts_store['points']]
-            subset = df.loc[trace_indices, dec_vars].astype(float)
+#             subset = df.loc[trace_indices, dec_vars].astype(float)
+            full = df.loc[:, dec_vars].astype(float)
+            if selected_clusters:
+                full = df.loc[trace_indices, dec_vars].astype(float)
+            
             new_solutions = []
 #             for idx, d in enumerate(subset.values.tolist()):
-            for idx, row in subset.iterrows():
+            for idx, row in full.iterrows():
                 d = row.values
                 statuses = []
                 for k, v in updated_slider.items():
