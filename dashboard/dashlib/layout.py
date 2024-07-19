@@ -14,7 +14,7 @@ interface_layout = dbc.Container(
                 html.Img(className='image',
                          src="assets/PNNL-logo-16-9.png",
                          style={
-                             'width': '170px',
+                             'width': '172px',
                              'height': '120px'
                          })),
                     width=2),
@@ -22,12 +22,16 @@ interface_layout = dbc.Container(
                 children=
                 "pyMOODS: Multi-Objective Optimization Decision Support System",
                 style={
-                    "fontWeight": "400",
                     "textAlign": "center",
                     "marginTop": "1rem"
                 }),
                     width=8),
-            dbc.Col(html.Div(html.Img(src="assets/E-COMP_logo (3).png")),
+            dbc.Col(html.Div(
+                html.Img(src="assets/E-COMP_logo (3).png",
+                         style={
+                             'width': '272px',
+                             'height': '115px'
+                         })),
                     width=2),
         ],
                 className="header-row"),
@@ -36,90 +40,150 @@ interface_layout = dbc.Container(
         # html.Div(id="update-message", style={'color':'red', 'fontSize':'16px','marginTop':'3rem'}),
         dbc.Row(
             [
-                dbc.Col(html.Div([
-                    html.H3("Data Input"),
-                    html.Hr(),
-                    dbc.Label("Test:", style={'fontSize': '20px'}),
-                    dcc.Dropdown(id='test-dropdown',
-                                 options=[
-                                     {
-                                         'label': 'DTLZ1',
-                                         'value': 'DTLZ1'
-                                     },
-                                     {
-                                         'label': 'DTLZ3',
-                                         'value': 'DTLZ3'
-                                     },
-                                     {
-                                         'label': 'Optimal Battery Size (Offshore Wind)',
-                                         'value': 'RealTimeData'
-                                     },
-                                     {
-                                         'label': 'Optimal Battery Size (Offshore Wind) - 2',
-                                         'value': 'RealTimeData2'
-                                     },
-                                 ],
-                                 value='DTLZ1'),
-                    dbc.Label('#Decision variables:',
-                              style={
-                                  'marginTop': '1rem',
-                                  'fontSize': '20px'
-                              }),
-                    dbc.Input(
-                        id="num-decision-vars",
-                        placeholder="Enter the number of Decision variables",
-                        type="number", 
-                        min=2, max=20
-                        ),
-                    dbc.Label('#Objective variables:',
-                              style={
-                                  'marginTop': '1rem',
-                                  'fontSize': '20px'
-                              }),
-                    dbc.Input(
-                        id="num-objective-vars",
-                        placeholder="Enter the number of Objective variables",
-                        type="number", 
-                        min=2,max=20
-                        ),
-                    dbc.Button('Generate Data', 
-                                       color="dark",
-                                       size="lg",
-                                id='generated-dtlz-button',
-                                n_clicks=0,style={
-                                  'marginTop': '2rem',
-                                #   'fontSize': '20px'
-                              } ),
-
-                    html.Hr(),
-                    dbc.Label("Objective Weights:", style={'fontSize': '20px'}),
-                    dbc.Input(
-                        id="obj-weights-input",
-                        placeholder="Enter the weight for Objective variables",
-                        type="text",
-                        ),
-                    dcc.Upload(
-                        id="upload-data",
-                        children=html.Div([
-                            # html.Div(html.H3("DATA UPLOAD")),
+                dbc.Col(
+                    html.Div(
+                        [
+                            html.H5("Data Input"),
                             html.Hr(),
-                            html.Div(html.H4("OR")),
-                            dbc.Button('Upload Pareto Front',
-                                    #    outline=True,
-                                       color="dark",
-                                       size="lg"),
+                            dbc.Label("Problem Statement:",
+                                      style={'fontSize': '15px'}),
+                            dcc.Dropdown(
+                                id='test-dropdown',
+                                options=[
+                                    {
+                                        'label':'DTLZ1',
+                                        'value':'DTLZ1'
+                                    },
+                                    {
+                                        'label':'DTLZ3',
+                                        'value':'DTLZ3'
+                                    },
+                                    {
+                                        'label':'Optimal Battery Size (Offshore Wind)',
+                                        'value': 'RealTimeData'
+                                    },
+                                    {
+                                        'label':'Optimal Battery Size (Offshore Wind) - 2',
+                                        'value': 'RealTimeData2'
+                                    },
+                                ],
+                                value='DTLZ1'),
+                            dbc.Label('#Decision variables:',
+                                      style={
+                                          'marginTop': '1rem',
+                                          'fontSize': '15px'
+                                      }),
+                            dbc.Input(id="num-decision-vars",
+                                      placeholder="Enter the number of Decision variables",
+                                      type="number",
+                                      size="sm",
+                                      min=2,
+                                      max=20),
+                            dbc.Label('#Objective variables:',
+                                      style={
+                                          'marginTop': '1rem',
+                                          'fontSize': '15px'
+                                      }),
+                            dbc.Input(
+                                id="num-objective-vars",
+                                placeholder="Enter the number of Objective variables",
+                                type="number",
+                                size="sm",
+                                min=2,
+                                max=20),
+                            dbc.Row([
+                                dbc.Col(dbc.Button('Generate Data',
+                                                   color="dark",
+                                                   size="xs",
+                                                   id='generated-dtlz-button',
+                                                   n_clicks=0),
+                                        width=5),
+                                dbc.Col(html.H5("OR"),
+                                        width=1,
+                                        style={
+                                            'marginTop': '2rem',
+                                            'padding': '0.1rem'
+                                        }),
+                                dbc.Col(
+                                    dcc.Upload(
+                                        id="upload-data",
+                                        children=html.Div([
+                                            # html.Div(html.H3("DATA UPLOAD")),
+                                            # html.Hr(),
+                                            # html.Div(html.H4("OR")),
+                                            dbc.Button(
+                                                'Upload Pareto Front',
+                                                #    outline=True,
+                                                color="dark",
+                                                size="xs",
+                                                style={
+                                                    'backgroundColor':
+                                                    'lightSteelBlue',
+                                                    'color': 'black'
+                                                }),
+                                            # html.Div(id='summary-table'),
+                                        ]),
+                                        multiple=True,
+                                    ), )
+                            ]),
+                            # dbc.Button(
+                            #     'Generate Data',
+                            #     color="dark",
+                            #     size="lg",
+                            #     id='generated-dtlz-button',
+                            #     n_clicks=0,
+                            #     style={
+                            #         'marginTop': '2rem',
+                            #         #   'fontSize': '20px'
+                            #     }),
+                            #    dcc.Upload(
+                            #     id="upload-data",
+                            #     children=html.Div([
+                            #         # html.Div(html.H3("DATA UPLOAD")),
+                            #         html.Hr(),
+                            #         html.Div(html.H4("OR")),
+                            #         dbc.Button(
+                            #             'Upload Pareto Front',
+                            #             #    outline=True,
+                            #             color="dark",
+                            #             size="lg"),
+                            #         html.Div(id='summary-table'),
+                            #     ]),
+                            #     multiple=True,
+                            # ),
+                            html.Hr(),
+                            dbc.Label("Objective Weights:",
+                                      style={'fontSize': '15px'}),
+                            dbc.Input(
+                                id="obj-weights-input",
+                                placeholder=
+                                "Enter the weight for Objective variables",
+                                type="text",
+                                size="sm"),
                             html.Div(id='summary-table'),
-                        ]),
-                        multiple=True,
-                    ),
-                ],
+                            # dcc.Upload(
+                            #     id="upload-data",
+                            #     children=html.Div([
+                            #         # html.Div(html.H3("DATA UPLOAD")),
+                            #         html.Hr(),
+                            #         html.Div(html.H4("OR")),
+                            #         dbc.Button(
+                            #             'Upload Pareto Front',
+                            #             #    outline=True,
+                            #             color="dark",
+                            #             size="lg"),
+                            #         html.Div(id='summary-table'),
+                            #     ]),
+                            #     multiple=True,
+                            # ),
+                        ],
                         className='upload-section'),
-                        width={'size': 3},
-                        className='h-75 d-inline-block',
-                        style={
-                            'height': 'calc(100vh-150px)',
-                            'overflow': 'hidden'
-                        }),
+                    width={'size': 3},
+                    className='h-75 d-inline-block',
+                    style={
+                        'height': 'calc(100vh-170px)',
+                        'overflow': 'hidden'
+                    }),
                 dbc.Col(
                     dcc.Tabs(
                         id="tabs-example-graph",
@@ -139,10 +203,14 @@ interface_layout = dbc.Container(
                                                         html.H4(
                                                             "Objective Space",
                                                             style={
-                                                                "fontWeight":"600",
-                                                                "fontFamily":"Helvetica",
-                                                                "margin":"30px",
-                                                                "textAlign":"center"
+                                                                "fontWeight":
+                                                                "600",
+                                                                "fontFamily":
+                                                                "Helvetica",
+                                                                "margin":
+                                                                "20px 0 0 0",
+                                                                "textAlign":
+                                                                "center"
                                                                 # "marginLeft":"15rem"
                                                             }),
                                                         width=6),
@@ -150,10 +218,14 @@ interface_layout = dbc.Container(
                                                         html.H4(
                                                             "Decision Space",
                                                             style={
-                                                                "fontWeight":"600",
-                                                                "fontFamily":"Helvetica",
-                                                                "textAlign":"center",
-                                                                "margin":"30px"
+                                                                "fontWeight":
+                                                                "600",
+                                                                "fontFamily":
+                                                                "Helvetica",
+                                                                "textAlign":
+                                                                "center",
+                                                                "margin":
+                                                                "20px 0 0 0"
                                                                 # "margin":"50px", "marginLeft":"15rem"
                                                             }),
                                                         width=6)
@@ -166,44 +238,102 @@ interface_layout = dbc.Container(
                                                 [
                                                     dbc.Col(
                                                         children=[
-                                                            html.H6(id='obj-help', style={'textAlign': 'center'}),
-                                                            html.Div([
-
-                                                                dbc.Checklist(
-                                                                    id="use-cluster-toggle",
-                                                                    options=[
-                                                                        {"label": "Color by cluster", "value": 'cluster'},
-                                                                    ],
-                                                                    value=[],
-                                                                    inline=True,
-                                                                    switch=True,
-                                                                    style={'display': 'none',}
-                                                                ),
-
-                                                                dcc.Dropdown(
-                                                                    id='cluster-dropdown',
-                                                                    options=[],
-                                                                    value=[],
-                                                                    multi=True,
-                                                                    placeholder='Select a cluster',
-                                                                    style={'display': 'none'}
-                                                                )
-                                                            ], style={'display': 'flex', 'alignItems': 'center'}),
-#                                                             dcc.Graph(figure=blank_figure(), id='graph1'),
-                                                            dcc.Loading(id='loading-graph', children=[dcc.Graph(figure=blank_figure(), id='graph1')], target_components={'graph1': ['figure']}),
+                                                            html.
+                                                            H6(id='obj-help',
+                                                               style={
+                                                                   'textAlign':
+                                                                   'center'
+                                                               }),
+                                                            html.Div(
+                                                                [
+                                                                    dbc.
+                                                                    Checklist(
+                                                                        id=
+                                                                        "use-cluster-toggle",
+                                                                        options
+                                                                        =[
+                                                                            {
+                                                                                "label":
+                                                                                "Color by cluster",
+                                                                                "value":
+                                                                                'cluster'
+                                                                            },
+                                                                        ],
+                                                                        value=
+                                                                        [],
+                                                                        inline=
+                                                                        True,
+                                                                        switch=
+                                                                        True,
+                                                                        style={
+                                                                            'display':
+                                                                            'none',
+                                                                        }),
+                                                                    dcc.
+                                                                    Dropdown(
+                                                                        id=
+                                                                        'cluster-dropdown',
+                                                                        options
+                                                                        =[],
+                                                                        value=
+                                                                        [],
+                                                                        multi=
+                                                                        True,
+                                                                        placeholder
+                                                                        ='Select a cluster',
+                                                                        style={
+                                                                            'display':
+                                                                            'none'
+                                                                        })
+                                                                ],
+                                                                style={
+                                                                    'display':
+                                                                    'flex',
+                                                                    'alignItems':
+                                                                    'center'
+                                                                }),
+                                                            #                                                             dcc.Graph(figure=blank_figure(), id='graph1'),
+                                                            dcc.Loading(
+                                                                id=
+                                                                'loading-graph',
+                                                                children=[
+                                                                    dcc.Graph(
+                                                                        figure=
+                                                                        blank_figure(),
+                                                                        id='graph1',                     )
+                                                                ],
+                                                                target_components
+                                                                ={
+                                                                    'graph1':
+                                                                    ['figure']
+                                                                }),
                                                         ],
-                                                        width=6
-                                                    ),
+                                                        width=6),
+                                                    dbc.Col(children=[
+                                                        html.H6(
+                                                            id='dec-help',
+                                                            style={
+                                                                'textAlign':
+                                                                'center'
+                                                            }),
+                                                        html.Div(id="sliders"),
+                                                    ],
+                                                            width=6),
                                                     dbc.Col(
-                                                        children=[
-                                                            html.H6(id='dec-help', style={'textAlign': 'center'}),
-                                                            html.Div(id="sliders"),
-                                                        ],
-                                                        width=6
-                                                    ),
-                                                    dbc.Col(
-                                                        dbc.Alert('No data exists reflecting that change', id='no-data-alert', color='danger', is_open=False, dismissable=True, duration=5000, style={'position': 'absolute', 'top': '15%', 'left': '50%', 'zIndex': 999})
-                                                    )
+                                                        dbc.Alert(
+                                                            'No data exists reflecting that change',
+                                                            id='no-data-alert',
+                                                            color='danger',
+                                                            is_open=False,
+                                                            dismissable=True,
+                                                            duration=5000,
+                                                            style={
+                                                                'position':
+                                                                'absolute',
+                                                                'top': '15%',
+                                                                'left': '50%',
+                                                                'zIndex': 999
+                                                            }))
                                                 ],
                                                 className=
                                                 "my-custom-container-style"),
@@ -215,11 +345,13 @@ interface_layout = dbc.Container(
                                                             dbc.CardBody([
                                                                 html.
                                                                 H4("Plot Description",
-                                                                   className="card-title"
+                                                                   className=
+                                                                   "card-title"
                                                                    )
                                                             ]))
                                                     ],
-                                                            className="card-container"
+                                                            className=
+                                                            "card-container"
                                                             # width=6
                                                             ),
                                                     dbc.Col([
@@ -227,7 +359,8 @@ interface_layout = dbc.Container(
                                                             dbc.CardBody([
                                                                 html.
                                                                 H4("Fairness Index (Future Capability)",
-                                                                   className="card-title2"
+                                                                   className=
+                                                                   "card-title2"
                                                                    )
                                                             ]))
                                                     ],
@@ -252,91 +385,103 @@ interface_layout = dbc.Container(
                                         [
                                             dbc.Row(
                                                 [
-                                                    dbc.Col(
-                                                        html.H4(
-                                                            "Objective Space",
-                                                            style={
-                                                                "fontWeight":"600",
-                                                                "fontFamily":"Helvetica",
-                                                                "margin": "40px",
-                                                                "textAlign":"center"
-                                                            }),
-                                                        width=6),
-                                                    dbc.Col(
-                                                        html.H4(
-                                                            "Decision Space",
-                                                            style={
-                                                                "fontWeight":"600",
-                                                                "fontFamily":"Helvetica",
-                                                                "textAlign": "center",
-                                                                "margin":"40px"
-                                                            }),
-                                                        width=6),
+                                                    dbc.Col(html.H4(
+                                                        "Objective Space",
+                                                        style={
+                                                            "fontWeight":
+                                                            "600",
+                                                            "fontFamily":
+                                                            "Helvetica",
+                                                            "margin": "20px 0 0 0",
+                                                            "textAlign":
+                                                            "center"
+                                                        }),
+                                                            width=6),
+                                                    dbc.Col(html.H4(
+                                                        "Decision Space",
+                                                        style={
+                                                            "fontWeight":
+                                                            "600",
+                                                            "fontFamily":
+                                                            "Helvetica",
+                                                            "textAlign":
+                                                            "center",
+                                                            "margin": "20px 0 0 0"
+                                                        }),
+                                                            width=6),
                                                 ],
-                                                className="my-custom-container-style",
+                                                className=
+                                                "my-custom-container-style",
                                                 # id="container-row"
                                             ),
                                             dbc.Row(
                                                 [
-                                                    dbc.Col(
-                                                        dcc.Graph(
-                                                            id="mop-objective-graph",
-                                                            figure=blank_figure(
-                                                            )),
-                                                        width=6),
-                                                    dbc.Col(
-                                                        dcc.Graph(
-                                                            id="mop-decision-graph",
-                                                            figure=blank_figure(
-                                                            )),
-                                                        width=6),
-                                                    dbc.Col(
-                                                         dcc.Dropdown(
-                                                            id='tests',
-                                                            options=[
-                                                                {
-                                                                    'label':'DTLZ1',
-                                                                    'value':'DTLZ1'
-                                                                },
-                                                                {
-                                                                    'label':'Aspar',
-                                                                    'value':'Aspar'
-                                                                },
-                                                            ],
-                                                            value='DTLZ1', style={'display': 'none'})
-                                                        ),
+                                                    dbc.Col(dcc.Graph(
+                                                        id=
+                                                        "mop-objective-graph",
+                                                        figure=blank_figure()),
+                                                            width=6,  style={'overflow':'hidden'}),
+                                                    dbc.Col(dcc.Graph(
+                                                        id="mop-decision-graph",
+                                                        figure=blank_figure()),
+                                                            width=6,  style={'overflow':'hidden'}),
+                                                    # dbc.Col(
+                                                    #     dcc.Dropdown(
+                                                    #         id='tests',
+                                                    #         options=[
+                                                    #             {
+                                                    #                 'label':
+                                                    #                 'DTLZ1',
+                                                    #                 'value':
+                                                    #                 'DTLZ1'
+                                                    #             },
+                                                    #             {
+                                                    #                 'label':
+                                                    #                 'Aspar',
+                                                    #                 'value':
+                                                    #                 'Aspar'
+                                                    #             },
+                                                    #         ],
+                                                    #         value='Aspar',
+                                                    #         style={
+                                                    #             'display': 'none'
+                                                    #         })),
                                                 ],
-                                                className="my-custom-container-style"),
+                                                className=
+                                                "my-custom-container-style"),
                                             # ]),
                                             dbc.Row(
                                                 [
-                                                    dbc.Col([
-                                                        dbc.Card(
-                                                            dbc.CardBody([
-                                                                html.
-                                                                H4("Plot Description",
-                                                                   className="card-title"
-                                                                   ),
-                                                                html.Div([html.H5("Cost Landscape provide valuable insights into the problem's landscape, revealing the challenges and help in identifying potential difficulties, such as discontinuities or multimodality that make MOO hard to solve."),
-                                                                          html.H6("Test: DTLZ1"),
-                                                                html.H6("Objective Space: Pareto front plots show the trade-offs between objectives in the objective space"),
-                                                                html.P("#Objective functions: 2"),
-                                                                html.P("#Decision variables: 7"),
-                                                                html.H6("Decision Space:The alternating blue and yellow lines suggest that the Pareto optimal set is not continuous in the decision space but rather consists of discrete region."),
-                                                                html.P("#Objective functions: 2"),
-                                                                html.P("#Decision variables: 2"),], className="plot-des")
-
-                                                            ]))
-                                                    ],
-                                                            className="card-container"
-                                                            # width=6
-                                                            ),
+                                                    dbc.Col(
+                                                        [
+                                                            dbc.Card(
+                                                                dbc.CardBody([
+                                                                    html.
+                                                                    H4("Plot Description",
+                                                                       className
+                                                                       ="card-title"
+                                                                       ),
+                                                                    # html.Div([html.H5("Cost Landscape provide valuable insights into the problem's landscape, revealing the challenges and help in identifying potential difficulties, such as discontinuities or multimodality that make MOO hard to solve."),
+                                                                    #           html.H6("Test: DTLZ1"),
+                                                                    # html.H6("Objective Space: Pareto front plots show the trade-offs between objectives in the objective space"),
+                                                                    # html.P("#Objective functions: 2"),
+                                                                    # html.P("#Decision variables: 7"),
+                                                                    # html.H6("Decision Space:The alternating blue and yellow lines suggest that the Pareto optimal set is not continuous in the decision space but rather consists of discrete region."),
+                                                                    # html.P("#Objective functions: 2"),
+                                                                    # html.P("#Decision variables: 2"),], className="plot-des")
+                                                                ]))
+                                                        ],
+                                                        className=
+                                                        "card-container"
+                                                        # width=6
+                                                    ),
                                                     dbc.Col([
                                                         dbc.Card(
                                                             dbc.CardBody([
                                                                 html.
                                                                 H4("Fairness Index (Future Capability)",
-                                                                   className="card-title2"
+                                                                   className=
+                                                                   "card-title2"
                                                                    )
                                                             ]))
                                                     ],
@@ -366,10 +511,14 @@ interface_layout = dbc.Container(
                                                         html.H4(
                                                             "Objective Space",
                                                             style={
-                                                                "fontWeight":"600",
-                                                                "fontFamily":"Helvetica",
-                                                                "margin":"40px",
-                                                                "textAlign":"center"
+                                                                "fontWeight":
+                                                                "600",
+                                                                "fontFamily":
+                                                                "Helvetica",
+                                                                "margin":
+                                                                "20px 0 0 0",
+                                                                "textAlign":
+                                                                "center"
                                                                 # "marginLeft":"15rem"
                                                             }),
                                                         width=6),
@@ -377,32 +526,39 @@ interface_layout = dbc.Container(
                                                         html.H4(
                                                             "Decision Space",
                                                             style={
-                                                                "fontWeight":"600",
-                                                                "fontFamily":"Helvetica",
-                                                                "textAlign":"center",
-                                                                "margin":"40px"
+                                                                "fontWeight":
+                                                                "600",
+                                                                "fontFamily":
+                                                                "Helvetica",
+                                                                "textAlign":
+                                                                "center",
+                                                                "margin":
+                                                                "20px 0 0 0"
                                                                 # "margin":"50px", "marginLeft":"15rem"
                                                             }),
                                                         width=6)
                                                 ],
-                                                className="my-custom-container-style",
+                                                className=
+                                                "my-custom-container-style",
                                                 # id="container-row"
                                             ),
                                             dbc.Row(
                                                 [
+                                                    dbc.Col(children=[
+                                                        dcc.Graph(
+                                                            figure=blank_figure(
+                                                            ),
+                                                            id='graph3')
+                                                    ],
+                                                            width=6, style={'overflow':'hidden'}),
                                                     dbc.Col(
-                                                        children=[
-                                                            dcc.Graph(
-                                                                figure=blank_figure(),
-                                                                id='graph3')
-                                                        ],
-                                                        width=6),
-                                                    dbc.Col(
-                                                        html.Div(id="sliders3"),
+                                                        html.Div(
+                                                            id="sliders3"),
                                                         # className="sliders-container"
-                                                        width=6),
+                                                        width=6,  style={'overflow':'hidden'}),
                                                 ],
-                                                className="my-custom-container-style"),
+                                                className=
+                                                "my-custom-container-style"),
                                             # ]),
                                             dbc.Row(
                                                 [
@@ -411,11 +567,13 @@ interface_layout = dbc.Container(
                                                             dbc.CardBody([
                                                                 html.
                                                                 H4("Plot Description",
-                                                                   className="card-title"
+                                                                   className=
+                                                                   "card-title"
                                                                    )
                                                             ]))
                                                     ],
-                                                            className="card-container"
+                                                            className=
+                                                            "card-container"
                                                             # width=6
                                                             ),
                                                     dbc.Col([
@@ -423,7 +581,8 @@ interface_layout = dbc.Container(
                                                             dbc.CardBody([
                                                                 html.
                                                                 H4("Fairness Index (Future Capability)",
-                                                                   className= "card-title2"
+                                                                   className=
+                                                                   "card-title2"
                                                                    )
                                                             ]))
                                                     ],

@@ -16,6 +16,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.4rem;
+  margin-bottom: 0;
 }
 
 
@@ -23,6 +24,7 @@ button {
   font-size: larger;
   font-weight: bolder;
   align-items: center;
+  margin-top: 1.5rem;
 }
 
 .upload-section{
@@ -31,21 +33,21 @@ button {
   margin-left: 0.5rem;
   border-radius: 5px;
   padding:20px;
-  height: calc(100vh - 121px);
+  height: calc(100vh - 155px);
   overflow:hidden ;
   text-align: center;
 }
 
 
 .custom-tab {
-  font-size: x-large;
+  font-size: large;
   font-weight: 500;
 }
 
 .custom-tab--selected {
   color: black;
   box-shadow: 1px 1px 0px white;
-  font-size: xx-large;
+  font-size: x-large;
   font-weight: bold;
 }
 
@@ -55,6 +57,12 @@ button {
   overflow: hidden;
   color: black;
   background-color: white;
+  /* height: calc(70vh-2000px); */
+  /* height: 35vh; */
+  /* height:calc(100vh - 600px); */
+  /* display: flex;
+  flex-direction: row;
+  justify-content: flex-start; */
 }
 
 
@@ -90,7 +98,7 @@ font-size: 25px;
 /*   display: inline; */
   /* position: relative;
   top:27.4%; */
-  margin-top: 5%;
+  margin-top: 4%;
   font-size: 18px;
   color: black;
 }
@@ -155,13 +163,15 @@ font-size: 25px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  flex:1;
 }
 
 
 .card {
   background-color: rgb(118, 192, 192);
-  margin-top: 0.4rem;
-  height:calc(100vh - 800px);
+  margin-top: 0.2rem;
+  height:calc(50vh - 280px);
+  /* height:calc(100vh - 740px); */
   margin-left: -0.8rem;
   flex-grow: 1;
   overflow: hidden;
@@ -172,6 +182,7 @@ font-size: 25px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 .card-title, .card-title2 {

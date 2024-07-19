@@ -77,7 +77,7 @@ def gen_graph(df, use_cluster=False):
                     # font_color='black',
                     # template=None,
                     font_family="Helvetica",
-                    margin=dict(l=20, r=20, t=20, b=20),
+                    margin=dict(l=20, r=20, t=0, b=20),
                     paper_bgcolor='rgb(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                 )
@@ -134,7 +134,7 @@ def gen_graph(df, use_cluster=False):
                     paper_bgcolor='rgb(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     font=dict(color="black", size=18),
-                    margin=dict(l=20, r=20, t=30, b=10),
+                    margin=dict(l=20, r=20, t=0, b=10),
                     
                 )
 #                 if num_objective_functions == 2:
