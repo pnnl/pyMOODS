@@ -123,7 +123,7 @@ app.layout = html.Div([
     html.Div(id="radar-sliders", style={'display': 'none'}),
     dcc.Loading(
         id='loading-2',
-        children=[dcc.Graph(id="radar-chart", style={'display': 'none'})],
+        children=[dcc.Graph(id="radar-chart", style={'display': 'none', 'height': '30vh'})],
         target_components={'radar-chart': 'figure'}),
     dcc.Store(id='obj-weights-store', data=[])
 ])
@@ -500,7 +500,7 @@ def update_figure(data, obj_pts_store, radar_pts_store, ds_slider_values, filter
                             ))
                 default = html.Div([
                     html.Div(sliders),
-                    dcc.Graph(id='radar-chart', style={'display': 'none'}),
+                    dcc.Graph(id='radar-chart', style={'display': 'none', 'height': '30vh'}),
                     html.Div(id='radar-sliders', style={'display': 'none'})
                 ])
                 return fig, default
@@ -555,7 +555,7 @@ def update_figure(data, obj_pts_store, radar_pts_store, ds_slider_values, filter
                                   figure=rad_fig,
                                   style={
                                       'width': '95%',
-                                      'height': '100%'
+                                      'height': '33vh'
                                   }),
                         html.Div(id='radar-sliders', style={'display': 'none'
                                                             }),
@@ -674,7 +674,7 @@ def update_figure(data, obj_pts_store, radar_pts_store, ds_slider_values, filter
                                               figure=rad_fig,
                                               style={
                                                   'width': '95%',
-                                                  'height': '95%'
+                                                  'height': '30vh'
                                               }),
                                     html.Div(id='radar-sliders',
                                              style={'display': 'none'})
@@ -1039,7 +1039,7 @@ def filter_sliders(selected_radar_values, fig, dec_slider_values, summary, dec_v
         rad_fig.update_layout(showlegend=False,
                               dragmode='select',
                               margin=dict(l=30, r=30, t=30, b=30))
-        return new_sliders, {'display': 'block', 'width': '45%'}, {'width': '50%', 'height': '100%'}, rad_fig, 'Move the sliders to modify the values of filtered variables and double-click on an empty area in the chart to deselect.', dash.no_update
+        return new_sliders, {'display': 'block', 'width': '45%'}, {'width': '50%', 'height': '30vh'}, rad_fig, 'Move the sliders to modify the values of filtered variables and double-click on an empty area in the chart to deselect.', dash.no_update
 
     # no data is selected on the radar chart
     else:

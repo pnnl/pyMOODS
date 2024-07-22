@@ -51,14 +51,18 @@ button {
   font-weight: bold;
 }
 
-
+.dbc-container-style {
+  height: 75vh;
+}
 
 .my-custom-container-style {
-  overflow: hidden;
+  /*overflow: hidden;*/
   color: black;
   background-color: white;
+  height: 55%;
+  display: flex;
   /* height: calc(70vh-2000px); */
-  /* height: 35vh; */
+  /* height:50vh;*/
   /* height:calc(100vh - 600px); */
   /* display: flex;
   flex-direction: row;
@@ -170,7 +174,8 @@ font-size: 25px;
 .card {
   background-color: rgb(118, 192, 192);
   margin-top: 0.2rem;
-  height:calc(50vh - 280px);
+  height: 35vh;
+  /*height:calc(50vh - 280px);*/
   /* height:calc(100vh - 740px); */
   margin-left: -0.8rem;
   flex-grow: 1;
