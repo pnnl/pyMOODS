@@ -59,7 +59,7 @@ button {
   /*overflow: hidden;*/
   color: black;
   background-color: white;
-  height: 55%;
+  height: 65%;
   display: flex;
   /* height: calc(70vh-2000px); */
   /* height:50vh;*/
@@ -174,7 +174,7 @@ font-size: 25px;
 .card {
   background-color: rgb(118, 192, 192);
   margin-top: 0.2rem;
-  height: 35vh;
+  height: 27vh;
   /*height:calc(50vh - 280px);*/
   /* height:calc(100vh - 740px); */
   margin-left: -0.8rem;

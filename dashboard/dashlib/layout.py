@@ -225,7 +225,7 @@ interface_layout = dbc.Container(
                                                     children=[
                                                         dcc.Graph(
                                                             figure=blank_figure(),
-                                                            id='graph1', style={'height': '28vh'}
+                                                            id='graph1', style={'height': '35vh'}
                                                         )
                                                     ],
                                                     target_components={'graph1':['figure']}
