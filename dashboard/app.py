@@ -1429,6 +1429,7 @@ def slider_output(click_data, obj_pts_store, selected_data, my_data, selected_cl
     Output('obj-weights-input', 'disabled'),
     Output('generated-dtlz-button', 'disabled'),
     Output('upload-data', 'disabled'),
+    Output('summary-table','style',allow_duplicate=True),
 ], [Input('tabs-example-graph', 'value')],
               prevent_initial_call='initial_duplicate')
 def reset_inputs(tab):
@@ -1440,7 +1441,7 @@ def reset_inputs(tab):
             'label': 'Aspar',
             'value': 'Aspar'
         }]
-        return options, 'Aspar', 2, 2, True, True, True
+        return options, 'Aspar', 2, 2, True, True, True, {'display':'none'}
     else:
         options = [{
             'label': 'DTLZ1',
@@ -1460,7 +1461,7 @@ def reset_inputs(tab):
     #         return options, 'RealTimeData', 2,2, False,False,False
     #     elif 'RealTimeData2' in [option['value'] for option in options]:
     #         return options, 'RealTimeData2', 2,2, False,False,False
-    return options, 'DTLZ1', None, None, False, False, False
+    return options, 'DTLZ1', None, None, False, False, False, {'display':'none'}
 
 
 @app.callback(

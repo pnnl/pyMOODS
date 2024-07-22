@@ -293,18 +293,20 @@ interface_layout = dbc.Container(
                                                 ),
                                                 width=6
                                             ),
-                                        ], className="my-custom-container-style"),
+                                        ], className="mop-custom-container-style"
+                                                # className="my-custom-container-style"
+                                                ),
                                                 # id="container-row"
 
                                         dbc.Row([
                                             dbc.Col(
-                                                dcc.Graph(id="mop-objective-graph", figure=blank_figure()),
-                                                width=6, style={'overflow':'hidden'}
+                                                dcc.Graph(id="mop-objective-graph", figure=blank_figure(), style={'height':'42vh'}),
+                                                width=6, 
                                             ),
                                             dbc.Col(
                                                 dcc.Graph(
-                                                id="mop-decision-graph", figure=blank_figure()),
-                                                width=6,  style={'overflow':'hidden'}
+                                                id="mop-decision-graph", figure=blank_figure(), style={'height':'42vh'}),
+                                                width=6,  
                                             ),
                                                 # dbc.Col(
                                                 #     dcc.Dropdown(
@@ -327,7 +329,7 @@ interface_layout = dbc.Container(
                                                 #         style={
                                                 #             'display': 'none'
                                                 #         })),
-                                        ], className="my-custom-container-style"),
+                                        ], className="mop-custom-container-style"),
                                             # ]),
                                         dbc.Row([
                                             dbc.Col([
@@ -343,7 +345,7 @@ interface_layout = dbc.Container(
                                                             # html.P("#Objective functions: 2"),
                                                             # html.P("#Decision variables: 2"),], className="plot-des")
                                                     ])
-                                                )
+                                                ),
                                             ], className="card-container"),
                                             dbc.Col([
                                                 dbc.Card(
@@ -356,7 +358,7 @@ interface_layout = dbc.Container(
                                         ], className="align-cards")
                                                 # style={"height":"calc(100vh - 150px)","overflow":"hidden"}
 
-                                    ], fluid=True)
+                                    ], fluid=True, className="mop-container-style")
                                         #   style={"height":"calc(100vh - 50px)","overflow":"hidden"}
 
                                 ]
@@ -400,12 +402,12 @@ interface_layout = dbc.Container(
                                         dbc.Row([
                                             dbc.Col(
                                                 children=[
-                                                    dcc.Graph(figure=blank_figure(), id='graph3')
+                                                    dcc.Graph(figure=blank_figure(), id='graph3',style={'height':'42vh'})
                                                 ],
                                                 width=6, style={'overflow':'hidden'}
                                             ),
                                             dbc.Col(
-                                                html.Div(id="sliders3"),
+                                                html.Div(id="sliders3", style={'height': '42vh'}),
                                                 # className="sliders-container"
                                                 width=6, style={'overflow':'hidden'}
                                             ),

@@ -55,6 +55,7 @@ button {
   height: 75vh;
 }
 
+
 .my-custom-container-style {
   /*overflow: hidden;*/
   color: black;
@@ -67,6 +68,14 @@ button {
   /* display: flex;
   flex-direction: row;
   justify-content: flex-start; */
+}
+
+.mop-custom-container-style {
+  /* overflow: hidden; */
+  color: black;
+  background-color: white;
+  display: flex;
+  height: 60%;
 }
 
 
