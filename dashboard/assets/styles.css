@@ -21,7 +21,7 @@ body {
 
 
 button {
-  font-size: larger;
+  font-size: medium;
   font-weight: bolder;
   align-items: center;
   margin-top: 1.5rem;
@@ -38,10 +38,72 @@ button {
   text-align: center;
 }
 
+.control-section{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* justify-content: center; */
+  color: black;
+  background-color: #a1c4df;
+  border-radius: 5px;
+  padding:20px;
+  height: calc(100vh - 155px);
+  overflow:hidden ;
+  text-align: center;
+}
+#cluster-dropdown{
+  /* width:45% !important;
+  margin-left: -85px; */
+  /* width:20%; */
+  width: 80%;
+  height:auto;
+  /* margin-left: 2.5rem; */
+  /* margin-right: 0.2rem; */
+  max-height: 150px;
+  /* margin:0 10px; */
+  /* padding:2px; */
+  overflow-y: visible;
+  font-size:small;
+  padding: 0;
+  text-align: left;
+  overflow-x: visible;
+  display: block;
+}
+
+/* #use-cluster-toggle{
+  margin-left:-1rem;
+} */
+
+#toggle-switch{
+  /* margin-left:-2.7rem; */
+  margin-top:2rem;
+}
+
+/* #use-cluster-toggle{
+  margin:0 auto;
+}
+
+.control-section #cluster-dropdown{
+  width: 100%;
+  margin:0.5rem 0.5rem;
+}
+
+.control-section .checklist, .control-section .dropdown{
+  margin:0.5rem 0;
+} */
+/* .plot-class{
+  margin-left: 0.07rem;
+  padding:0.1rem;
+} */
+
+#tabs-example-graph{
+  width:102.1%;
+}
 
 .custom-tab {
   font-size: large;
   font-weight: 500;
+  margin-left: -0.5rem;
 }
 
 .custom-tab--selected {
@@ -62,6 +124,7 @@ button {
   background-color: white;
   height: 65%;
   display: flex;
+  margin-left: -1.26rem;
   /* height: calc(70vh-2000px); */
   /* height:50vh;*/
   /* height:calc(100vh - 600px); */
@@ -76,6 +139,7 @@ button {
   background-color: white;
   display: flex;
   height: 60%;
+  margin-left: -1.26rem;
 }
 
 
@@ -186,10 +250,10 @@ font-size: 25px;
   height: 27vh;
   /*height:calc(50vh - 280px);*/
   /* height:calc(100vh - 740px); */
-  margin-left: -0.8rem;
+  margin-left: -1.2rem;
   flex-grow: 1;
   overflow: hidden;
-  margin-right: 0rem;
+  
 }
 
 .main-container{
@@ -197,6 +261,10 @@ font-size: 25px;
   flex-direction: column;
   min-height: 100vh;
   overflow: hidden;
+}
+
+.card2-container{
+  margin-right: -0.7rem;
 }
 
 .card-title, .card-title2 {

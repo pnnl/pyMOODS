@@ -84,7 +84,45 @@ def generate_data_dtlz3(n_var, n_obj, obj_weights):
     # print(df.head())
     return df
 
+@app.callback(
+    Output('graph-col', 'children'),
+    Output('radar-col', 'children'),
+    Input('toggle-switch', 'value'),
+    State('graph-col', 'children'),
+    State('radar-col', 'children'),
+    prevent_initial_call = True
+)
+def switch_pos(toggle_value, graph_content, radar_content):
+    if 'toggle' in toggle_value:
+        return radar_content, graph_content
+    else:
+        return graph_content, radar_content
 
+@app.callback(
+    Output('use-cluster-toggle', 'style'),
+    Output('cluster-dropdown', 'style',allow_duplicate=True),
+    Output('toggle-switch','style'),
+    Output('grid-1','style'),
+    Output('grid-resolution','style'),
+    Input('tabs-example-graph', 'value'), prevent_initial_call=True
+)
+def update_plot_control_section(tab):
+    ctx = dash.callback_context
+    
+    if not ctx.triggered:
+        raise PreventUpdate
+    else:
+        input_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        
+        if input_id != 'tabs-example-graph':
+            raise PreventUpdate
+        if tab == 'tab-1-example-graph':
+            return {'display':'block'}, {'display':'block'},{'display':'block'},{'display':'none'}, {'display':'none'}
+        elif tab == 'tab-2-example-graph':
+            return {'display':'none'}, {'display':'none'},{'display':'none'}, {'display':'block'}, {'display':'block'}
+        else:
+            return {'display':'none'}, {'display':'none'},{'display':'none'},{'display':'none'}, {'display':'none'}
+    
 @app.callback(Output("num-decision-vars", "value"),
               Output("num-objective-vars", "value"),
               Input("test-dropdown", "value"),
@@ -199,7 +237,7 @@ def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
 
 
 @app.callback(Output('stored-df', 'data'),
-              Output('use-cluster-toggle', 'style'),
+              Output('use-cluster-toggle', 'style', allow_duplicate=True),
               Output('cluster-dropdown', 'style'),
               Output('cluster-dropdown', 'options'),
               Output("summary-table", 'style'),
@@ -258,6 +296,7 @@ def update_summary(contents, filename, generated_data, cluster_switch):
                         random_state=0,
                         n_init="auto").fit(X)
         df['labels'] = kmeans.labels_
+        print('Labels', df['labels'])
         options_list = []
         tmp_colors = px.colors.qualitative.Plotly
         colors_dict = {}
@@ -289,14 +328,15 @@ def update_summary(contents, filename, generated_data, cluster_switch):
             html.Td(html.H5("SUMMARY"),
                     style={
                         'textAlign': 'center',
-                        'paddingLeft': '3.5rem'
+                        'paddingLeft': '1.1rem'
                     }),
             html.Td(),
             html.Td(),
         ]),
         html.Tr([
-            html.Td(html.H6("#Decision Variables:"),
-                    style={'padding': '0.2rem'}),
+            html.Td(html.Div("#Decision Variables:"),
+                    style={'textAlign': 'left','fontSize':'13px','fontWeight':'550'}
+                    ),
             html.Td(html.H6(len(decision_variables)),
                     style={
                         'color': 'blue',
@@ -304,8 +344,9 @@ def update_summary(contents, filename, generated_data, cluster_switch):
                     })
         ]),
         html.Tr([
-            html.Td(html.H6("#Objective Variables:"),
-                    style={'padding': '0.2rem'}),
+            html.Td(html.Div("#Objective Variables:"),
+                    style={'textAlign': 'left', 'fontSize':'12.5px','fontWeight':'550'}
+                    ),
             html.Td(html.H6(len(objective_functions)),
                     style={
                         'color': 'blue',
@@ -313,22 +354,23 @@ def update_summary(contents, filename, generated_data, cluster_switch):
                     })
         ]),
         html.Tr([
-            html.Td(html.H6("Size of Pareto Front:  "),
-                    style={'padding': '0.2rem'}),
+            html.Td(html.Div("Size of Pareto Front:  "),
+                    style={'textAlign': 'left','fontSize':'12px','fontWeight':'550'}
+                    ),
             html.Td(html.H6(size),
                     style={
                         'color': 'blue',
-                        'padding': '0.5rem'
+                        'paddingTop': '0.5rem'
                     })
         ]),
     ])
     
     return df.to_dict(orient='records'), {'display': 'block'} if len(objective_functions) >= 3 else {'display': 'none'},{'display': 'block', 'width': '10vw'} if 'cluster' in cluster_switch else {'display': 'none'}, options_list if 'cluster' in cluster_switch else [], {
-        'margin': '2rem auto auto 2rem',
+        'margin': '2rem auto auto auto',
         'fontWeight': '500',
         'borderRadius': '10px',
         'boxShadow': '0 4px 8px 0 rgba(0,0,0,0.8)',
-        'padding': '1.7rem',
+        'padding': '0.9rem',
         'fontFamily': 'Arial, Helvetica, sans-serif',
         'textAlign': 'center',
         'width': '82%',
