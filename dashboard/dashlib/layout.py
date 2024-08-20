@@ -612,8 +612,8 @@ interface_layout = dbc.Container(
                                     "value": 'cluster'
                                 }],
                                 value=[],
-                                # inline=True,
-                                # switch=True,
+                                inline=True,
+                                switch=True,
                                 # className="d-flex justify-content-center"
                             ),
                             dcc.Dropdown(id='cluster-dropdown',
@@ -641,7 +641,7 @@ interface_layout = dbc.Container(
                     className='h-75 d-inline-block',
                     style={
                         'height': 'calc(100vh-170px)',
-                        'overflow': 'hidden', 'marginLeft':'-15px'
+                        'overflow': 'hidden', 'marginLeft':'0px'
                     })
             ],
             # className="content-row"

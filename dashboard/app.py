@@ -182,14 +182,17 @@ app.layout = html.Div([
         State("num-decision-vars", "value"),
         State("num-objective-vars", "value"),
         State("test-dropdown", "value"),
+        State("data-generated", "data"),
     ],
     prevent_initial_callbacks='initial_duplicate')
-def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test):
+def generate_data_callback(n_clicks, obj_weights_input, n_var, n_obj, test, data_generated):
     if n_var is None or n_obj is None:
         # return "", [], blank_figure(),"Please enter number of variables"
         raise dash.exceptions.PreventUpdate("Please enter number of variables")
     if n_clicks is None:
         # return "", [], blank_figure(),""
+        raise PreventUpdate
+    if data_generated:
         raise PreventUpdate
 
     if test in ['DTLZ1', 'DTLZ3']:
@@ -437,6 +440,7 @@ def store_dec_sliders(dec_values, dec_vars, slider_values, slider_ids):
     Input('temp-summary-min-max', 'data'),
     Input('decision-values-store', 'data'),
     Input('use-cluster-toggle', 'value'),
+    # Input('toggle-switch', 'value'),
     State('cluster-dropdown', 'value'),
     State('df-dimensions', 'data'),
     State('decision-variables-store', 'data'),
@@ -444,13 +448,16 @@ def store_dec_sliders(dec_values, dec_vars, slider_values, slider_ids):
     State('radar-chart', 'figure'),
     State('test-dropdown', 'value'),
     State('graph1', 'selectedData'),
-    prevent_initial_call=True
+    prevent_initial_call='initial_duplicate'
+    # prevent_initial_call=True
 )
 
 def update_figure(data, obj_pts_store, radar_pts_store, ds_slider_values, filtered_dec, dec_range_store, dec_values, use_cluster, selected_clusters, dims, dec_vars,
                    curr_fig, curr_rad_fig, test, selected_data):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
 
+    # if 'toggle-switch.value' in changed_id and 'stored-df.data' not in changed_id:
+    #     raise PreventUpdate
     if data is None:
         raise PreventUpdate
     else:
@@ -1492,10 +1499,10 @@ def reset_inputs(tab):
             'label': 'DTLZ3',
             'value': 'DTLZ3'
         }, {
-            'label': 'Optimal Battery Size (Offshore Wind)',
+            'label': 'Optimal Battery Size',
             'value': 'RealTimeData'
         }, {
-            'label': 'Optimal Battery Size (Offshore Wind) - 2',
+            'label': 'Optimal Battery Size - 2',
             'value': 'RealTimeData2'
         }]
     # if tab == 'tab-1-example-graph':

@@ -38,6 +38,10 @@ button {
   text-align: center;
 }
 
+/* #test-dropdown{
+  width:100%;
+  height: 100%;
+} */
 .control-section{
   display: flex;
   flex-direction: column;
@@ -75,7 +79,7 @@ button {
 } */
 
 #toggle-switch{
-  /* margin-left:-2.7rem; */
+  margin-left:-4.8rem;
   margin-top:2rem;
 }
 
@@ -97,13 +101,14 @@ button {
 } */
 
 #tabs-example-graph{
-  width:102.1%;
+  margin-left: 0.33rem;
+  width:101.2%;
 }
 
 .custom-tab {
   font-size: large;
   font-weight: 500;
-  margin-left: -0.5rem;
+  margin-left: -0.4rem;
 }
 
 .custom-tab--selected {
@@ -124,7 +129,7 @@ button {
   background-color: white;
   height: 65%;
   display: flex;
-  margin-left: -1.26rem;
+  margin-left: -0.8rem;
   /* height: calc(70vh-2000px); */
   /* height:50vh;*/
   /* height:calc(100vh - 600px); */
@@ -250,7 +255,7 @@ font-size: 25px;
   height: 27vh;
   /*height:calc(50vh - 280px);*/
   /* height:calc(100vh - 740px); */
-  margin-left: -1.2rem;
+  margin-left: -0.8rem;
   flex-grow: 1;
   overflow: hidden;
   
