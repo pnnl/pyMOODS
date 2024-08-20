@@ -602,7 +602,7 @@ interface_layout = dbc.Container(
                         [
                             html.H5("Plot Control Parameter",
                                     className='plot-class'),
-                            html.Hr(),
+                            html.Hr(style={'borderColor':'black','width':'100%'}),
                             # html.Label("Color by cluster:",
                             #            style={'fontSize': '15px'}),
                             dbc.Checklist(
