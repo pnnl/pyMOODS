@@ -75,8 +75,8 @@ class Loader:
             self.ovars = get_names(self.res.F.shape[1], 'f')
             self.df = pd.concat(
                 (
-                    pd.DataFrame(X, columns=self.dvars),
-                    pd.DataFrame(F, columns=self.ovars)
+                    pd.DataFrame(X, columns=self.dvars, index=g),
+                    pd.DataFrame(F, columns=self.ovars, index=g)
                 ), 
                 axis=1
             )
@@ -447,7 +447,7 @@ class Visualizer(Loader):
 
     def show_specialization_clustering(
         self,
-        s_min = 1,
+        s_min = 5,
         s_max = 25,
         selection={}
     ):
@@ -456,8 +456,11 @@ class Visualizer(Loader):
         labels, values = np.unique(self.df_clustered.label, return_inverse=True)
         
         marker_color = plt.cm.tab10(values)
+        marker_color[~self.solution_mask] = hex2color(cnames['lightgray']) + (1,)
+
         
         marker_size = (s_max - s_min)*(~self.df_clustered.cluster.isnull()) + s_min
+        marker_size[~self.solution_mask] = 1
         
         fig = plt.figure(figsize=(12, 12))
         
