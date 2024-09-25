@@ -13,29 +13,105 @@ from umap import UMAP
 
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, HDBSCAN
 from sklearn.decomposition import PCA
 
 from scipy.cluster import hierarchy
 from scipy.spatial import ConvexHull
 
+from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.operators.crossover.sbx import SBX
+from pymoo.operators.mutation.pm import PM
+from pymoo.operators.sampling.rnd import FloatRandomSampling
+from pymoo.problems import get_problem
+from pymoo.termination import get_termination
+from pymoo.optimize import minimize
+
+algorithm = NSGA2(
+    pop_size=300,
+    n_offsprings=10,
+    sampling=FloatRandomSampling(),
+    crossover=SBX(prob=0.9, eta=15),
+    mutation=PM(eta=20),
+    eliminate_duplicates=True
+)
+
+termination = get_termination("n_gen", 300)
+
 class Loader:
-    def __init__(self, path):
-        self.df = pd.read_json(path)
-        self.ovars = [c for c in self.df if c.startswith('f')]
-        self.dvars = [c for c in self.df if c.startswith('x')]
+    def __init__(self, from_path=None, from_problem=None, **kwargs):
+
+        if from_path is not None:
+            self.df = pd.read_json(from_path)
+            self.ovars = [c for c in self.df if c.startswith('f')]
+            self.dvars = [c for c in self.df if c.startswith('x')]
+            self.solution_mask = pd.Series(True, index=self.df.index)
+
+        if from_problem is not None:
+            self.problem = get_problem(from_problem, **kwargs)
+            self.res = minimize(
+                self.problem,
+                algorithm,
+                termination,
+                seed=1,
+                save_history=True,
+                verbose=False
+            )
+
+            # format into Loader class
+            def get_names(n, prefix='x'):
+                return [f'{prefix}{i}' for i in range(n)]
+
+            self.g = g = []
+            self.X = X = []
+            self.F = F = []
+            for i, h in enumerate(self.res.history):
+                for p in h.pop:
+                    g.append(i)
+                    X.append(p.X)
+                    F.append(p.F)
+
+            self.dvars = get_names(self.res.X.shape[1], 'x')
+            self.ovars = get_names(self.res.F.shape[1], 'f')
+            self.df = pd.concat(
+                (
+                    pd.DataFrame(X, columns=self.dvars),
+                    pd.DataFrame(F, columns=self.ovars)
+                ), 
+                axis=1
+            )
+
+            population_hash = pd.util.hash_pandas_object(self.df[self.dvars], index=False)
+            self.population_metadata = self.df.groupby(population_hash)\
+                .apply(lambda df: pd.Series({'start': df.index[0], 'end': df.index[-1]}))
+
+            self.df = self.df.groupby(population_hash).apply(lambda df: df.iloc[0])
+
+            # find which individuals are part of the solution
+            solution_set = set(
+                pd.util.hash_pandas_object(
+                    pd.DataFrame(self.res.X),
+                    index=False
+                )
+            )
+
+            self.solution_mask = pd.Series(
+                map(solution_set.__contains__, self.df.index),
+                index=self.df.index
+            )
+
 
 lightgray = '#edecea'
 
 def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, ax=None, with_labels=True):
-    grouped = pd.DataFrame(X).groupby(y)
+    grouped = X.groupby(y)
 
     s = marker_size**.5 if type(marker_size) in {int, float}\
         else max(marker_size)**.5
 
     polys = PolyCollection(
         [
-            dfk.iloc[ConvexHull(dfk).vertices] if len(dfk) > 3 else dfk
+            dfk.iloc[ConvexHull(dfk).vertices].values if len(dfk) > 3 else dfk.values
             for k, dfk in grouped
             if k is not None
         ],
@@ -47,7 +123,7 @@ def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, a
 
     ax = ax or plt.gca()
     ax.add_collection(polys)
-    ax.scatter(*X.T, s=marker_size, c=marker_color)
+    ax.scatter(*X.values.T, s=marker_size, c=marker_color)
     ax.autoscale_view()
 
     if with_labels:
@@ -108,7 +184,7 @@ def explain_cluster(X, y, order=None, lw=2, threshold=.55, label='left', ax=None
     
     ax.autoscale_view()
 
-    return all_points
+    return all_points, coef
 
 def explain_groups(
     X, y,
@@ -181,17 +257,20 @@ def explain_groups(
         
         ax.autoscale_view()
 
+    return coef
+
 
 class Visualizer(Loader):
     def __init__(
-        self, path,
+        self, from_path=None, from_problem=None,
         left=None,
         right=None,
         Projection=UMAP(random_state=123456789, n_jobs=1),
         Cluster=DBSCAN(min_samples=1, eps=.5),
+        **kwargs,
     ):
 
-        super().__init__(path)
+        super().__init__(from_path, from_problem, **kwargs)
 
         self.left = left or self.ovars
         self.X_left = self.df[self.left]
@@ -206,34 +285,44 @@ class Visualizer(Loader):
             ('clu', Cluster)
         ])
         
-        self.y_left =  pipe.fit_predict(self.X_left)
-        self.left_xy = pipe['proj'].embedding_
+        self.y_left =  pd.DataFrame(pipe.fit_predict(self.X_left), index=self.df.index)
+        self.left_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
         
-        self.y_right =  pipe.fit_predict(self.X_right)
-        self.right_xy = pipe['proj'].embedding_
+        self.y_right =  pd.DataFrame(pipe.fit_predict(self.X_right), index=self.df.index)
+        self.right_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
 
-        self.y_joint =  pipe.fit_predict(self.X_joint)
-        self.joint_xy = pipe['proj'].embedding_
+        self.y_joint =  pd.DataFrame(pipe.fit_predict(self.X_joint), index=self.df.index)
+        self.joint_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
 
         # calculate specialization & clusters
 
-        top_k = 10
+        top_k = 20
 
         label = self.df[self.left]\
             .rank(ascending=False)\
             .idxmin(axis=1)
 
-        rank = self.df[self.left]\
+        rank = self.df.loc[self.solution_mask, self.left]\
             .rank(ascending=False)\
-            .min(axis=1)
+            .min(axis=1)\
+            .reindex(self.df.index)
 
-        df = pd.DataFrame(self.right_xy, columns=['x', 'y'])\
-            .assign(label=label)
+        df = pd.DataFrame(self.right_xy.values, columns=['x', 'y'], index=self.df.index)\
+            .assign(label=label.values, is_solution=self.solution_mask)
 
-        clu = DBSCAN(eps=.5, min_samples=3)
+        clu = HDBSCAN()
+
+        def apply_clustering_to_solutions(df):
+            X = df.loc[df.is_solution, ['x', 'y']]
+            y = pd.Series(clu.fit_predict(X), index=X.index)\
+                .reindex(df.index)\
+                .fillna(-1)\
+                .astype('int')
+            
+            return df.assign(cluster=y)
 
         df_clustered = df.groupby('label')\
-            .apply(lambda df: df.assign(cluster=clu.fit_predict(df[['x', 'y']])), include_groups=False)\
+            .apply(apply_clustering_to_solutions, include_groups=False)\
             .reset_index('label')\
             .sort_index()
 
@@ -358,7 +447,7 @@ class Visualizer(Loader):
 
     def show_specialization_clustering(
         self,
-        s_min = 3,
+        s_min = 1,
         s_max = 25,
         selection={}
     ):
@@ -374,7 +463,7 @@ class Visualizer(Loader):
         
         ax_left = plt.subplot(221)
         get_cluster_hulls(
-            self.df_clustered[['x', 'y']].values,
+            self.df_clustered[['x', 'y']],
             self.df_clustered.cluster,
             marker_color=marker_color,
             marker_size=marker_size,
@@ -402,7 +491,7 @@ class Visualizer(Loader):
         
         ax_right = plt.subplot(222)
         plt.scatter(
-            *self.left_xy.T,
+            *self.left_xy.values.T,
             c=marker_color,
             s=marker_size
         )
@@ -413,10 +502,10 @@ class Visualizer(Loader):
         plt.xlabel('Objective Space (reduced)')
         
         selected = self.df_clustered.label.apply(lambda i: i in selection or len(selection) == 0)
-        
+
         for xyA, xyB, c, s in zip(
-            self.right_xy[~mask],
-            self.left_xy[~mask],
+            self.right_xy[~mask].values,
+            self.left_xy[~mask].values,
             marker_color[~mask],
             selected[~mask]
         ):
