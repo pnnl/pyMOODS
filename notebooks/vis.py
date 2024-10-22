@@ -27,8 +27,12 @@ from pymoo.problems import get_problem
 from pymoo.termination import get_termination
 from pymoo.optimize import minimize
 
+import hypernetx as hnx
+from collections import defaultdict
+
+
 algorithm = NSGA2(
-    pop_size=300,
+    pop_size=200,
     n_offsprings=10,
     sampling=FloatRandomSampling(),
     crossover=SBX(prob=0.9, eta=15),
@@ -36,7 +40,7 @@ algorithm = NSGA2(
     eliminate_duplicates=True
 )
 
-termination = get_termination("n_gen", 300)
+termination = get_termination("n_gen", 10000)
 
 class Loader:
     def __init__(self, from_path=None, from_problem=None, **kwargs):
@@ -333,6 +337,117 @@ class Visualizer(Loader):
         df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.map(letters.__getitem__) + ')'
         df_clustered.loc[mask, 'cluster'] = None
         self.df_clustered = df_clustered
+
+        self.df_clustered_overlapping = self.get_overlapping_clusters()
+
+    def get_overlapping_clusters(self):
+        clu = HDBSCAN(cluster_selection_epsilon=.35, min_cluster_size=30)
+
+        def get_clustering(mask):
+            return pd.Series(
+                clu.fit_predict(self.joint_xy[mask]),
+                index=self.df.index[mask]
+            )
+
+        return pd.DataFrame({
+            c: get_clustering(self.df[c].rank(ascending=False) < len(self.df)/len(self.ovars))
+            for c in self.ovars
+        }).fillna(-1).astype(int)
+
+    def show_overlapping_clusters(
+        self,
+        s = 2,
+        ncols = 3
+    ):
+        df = self.df_clustered_overlapping
+        points = self.joint_xy.loc[df.index]
+
+        def get_convex_hull(points):
+            return points.iloc[ConvexHull(points.values).vertices]
+
+        def get_alpha_hull(points, alpha=0.):
+            poly = alphashape.alphashape(points.values, alpha)
+            return np.array(poly.exterior.coords.xy).T
+
+        def lighten(color, alpha=0.75):
+            return np.array(color) - np.array([0, 0, 0, alpha])
+
+        plt.figure(figsize=(6, 6))
+        plt.legend(
+            [
+                plt.Rectangle(
+                    (0, 0), 0, 0,
+                    edgecolor=plt.cm.tab10(i),
+                    facecolor=lighten(plt.cm.tab10(i))
+                )
+                for i, c in enumerate(df)
+            ],
+            df.columns
+        )
+
+        ax = plt.subplot(111)
+        plt.xticks([], [])
+        plt.yticks([], [])
+
+
+        nrows = int(np.ceil(len(self.ovars)/ncols))
+        plt.figure(figsize=(s*ncols, s*nrows))
+
+        for i, c in enumerate(df):
+            ec = plt.cm.tab10(i)
+
+            hulls = [
+                get_convex_hull(dfk)
+                for k, dfk in points.groupby(df[c])
+                if k != -1
+            ]
+
+            ax.add_collection(PolyCollection(
+                hulls,
+                edgecolor=ec,
+                facecolor=lighten(ec),
+            ))
+
+            ax.autoscale_view()
+
+            plt.subplot(nrows, ncols, i + 1)
+            plt.scatter(*self.joint_xy.values.T, s=1, c='lightgray')
+            plt.scatter(*points[df[c] != -1].values.T, s=1, color=ec)
+            plt.title(c)
+            plt.xticks([], [])
+            plt.yticks([], [])
+
+    def show_hypergraph(self):
+        df = self.df_clustered_overlapping
+
+        incidence_dict = defaultdict(list)
+
+        nodes = {}
+
+        for k, dfk in df.groupby(df.columns.tolist()):
+            nodes[k] = dfk.index
+            for (c, kc) in zip(dfk.columns, k):
+                if kc != -1 and len(dfk) > 10:
+                    incidence_dict[(c, kc)].append(k)
+
+        H = hnx.Hypergraph(incidence_dict)
+
+        color_map = {c: plt.cm.tab10(i) for i, c in enumerate(df.columns)}
+        color = [color_map[c] for c, ci in H.edges()]
+        alpha = np.array([0, 0, 0, -.75])
+
+        plt.figure(figsize=(8, 8))
+        hnx.draw(
+            H,
+            with_node_labels=False,
+            with_edge_labels=False,
+            node_radius={k: (len(v)**.5)/40 for k, v in nodes.items()},
+            edges_kwargs=dict(
+                facecolor=[ci + alpha for ci in color],
+                edgecolor=color, linewidth=1
+            )
+        )
+
 
     def show_splom(self, s=2, rows=None, cols=None):
         rows = rows or self.ovars
