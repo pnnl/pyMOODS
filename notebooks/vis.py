@@ -31,19 +31,15 @@ import hypernetx as hnx
 from collections import defaultdict
 
 
-algorithm = NSGA2(
-    pop_size=200,
-    n_offsprings=10,
-    sampling=FloatRandomSampling(),
-    crossover=SBX(prob=0.9, eta=15),
-    mutation=PM(eta=20),
-    eliminate_duplicates=True
-)
-
-termination = get_termination("n_gen", 10000)
-
 class Loader:
-    def __init__(self, from_path=None, from_problem=None, **kwargs):
+    def __init__(self,
+        from_path=None,
+        from_problem=None,
+        pop_size=200,
+        n_offsprings=10,
+        n_gen=10000,
+        **kwargs
+    ):
 
         if from_path is not None:
             self.df = pd.read_json(from_path)
@@ -52,6 +48,16 @@ class Loader:
             self.solution_mask = pd.Series(True, index=self.df.index)
 
         if from_problem is not None:
+            algorithm = NSGA2(
+                pop_size=pop_size, n_offsprings=n_offsprings,
+                sampling=FloatRandomSampling(),
+                crossover=SBX(prob=0.9, eta=15),
+                mutation=PM(eta=20),
+                eliminate_duplicates=True
+            )
+
+            termination = get_termination("n_gen", n_gen)
+
             self.problem = get_problem(from_problem, **kwargs)
             self.res = minimize(
                 self.problem,
@@ -333,33 +339,40 @@ class Visualizer(Loader):
         # update the name of the cluster and 
         mask = (df_clustered.cluster == -1) | (rank > top_k)
         letters = ['i','ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
-        # df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.apply(lambda i: labels[i]) + ')'
-        df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.map(letters.__getitem__) + ')'
+        def get_letters(i):
+            if i >= len(letters):
+                return str(i)
+            return letters[i]
+
+        df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.map(get_letters) + ')'
         df_clustered.loc[mask, 'cluster'] = None
         self.df_clustered = df_clustered
 
-        self.df_clustered_overlapping = self.get_overlapping_clusters()
 
-    def get_overlapping_clusters(self):
-        clu = HDBSCAN(cluster_selection_epsilon=.35, min_cluster_size=30)
-
+    def get_overlapping_clusters(self, clu, threshold=1.0, drop_intermediate=False):
         def get_clustering(mask):
+
             return pd.Series(
-                clu.fit_predict(self.joint_xy[mask]),
-                index=self.df.index[mask]
+                clu.fit_predict(self.joint_xy.loc[mask.index[mask]]),
+                index=mask.index[mask]
             )
 
+        df = self.df
+        if drop_intermediate:
+            df = df[self.solution_mask]
+
         return pd.DataFrame({
-            c: get_clustering(self.df[c].rank(ascending=False) < len(self.df)/len(self.ovars))
+            c: get_clustering(df[c].rank(ascending=False) < threshold*len(df)/len(self.ovars))
             for c in self.ovars
         }).fillna(-1).astype(int)
 
     def show_overlapping_clusters(
         self,
         s = 2,
-        ncols = 3
+        ncols = 3,
+        **kwargs
     ):
-        df = self.df_clustered_overlapping
+        df = self.get_overlapping_clusters(**kwargs)
         points = self.joint_xy.loc[df.index]
 
         def get_convex_hull(points):
@@ -417,8 +430,8 @@ class Visualizer(Loader):
             plt.xticks([], [])
             plt.yticks([], [])
 
-    def show_hypergraph(self):
-        df = self.df_clustered_overlapping
+    def show_hypergraph(self, **kwargs):
+        df = self.get_overlapping_clusters(**kwargs)
 
         incidence_dict = defaultdict(list)
 
