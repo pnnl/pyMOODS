@@ -223,6 +223,7 @@ interface_layout = dbc.Container(
                                                                    "textAlign":
                                                                    "center"
                                                                }),
+                                                            html.Div(id='objective-space-content', children = [
                                                             html.
                                                             H6(id='obj-help',
                                                                style={
@@ -247,7 +248,8 @@ interface_layout = dbc.Container(
                                                             #         style={'display':'none'}
                                                             #     )
                                                             # ], style={'display':'flex', 'alignItems':'center'}),
-                                                            dcc.Loading(
+                                                           
+                                                                dcc.Loading(
                                                                 id=
                                                                 'loading-graph',
                                                                 children=[
@@ -267,10 +269,11 @@ interface_layout = dbc.Container(
                                                                     'graph1':
                                                                     ['figure']
                                                                 })
-                                                        ],
+                                                            ])
+                                                                
+                                                            ],
                                                         width=6, 
-                                                        id='graph-col'
-                                                        ),
+                                                        id='graph-col'),
                                                     dbc.Col([
                                                         html.H4(
                                                             "Decision Space",
@@ -290,7 +293,9 @@ interface_layout = dbc.Container(
                                                                 'textAlign':
                                                                 'center'
                                                             }),
-                                                        html.Div(id="sliders"),
+                                                        html.Div(id='decision-space-content', children = [
+                                                        
+                                                        html.Div(id="sliders")])
                                                     ],
                                                             width=6, 
                                                             id="radar-col"
@@ -624,13 +629,13 @@ interface_layout = dbc.Container(
                                         #  style={'display':'none'},
                                         style={'width':'95%','height':'auto', 'maxHeight':'150px','overflowY':'auto','margin':'0 1px','padding':'2px', 'display':'none'},
                                          ),
-                            dbc.Checklist(
-                                id="toggle-switch",
-                                options=[{"label":"Toggle", "value":'toggle'}],
-                                value = [],
-                                switch = True,
-                                # className='d-flex justify-content-center mt-3'
-                                ),
+                            # dbc.Checklist(
+                            #     id="toggle-switch",
+                            #     options=[{"label":"Toggle", "value":'toggle'}],
+                            #     value = [],
+                            #     switch = True,
+                            #     # className='d-flex justify-content-center mt-3'
+                            #     ),
                             dbc.Label("Grid resolution:", style={'fontSize': '15px', 'display':'none'}, id="grid-1"),
                             dbc.Input(id="grid-resolution", type="number", size="sm", min=1, max=100, style={'display':'none'}),
                             html.Br()
