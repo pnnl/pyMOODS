@@ -42,12 +42,22 @@ class Loader:
     ):
 
         if from_path is not None:
-            self.df = pd.read_json(from_path)
+            print('Reading', from_path, '...')
+            self.df = pd.read_json(from_path)\
+                .reset_index(drop=True)
+
             self.ovars = [c for c in self.df if c.startswith('f')]
             self.dvars = [c for c in self.df if c.startswith('x')]
-            self.solution_mask = pd.Series(True, index=self.df.index)
+
+            if 'start' in self.df and 'end' in self.df and 'solution_mask' in self.df:
+                self.population_metadata = self.df[['start', 'end']]
+                self.solution_mask = self.df.solution_mask
+                self.df = self.df[self.ovars + self.dvars]
+            else:
+                self.solution_mask = pd.Series(True, index=self.df.index)
 
         if from_problem is not None:
+            print('Solving...')
             algorithm = NSGA2(
                 pop_size=pop_size, n_offsprings=n_offsprings,
                 sampling=FloatRandomSampling(),
@@ -110,7 +120,15 @@ class Loader:
                 index=self.df.index
             )
 
+    def to_file(self, path):
+        path = 'dtlz2_d10_o5_p2000_g10000.json'
 
+        metadata = self.population_metadata.assign(solution_mask=self.solution_mask)
+        metadata.columns = ['_' + c for c in metadata]
+
+        pd.concat((metadata, self.df), axis=1)\
+            .to_json(path)
+            
 lightgray = '#edecea'
 
 def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, ax=None, with_labels=True):
