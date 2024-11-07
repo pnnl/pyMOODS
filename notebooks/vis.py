@@ -287,6 +287,53 @@ def explain_groups(
 
     return coef
 
+def show_clusters(points, clusters, columns=None, ax=None, show_legend=True):
+    ax = ax or plt.gca()
+    if columns is None:
+        columns = clusters.columns
+
+    def get_convex_hull(points):
+        return points.iloc[ConvexHull(points.values).vertices]
+
+    def lighten(color, alpha=0.75):
+        return np.array(color) - np.array([0, 0, 0, alpha])
+
+    if show_legend:
+        plt.legend(
+            [
+                plt.Rectangle(
+                    (0, 0), 0, 0,
+                    edgecolor=plt.cm.tab10(i),
+                    facecolor=lighten(plt.cm.tab10(i))
+                )
+                for i, c in enumerate(clusters)
+            ],
+            clusters.columns
+        )
+            
+    ax.scatter(*points.loc[clusters.index].values.T, s=1, c='lightgray')
+
+    for i, c in enumerate(clusters):
+        if c in columns:
+            ec = plt.cm.tab10(i)
+    
+            hulls = [
+                get_convex_hull(dfk)
+                for k, dfk in points.groupby(clusters[c])
+                if k != -1
+            ]
+    
+            ax.add_collection(PolyCollection(
+                hulls,
+                edgecolor=ec,
+                facecolor=lighten(ec),
+            ))
+
+            mask = clusters[c] != -1
+            multi_cluster_mask = (clusters[columns] != -1).sum(axis=1) > 1
+            
+            ax.scatter(*points.loc[clusters.index][mask & ~multi_cluster_mask].values.T, s=2, color=ec)
+            ax.scatter(*points.loc[clusters.index][multi_cluster_mask].values.T, s=2, color='black')
 
 class Visualizer(Loader):
     def __init__(
@@ -384,6 +431,48 @@ class Visualizer(Loader):
             for c in self.ovars
         }).fillna(-1).astype(int)
 
+    def show_overlapping_cluster_grid(
+        self,
+        s = 4,
+        thresholds = [.0625, .125, .25, .5, 1.],
+        epsilons = [.1, .3, .5, .7, .9],
+    ):
+        n_rows = len(thresholds)
+        n_cols = len(epsilons)
+
+        diag = n_cols
+
+        plt.figure(figsize=(s*n_cols, s*n_rows))
+
+        for i, t in enumerate(thresholds):
+            for j, e in enumerate(epsilons):
+                if i + j < n_rows + diag:
+                    clusters=self.get_overlapping_clusters(
+                        threshold=t,
+                        clu = HDBSCAN(
+                            cluster_selection_epsilon=e,
+                            min_cluster_size=10
+                        ),
+                        drop_intermediate=False
+                    )
+                    
+                    show_clusters(
+                        ax=plt.subplot(n_rows, n_cols, i*n_cols + j + 1),
+                        points=self.joint_xy,
+                        clusters=clusters,
+                        columns=self.ovars,
+                        show_legend=False,
+                    )
+            
+                    plt.xticks([], [])
+                    plt.yticks([], [])
+            
+                    if j == 0:
+                        plt.ylabel(f'Threshold = {t}')
+            
+                    if i == 0:
+                        plt.title(f'Epsilon = {e}')
+                        
     def show_overlapping_clusters(
         self,
         s = 2,
@@ -417,8 +506,8 @@ class Visualizer(Loader):
         )
 
         ax = plt.subplot(111)
-        plt.xticks([], [])
-        plt.yticks([], [])
+        # plt.xticks([], [])
+        # plt.yticks([], [])
 
 
         nrows = int(np.ceil(len(self.ovars)/ncols))
@@ -448,7 +537,7 @@ class Visualizer(Loader):
             plt.xticks([], [])
             plt.yticks([], [])
 
-    def show_hypergraph(self, **kwargs):
+    def show_hypergraph(self, min_size=1, **kwargs):
         df = self.get_overlapping_clusters(**kwargs)
 
         incidence_dict = defaultdict(list)
@@ -457,9 +546,10 @@ class Visualizer(Loader):
 
         for k, dfk in df.groupby(df.columns.tolist()):
             nodes[k] = dfk.index
-            for (c, kc) in zip(dfk.columns, k):
-                if kc != -1 and len(dfk) > 10:
-                    incidence_dict[(c, kc)].append(k)
+            if (np.array(k) != -1).sum() > 1:
+                for (c, kc) in zip(dfk.columns, k):
+                    if kc != -1 and len(dfk) >= min_size:
+                        incidence_dict[(c, kc)].append(k)
 
         H = hnx.Hypergraph(incidence_dict)
 
