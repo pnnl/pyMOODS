@@ -553,6 +553,8 @@ class Visualizer(Loader):
 
         H = hnx.Hypergraph(incidence_dict)
 
+        max_len = max(map(len, nodes.values()))
+        
         color_map = {c: plt.cm.tab10(i) for i, c in enumerate(df.columns)}
         color = [color_map[c] for c, ci in H.edges()]
         alpha = np.array([0, 0, 0, -.75])
@@ -562,7 +564,7 @@ class Visualizer(Loader):
             H,
             with_node_labels=False,
             with_edge_labels=False,
-            node_radius={k: (len(v)**.5)/40 for k, v in nodes.items()},
+            node_radius={k: (10*(len(v)/max_len)**.5) for k, v in nodes.items()},
             edges_kwargs=dict(
                 facecolor=[ci + alpha for ci in color],
                 edgecolor=color, linewidth=1
