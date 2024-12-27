@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 from pymoo.problems import get_problem
 import plotly.graph_objs as go
 import plotly.express as px
+from dashlib.offshore_windfarm.screen3 import register_callbacks
 from dashlib.layout import interface_layout
 from dashlib.components import gen_graph, blank_figure
 from data.parser import parse_data
@@ -24,6 +25,8 @@ app = dash.Dash(
     external_stylesheets=[dbc.themes.DARKLY],
     suppress_callback_exceptions=True,
 )
+
+register_callbacks(app)
 
 new_markers = {}
 
@@ -100,12 +103,16 @@ def generate_data_dtlz3(n_var, n_obj, obj_weights):
 #         return graph_content, radar_content
 
 
+
 @app.callback(
     Output('use-cluster-toggle', 'style'),
     Output('cluster-dropdown', 'style', allow_duplicate=True),
     # Output('toggle-switch','style'),
     Output('grid-1', 'style'),
     Output('grid-resolution', 'style'),
+    Output('grid-2', 'style'),
+    Output('hyperparameter-dropdowns', 'style'),
+    Output('location', 'style'),
     Input('tabs-example-graph', 'value'),
     prevent_initial_call=True)
 def update_plot_control_section(tab):
@@ -119,7 +126,7 @@ def update_plot_control_section(tab):
         if input_id != 'tabs-example-graph':
             raise PreventUpdate
         if tab == 'tab-1-example-graph':
-            return {
+            return ({
                 'display': 'block'
             }, {
                 'display': 'block'
@@ -127,9 +134,16 @@ def update_plot_control_section(tab):
                 'display': 'none'
             }, {
                 'display': 'none'
-            }
+            },
+            {
+                'display': 'none'
+            }, {
+                'display': 'none'
+            }, {
+                'display': 'none'
+            })
         elif tab == 'tab-2-example-graph':
-            return {
+            return ({
                 'display': 'none'
             }, {
                 'display': 'none'
@@ -137,9 +151,16 @@ def update_plot_control_section(tab):
                 'display': 'block'
             }, {
                 'display': 'block'
-            }
+            },
+            {
+                'display': 'none'
+            }, {
+                'display': 'none'
+            }, {
+                'display': 'none'
+            })
         else:
-            return {
+            return ({
                 'display': 'none'
             }, {
                 'display': 'none'
@@ -147,7 +168,14 @@ def update_plot_control_section(tab):
                 'display': 'none'
             }, {
                 'display': 'none'
-            }
+            },
+            {
+                'display': 'block'
+            }, {
+                'display': 'block'
+            }, {
+                'display': 'block'
+            })
 
 
 @app.callback(Output("num-decision-vars", "value"),
