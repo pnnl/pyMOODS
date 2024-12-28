@@ -147,6 +147,16 @@ def generate_time_series(location):
         paper_bgcolor='rgb(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         template='simple_white',
+        title={
+            'x':0.5,
+            'xanchor' : 'center',
+            'y':0.9,
+            'yanchor' : 'top',
+            'font':{
+                'size':14,
+                'color':'black'
+            }
+        }
     )
     
     fig.update_xaxes(rangeslider_visible= True,rangeslider_thickness=0.2

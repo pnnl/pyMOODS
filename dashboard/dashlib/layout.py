@@ -477,7 +477,7 @@ interface_layout = dbc.Container(
                                                         dbc.Card(
                                                             dbc.CardBody([
                                                                 html.
-                                                                H4("Plot Description",
+                                                                H4("Wind Speed Timeseries",
                                                                    className=
                                                                    "card-title"
                                                                    ),
@@ -493,7 +493,7 @@ interface_layout = dbc.Container(
                                                         dbc.Card(
                                                             dbc.CardBody([
                                                                 html.
-                                                                H4("Fairness Index (Future Capability)",
+                                                                H4("LMP",
                                                                    className=
                                                                    "card-title2"
                                                                    ),
