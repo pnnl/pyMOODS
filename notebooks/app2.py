@@ -103,7 +103,7 @@ def assign_cluster_data(df, clusters, selected):
 from plotly.subplots import make_subplots
 from scipy.stats import gaussian_kde
 
-def distplot_new(with_clusters, selected_clusters, selected_info=None):
+def distplot_new(with_clusters, selected_clusters, selected_info=[]):
     dvars = [c for c in self.df.columns if 'x' in c]
     df_with_clusters = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
         .reset_index()\
@@ -112,12 +112,11 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
     ovars = sorted(df_with_clusters.ovar.unique())
     colors = px.colors.qualitative.D3
 
-
     fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=True, vertical_spacing=0.02)
 
     for i, dvar in enumerate(dvars):
         row_mask = (df_with_clusters.dvar == dvar)
-        if selected_info is None:
+        if len(selected_info) == 0:
             data = df_with_clusters[row_mask]
             plot = go.Figure()
             for ovar, color in zip(ovars, colors):
@@ -130,14 +129,14 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
                 )
 
             for trace in plot.data:
-                trace.showlegend = (i == 0)
+                trace.showlegend = (i==0)
                 fig.add_trace(trace, row=i+1, col=1)
         else:
-            bounds = [selected_info['bounds']['x0'], selected_info['bounds']['x1']]
-
-            # in the filtered row
-            if dvar == selected_info['row']:
+            if dvar in [d['row'] for d in selected_info]:
+                selection = [d for d in selected_info if d['row'] == dvar]
+                bounds = [selection[0]['bounds']['x0'], selection[0]['bounds']['x1']]
                 data = df_with_clusters[row_mask]
+
                 plot = go.Figure()
                 for ovar, color in zip(ovars, colors):
                     current = data[data.ovar == ovar].sort_values('value').reset_index(drop=True)
@@ -161,16 +160,35 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
 
             # in the other rows
             else:
-                with_clusters['active'] = with_clusters.apply(lambda row: True if (row[selected_info['row']] >= bounds[0]) & (row[selected_info['row']] <= bounds[1]) else False, axis=1)
+                filter_query = ''
+
+
+                for idx in range(len(selected_info)):
+                    row = selected_info[idx]['row']
+                    curr_bounds = selected_info[idx]['bounds']
+
+
+                    if idx == 0:
+                        filter_query = f"({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
+                    else:
+                        filter_query += f"and ({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
+
+                filtered = with_clusters.query(filter_query).index
+                # print(filtered)
+                # with_clusters['active'] = with_clusters.apply(lambda row: (row[selected_info[-1]['row']] >= bounds[0]) & (row[selected_info[-1]['row']] <= bounds[1]), axis=1)
+                with_clusters['active'] = with_clusters.index.isin(filtered)
+
                 df_with_clusters = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
                     .reset_index()\
                     .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
+
+
                 data = df_with_clusters[row_mask]
+
                 plot = go.Figure()
                 for ovar, color in zip(ovars, colors):
                     current = data[data.ovar == ovar].sort_values('value').reset_index(drop=True)
                     selected_indices = current[current.active == True].index
-
                     plot.add_trace(
                         go.Histogram(
                             x=current.value,
@@ -187,21 +205,23 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
                     trace.showlegend = (i==0)
                     fig.add_trace(trace, row=i+1, col=1)
 
-    if selected_info is not None:
-        row = selected_info['row']
-        bounds = selected_info['bounds']
-        fig.add_shape(
-            dict(
-                {"type": "rect", "line": {"width": 1, "dash": "dot", "color": "darkgrey"}, 'yref': f'y{int(row[1])+1}'},
-                **bounds
+
+    if len(selected_info) > 0:
+        for i in range(len(selected_info)):
+            row = selected_info[i]['row']
+            bounds = selected_info[i]['bounds']
+            fig.add_shape(
+                dict(
+                    {"type": "rect", "line": {"width": 1, "dash": "dot", "color": "darkgrey"}, 'yref': f'y{int(row[1])+1}'},
+                    **bounds
+                )
             )
-        )
 
     # Add titles as annotations on the left of each subplot
     annotations = [
         dict(
             text="Count",  # Y-axis title text
-            x=-0.06,  # Position relative to the figure (left side)
+            x=-0.08,  # Position relative to the figure (left side)
             y=0.5,  # Centered vertically
             xref="paper",  # Refer to the figure coordinates
             yref="paper",
@@ -210,6 +230,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
             font=dict(size=16)  # Customize font size
         )
     ]
+
     for i, dvar in enumerate(dvars, start=1):
         annotations.append(
             dict(
@@ -239,14 +260,13 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
             borderwidth=1,
             bgcolor='white',
             font=dict(
-                size=14  # Set the font size of the legend items
+                size=14
             ),
 
             traceorder='normal',
             title=dict(text=' ovar', font=dict(size=14))
         ),
         barmode="stack",
-
         annotations=annotations,
         selectdirection='h', dragmode='select'
     )
@@ -295,7 +315,7 @@ app.layout = html.Div([
     ),
     dcc.Store(id='clusters-store', data={}),
     dcc.Store(id='cluster-data-long-store', data={}),
-    dcc.Store(id='selected-data-store', data={})
+    dcc.Store(id='selected-data-store', data=[])
 ])
 
 @app.callback(
@@ -333,19 +353,19 @@ def draw_figures(selected_clusters, th):
     Input('obj-dec-histogram', 'selectedData'),
     Input('reset-select', 'n_clicks'),
     State('cluster-dropdown', 'value'),
+    State('selected-data-store', 'data'),
     prevent_initial_call=True
 )
 
-def update_selection(selectedData, reset_button, selected_clusters):
+def update_selection(selectedData, reset_button, selected_clusters, curr_selected_data):
     changed_id = [p['prop_id'] for p in callback_context.triggered]
     clusters = self.get_overlapping_clusters(**kwargs)[sorted(selected_clusters)]
     if 'reset-select.n_clicks' in changed_id:
         if selectedData:
-            return draw_clusters_scatterplot(clusters, points), {}
+            return draw_clusters_scatterplot(clusters, points), []
         else:
             raise PreventUpdate
     if selectedData is None:
-        # print(selectedData)
         raise PreventUpdate
     else:
         with_clusters = assign_cluster_data(self.df, clusters, clusters.columns)
@@ -357,6 +377,7 @@ def update_selection(selectedData, reset_button, selected_clusters):
             ranges = selectedData['range']
             x = [k for k in ranges.keys() if 'x' in k][0]
             y = [k for k in ranges.keys() if 'y' in k][0]
+
             if x=='x':
                 selected_row='x0'
             else:
@@ -372,11 +393,16 @@ def update_selection(selectedData, reset_button, selected_clusters):
             range_mask = (with_clusters_long.value >= ranges[x][0]) & (with_clusters_long.value <= ranges[x][1])
             selected_row_mask = (with_clusters_long.dvar == selected_row)
             subset = with_clusters_long[selected_row_mask & range_mask]
-            print({'row': selected_row, 'bounds': selection_bounds})
 
-            return draw_clusters_scatterplot(clusters, points, list(set(subset.orig_index))), {'row': selected_row, 'bounds': selection_bounds}
+            if len(curr_selected_data) == 0:
+                return draw_clusters_scatterplot(clusters, points, list(set(subset.orig_index))), [{'row': selected_row, 'bounds': selection_bounds}]
+            else:
+                current = curr_selected_data.copy()
+                current.append({'row': selected_row, 'bounds': selection_bounds})
+            return draw_clusters_scatterplot(clusters, points, list(set(subset.orig_index))), current
 
     raise PreventUpdate
+
 
 @app.callback(
     Output('obj-dec-histogram', 'figure', allow_duplicate=True),
@@ -393,7 +419,6 @@ def update_histogram(selected_data_store, selected_clusters):
 
     if selected_data_store:
         return distplot_new(with_clusters, selected_clusters, selected_data_store)
-    # raise PreventUpdate
     return distplot_new(with_clusters, selected_clusters)
 
 if __name__ == "__main__":
