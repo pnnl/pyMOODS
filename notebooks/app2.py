@@ -16,7 +16,7 @@ self = vis.Visualizer(from_path=path)
 def get_convex_hull(points):
     return points.iloc[ConvexHull(points.values).vertices]
 
-def draw_clusters_in_dash(clusters, points, selected_indices=None):
+def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     fig = go.Figure()
     no_cluster_mask = ~points.index.isin(clusters.index)
     no_cluster_df = points[no_cluster_mask]
@@ -69,7 +69,19 @@ def draw_clusters_in_dash(clusters, points, selected_indices=None):
 
 
     fig.update_layout(
-        height=800,
+        margin=dict(t=20),
+        legend=dict(
+            x=1.03,
+            bordercolor='#d3d3d3',
+            borderwidth=1,
+            bgcolor='white',
+            font=dict(
+                size=14  # Set the font size of the legend items
+            ),
+            traceorder='normal',
+            title=dict(text=' cluster', font=dict(size=14))
+        ),
+        # height=800,
         template="plotly_white",
         xaxis=dict(showticklabels=False, showgrid=False),
         yaxis=dict(showticklabels=False, showgrid=False)
@@ -92,13 +104,14 @@ from plotly.subplots import make_subplots
 from scipy.stats import gaussian_kde
 
 def distplot_new(with_clusters, selected_clusters, selected_info=None):
-    dvars = [c for c in with_clusters.columns if 'x' in c]
+    dvars = [c for c in self.df.columns if 'x' in c]
     df_with_clusters = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
         .reset_index()\
         .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
     dvars = sorted(df_with_clusters.dvar.unique())
     ovars = sorted(df_with_clusters.ovar.unique())
     colors = px.colors.qualitative.D3
+
 
     fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=True, vertical_spacing=0.02)
 
@@ -112,7 +125,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
                     go.Histogram(
                         x=data[data["ovar"] == ovar]["value"],
                         name=f"{ovar}",  # Legend name
-                        marker=dict(color=color), nbinsx=100  # Color for this category
+                        marker=dict(color=color), nbinsx=len(dvars)*10  # Color for this category
                     )
                 )
 
@@ -125,7 +138,6 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
             # in the filtered row
             if dvar == selected_info['row']:
                 data = df_with_clusters[row_mask]
-
                 plot = go.Figure()
                 for ovar, color in zip(ovars, colors):
                     current = data[data.ovar == ovar].sort_values('value').reset_index(drop=True)
@@ -135,7 +147,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
                         go.Histogram(
                             x=current.value,
                             name=ovar,
-                            nbinsx=100,
+                            nbinsx=len(dvars)*10,
                             marker=dict(color=color),
                             selectedpoints=selected_indices,
                             selected=dict(marker=dict(color=color)),
@@ -145,6 +157,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
                 for trace in plot.data:
                     trace.showlegend = (i==0)
                     fig.add_trace(trace, row=i+1, col=1)
+
 
             # in the other rows
             else:
@@ -162,7 +175,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
                         go.Histogram(
                             x=current.value,
                             name=ovar,
-                            nbinsx=100,
+                            nbinsx=len(dvars)*10,
                             marker=dict(color=color),
                             selectedpoints=selected_indices,
                             selected=dict(marker=dict(color=color)),
@@ -194,42 +207,51 @@ def distplot_new(with_clusters, selected_clusters, selected_info=None):
             yref="paper",
             showarrow=False,
             textangle=-90,  # Rotate text vertically
-            font=dict(size=14)  # Customize font size
+            font=dict(size=16)  # Customize font size
         )
     ]
     for i, dvar in enumerate(dvars, start=1):
         annotations.append(
             dict(
                 x=1.03,  # Position to the right of the plot area
-                y=1.0 - (i-0.5)*0.2,  # Center annotation for each subplot
+                y=1.0-(i-0.5)*(1/len(dvars)),  # Center annotation for each subplot
                 xref="paper",
                 yref="paper",
                 text=f"{dvar}",  # Bold text for titles
                 showarrow=False,
                 xanchor="right",
                 yanchor="middle",
-                font=dict(size=12),
+                font=dict(size=14),
                 textangle=90
             ))
+        fig.update_layout({
+            f'xaxis{i}': dict(tickfont=dict(size=14)),
+            f'yaxis{i}': dict(tickfont=dict(size=14))
+        })
+
 
     fig.update_layout(
         margin=dict(t=20),
+        yaxis=dict(titlefont=dict(size=20)),
         legend=dict(
             x=1.03,
-            # bordercolor='black',
-            # borderwidth=1,
-            bgcolor='#F5F5F5',
+            bordercolor='#d3d3d3',
+            borderwidth=1,
+            bgcolor='white',
             font=dict(
-                size=12  # Set the font size of the legend items
+                size=14  # Set the font size of the legend items
             ),
-            traceorder='normal'
+
+            traceorder='normal',
+            title=dict(text=' ovar', font=dict(size=14))
         ),
         barmode="stack",
-        legend_title_text='ovar',
+
         annotations=annotations,
         selectdirection='h', dragmode='select'
     )
     return fig
+
 
 from dash import Dash, html, dcc, Output, Input, State, no_update, callback_context
 import dash_bootstrap_components as dbc
@@ -252,11 +274,11 @@ dvars = [c for c in self.df.columns if 'x' in c]
 app.layout = html.Div([
     html.Div([
         html.Div([
-            html.P('Specialization (Cluster)', style={'marginBottom': '5px', 'padding': '1%'}),
+            html.H6('Specialization (Cluster)', style={'marginBottom': '5px', 'padding': '1%'}),
             dcc.Dropdown(id='cluster-dropdown', placeholder='Select a cluster', options=all_clusters.columns, value=[sorted(all_clusters.columns)[0]], multi=True, style={'width': '40vw'})
         ], style={'border': '1px solid #d3d3d3', 'marginRight': '1%'}),
         html.Div([
-            html.P('Threshold (Epsilon)', style={'marginLeft': '3%', 'marginBottom': '5px'}),
+            html.H6('Threshold (Epsilon)', style={'paddingTop': '1%', 'marginLeft': '3%', 'marginBottom': '5px'}),
             dcc.Slider(0, 0.5, 0.1, value=0.3, id='th-slider')
         ], style={'width': '30vw', 'border': '1px solid #d3d3d3'}),
     ], style={'display': 'flex', 'padding': '5px'}),
@@ -264,7 +286,7 @@ app.layout = html.Div([
         id='loading-1',
         children=
         html.Div(id='graph-container', children=[
-            dcc.Graph(id='cluster-scatterplot', style={'width': '50%'}),
+            dcc.Graph(id='cluster-scatterplot', style={'marginTop': '2.1%', 'width': '50%'}),
             html.Div([
                 html.Div(dbc.Button('Reset', id='reset-select', outline=True, color='primary', n_clicks=0, style={'marginLeft': '5%'}), className="d-inline-block"),
                 dcc.Graph(id='obj-dec-histogram', style={'width': '100%', 'height': '100%'})
@@ -273,9 +295,7 @@ app.layout = html.Div([
     ),
     dcc.Store(id='clusters-store', data={}),
     dcc.Store(id='cluster-data-long-store', data={}),
-    dcc.Store(id='selected-data-store', data={}),
-    dcc.Store(id='tmp')
-
+    dcc.Store(id='selected-data-store', data={})
 ])
 
 @app.callback(
@@ -303,7 +323,7 @@ def draw_figures(selected_clusters, th):
             .reset_index()\
             .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
 
-        return draw_clusters_in_dash(clusters, points), {'display': 'flex'}, distplot_new(with_clusters, selected_clusters)
+        return draw_clusters_scatterplot(clusters, points), {'display': 'flex'}, distplot_new(with_clusters, selected_clusters)
     else:
         return no_update, {'display': 'none'}, no_update
 
@@ -321,7 +341,7 @@ def update_selection(selectedData, reset_button, selected_clusters):
     clusters = self.get_overlapping_clusters(**kwargs)[sorted(selected_clusters)]
     if 'reset-select.n_clicks' in changed_id:
         if selectedData:
-            return draw_clusters_in_dash(clusters, points), {}
+            return draw_clusters_scatterplot(clusters, points), {}
         else:
             raise PreventUpdate
     if selectedData is None:
@@ -337,10 +357,10 @@ def update_selection(selectedData, reset_button, selected_clusters):
             ranges = selectedData['range']
             x = [k for k in ranges.keys() if 'x' in k][0]
             y = [k for k in ranges.keys() if 'y' in k][0]
-            print(x, y)
-
-            selected_row = f"x{int(x[1])-1}"
-            print(selected_row)
+            if x=='x':
+                selected_row='x0'
+            else:
+                selected_row = f"x{int(x[1])-1}"
 
             selection_bounds = {
                 "x0": ranges[x][0],
@@ -354,7 +374,7 @@ def update_selection(selectedData, reset_button, selected_clusters):
             subset = with_clusters_long[selected_row_mask & range_mask]
             print({'row': selected_row, 'bounds': selection_bounds})
 
-            return draw_clusters_in_dash(clusters, points, list(set(subset.orig_index))), {'row': selected_row, 'bounds': selection_bounds}
+            return draw_clusters_scatterplot(clusters, points, list(set(subset.orig_index))), {'row': selected_row, 'bounds': selection_bounds}
 
     raise PreventUpdate
 
