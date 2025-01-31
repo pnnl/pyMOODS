@@ -161,3 +161,7 @@ cython_debug/
 
 LOCALREADME.md
 .DS_Store
+
+# pyMOODS React App Redesign
+pymoods-react/node_modules
+pymoods-react/yarn.lock
