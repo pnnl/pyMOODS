@@ -2,6 +2,7 @@ import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
+import { Button } from '@mui/material';
 const drawerWidth = 240;
 
 const Drawer = styled(MuiDrawer)({
@@ -34,7 +35,9 @@ export default function SideMenu() {
           flexDirection: 'column',
         }}
       >
-        
+        <Button variant="contained">Upload Data</Button>
+        <Button variant="outlined">Button 2</Button>
+        <Button variant="outlined">Button 3</Button>
       </Box>
       <Divider />
     </Drawer>
