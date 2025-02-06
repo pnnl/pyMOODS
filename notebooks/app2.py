@@ -294,39 +294,61 @@ dvars = [c for c in self.df.columns if 'x' in c]
 app.layout = html.Div([
     html.Div([
         html.Div([
-            html.H6('Specialization (Cluster)', style={'marginBottom': '5px', 'padding': '1%'}),
-            dcc.Dropdown(id='cluster-dropdown', placeholder='Select a cluster', options=all_clusters.columns, value=[sorted(all_clusters.columns)[0]], multi=True, style={'width': '40vw'})
-        ], style={'border': '1px solid #d3d3d3', 'marginRight': '1%'}),
-        html.Div([
-            html.H6('Threshold (Epsilon)', style={'paddingTop': '1%', 'marginLeft': '3%', 'marginBottom': '5px'}),
-            dcc.Slider(0, 0.5, 0.1, value=0.3, id='th-slider')
-        ], style={'width': '30vw', 'border': '1px solid #d3d3d3'}),
-    ], style={'display': 'flex', 'padding': '5px'}),
-    dcc.Loading(
-        id='loading-1',
-        children=
-        html.Div(id='graph-container', children=[
-            dcc.Graph(id='cluster-scatterplot', style={'marginTop': '2.1%', 'width': '50%'}),
             html.Div([
-                html.Div(dbc.Button('Reset', id='reset-select', outline=True, color='primary', n_clicks=0, style={'marginLeft': '5%'}), className="d-inline-block"),
-                dcc.Graph(id='obj-dec-histogram', style={'width': '100%', 'height': '100%'})
-            ], style={'width': '50%', 'height': '90vh', 'display': 'flex', 'flexDirection': 'column'})
-        ], style={'display': 'none'})
-    ),
-    dcc.Store(id='clusters-store', data={}),
-    dcc.Store(id='cluster-data-long-store', data={}),
-    dcc.Store(id='selected-data-store', data=[])
+               html.H6('Specialization (Cluster)', style={'marginBottom': '5px', 'padding': '1%'}),
+               dcc.Dropdown(id='cluster-dropdown', placeholder='Select a cluster', options=all_clusters.columns, value=[sorted(all_clusters.columns)[0]], multi=True, style={'width': '40vw'})
+            ], style={'border': '1px solid #d3d3d3', 'marginRight': '1%'}),
+            html.Div([
+                html.H6('Threshold (Epsilon)', style={'paddingTop': '1%', 'marginLeft': '3%', 'marginBottom': '5px'}),
+                dcc.Slider(0, 0.5, 0.1, value=0.3, id='th-slider')
+            ], style={'width': '30vw', 'border': '1px solid #d3d3d3'}),
+        ], style={'display': 'flex'}),
+        html.Div(dbc.Button('Reset', id='reset-select', outline=True, color='primary', n_clicks=0), style={'display': 'inline-block',}),
+    ], style={'display': 'flex', 'padding': '5px', 'justifyContent': 'space-between'}),
+    html.Div(id='graph-container', children=[
+        html.Div([
+            dcc.Loading(id='loading-1', children=[
+                dcc.Graph(id='cluster-scatterplot', config={'displayModeBar': False}, style={'height': '50vh'})
+            ]),
+            html.Hr(),
+            dcc.Loading(id='loading-2', children=[
+                dash_table.DataTable(
+                    id='data-table',
+                    columns=[{'name': i, 'id': i} for i in ['ovar'] + [c for c in self.df.columns if c.startswith('x') ]],
+                    row_selectable="multi",
+                    style_table={'width': '90%', 'marginTop': '1rem'},
+                    selected_rows=[],
+                    style_data_conditional=[],
+                    page_size=10
+                )
+            ])
+        ], style={'width': '50%'}),
+
+        html.Div([
+            dcc.Loading(id='loading-3', children=dcc.Graph(id='obj-dec-histogram', style={'height': '50vh'})),
+            html.Hr(),
+            dcc.Loading(id='loading-4', children=dcc.Graph(id='diff-bar-chart', style={'height': '35vh'}))
+        ], style={'width': '50%', 'height': '100%'})
+
+    ], style={'display': 'flex', 'width': '100vw', 'height': '100vh'}),
+
+    dcc.Store(id='selected-hist-data-store', data=[]),
+    dcc.Store(id='selected-from-tbl', data=[])
 ])
 
 @app.callback(
     Output('cluster-scatterplot', 'figure'),
-    Output('graph-container', 'style'),
     Output('obj-dec-histogram', 'figure'),
+    Output('data-table', 'data'),
+    Output('data-table', 'selected_rows'),
     Input('cluster-dropdown', 'value'),
-    Input('th-slider', 'value')
+    Input('th-slider', 'value'),
+    Input('selected-hist-data-store', 'data')
 )
 
-def draw_figures(selected_clusters, th):
+def draw_figures(selected_clusters, th, selected_from_hist):
+    changed_id = [p['prop_id'] for p in callback_context.triggered]
+    output = []
     if len(selected_clusters) > 0:
         kwargs = dict(
             threshold=th,
@@ -339,27 +361,52 @@ def draw_figures(selected_clusters, th):
         # `clusters` variable updates when selected specialization cluster on dropdown changes
         clusters = self.get_overlapping_clusters(**kwargs)[sorted(selected_clusters)]
         with_clusters = assign_cluster_data(self.df, clusters, clusters.columns)
-        with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
-            .reset_index()\
-            .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
 
-        return draw_clusters_scatterplot(clusters, points), {'display': 'flex'}, distplot_new(with_clusters, selected_clusters)
+        if 'th-slider.value' in changed_id:
+            return draw_clusters_scatterplot(clusters, points), distplot_new(with_clusters, selected_clusters), no_update, []
+        if selected_from_hist:
+            with_clusters_copy = with_clusters.copy()
+            filter_query=""
+            for obj in selected_from_hist:
+                filtered_dvar = obj['row']
+                filtered_range = obj['bounds']
+                if filter_query == '':
+                    filter_query += f"({filtered_dvar} >= {filtered_range['x0']}) and ({filtered_dvar} <= {filtered_range['x1']})"
+                else:
+                    filter_query += f" and ({filtered_dvar} >= {filtered_range['x0']}) and ({filtered_dvar} <= {filtered_range['x1']})"
+
+            with_clusters = with_clusters_copy.query(filter_query)
+        # print(with_clusters.shape)
+        # with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False)\
+        #     .reset_index()\
+        #     .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
+
+        cols = ['ovar'] + self.dvars
+        for cluster in selected_clusters:
+            subset = with_clusters[with_clusters.ovar == cluster][cols].round(4).sample(n=5)
+            output = output + subset.to_dict(orient='records')
+        if selected_from_hist:
+            return draw_clusters_scatterplot(clusters, points, list(set(with_clusters.index))), distplot_new(with_clusters, selected_clusters), output, []
+        else:
+            return draw_clusters_scatterplot(clusters, points), distplot_new(with_clusters, selected_clusters), output, []
     else:
-        return no_update, {'display': 'none'}, no_update
+        return no_update, no_update, no_update, []
 
 @app.callback(
     Output('cluster-scatterplot', 'figure', allow_duplicate=True),
-    Output('selected-data-store', 'data'),
+    Output('selected-hist-data-store', 'data'),
     Input('obj-dec-histogram', 'selectedData'),
     Input('reset-select', 'n_clicks'),
-    State('cluster-dropdown', 'value'),
-    State('selected-data-store', 'data'),
+    Input('cluster-dropdown', 'value'),
+    State('selected-hist-data-store', 'data'),
     prevent_initial_call=True
 )
 
 def update_selection(selectedData, reset_button, selected_clusters, curr_selected_data):
     changed_id = [p['prop_id'] for p in callback_context.triggered]
     clusters = self.get_overlapping_clusters(**kwargs)[sorted(selected_clusters)]
+    if 'cluster-dropdown.value' in changed_id:
+        return no_update, []
     if 'reset-select.n_clicks' in changed_id:
         if selectedData:
             return draw_clusters_scatterplot(clusters, points), []
@@ -369,12 +416,15 @@ def update_selection(selectedData, reset_button, selected_clusters, curr_selecte
         raise PreventUpdate
     else:
         with_clusters = assign_cluster_data(self.df, clusters, clusters.columns)
-        with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False).reset_index()\
+        with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False).reset_index()\
             .rename(columns={'index': 'orig_index'})
-
-        pts = selectedData['points']
+        if 'points' not in selectedData:
+            return draw_clusters_scatterplot(clusters, points), {}
+        else:
+            pts = selectedData['points']
         if len(pts) > 0:
             ranges = selectedData['range']
+
             x = [k for k in ranges.keys() if 'x' in k][0]
             y = [k for k in ranges.keys() if 'y' in k][0]
 
@@ -406,20 +456,61 @@ def update_selection(selectedData, reset_button, selected_clusters, curr_selecte
 
 @app.callback(
     Output('obj-dec-histogram', 'figure', allow_duplicate=True),
-    Input('selected-data-store', 'data'),
+    Input('selected-hist-data-store', 'data'),
     State('cluster-dropdown', 'value'),
     prevent_initial_call=True
 )
 
 def update_histogram(selected_data_store, selected_clusters):
+    changed_id = [p['prop_id'] for p in callback_context.triggered]
+
     clusters = self.get_overlapping_clusters(**kwargs)[sorted(selected_clusters)]
     with_clusters = assign_cluster_data(self.df, clusters, clusters.columns)
-    with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False).reset_index()\
+    with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False).reset_index()\
         .rename(columns={'index': 'orig_index'})
-
     if selected_data_store:
+
         return distplot_new(with_clusters, selected_clusters, selected_data_store)
     return distplot_new(with_clusters, selected_clusters)
+
+@app.callback(
+    Output('data-table', 'style_data_conditional'),
+    Output('selected-from-tbl', 'data'),
+    Input('data-table', 'selected_rows'),
+    State('data-table', 'data')
+)
+
+def handle_checkbox(selected_rows, data):
+    if len(selected_rows) >= 2:
+        style_data_conditional = [
+            {
+                "if": {"row_index": i},
+                "pointer-events": "none",
+                "opacity": "0.5"
+            } for i in range(len(df)) if i not in selected_rows
+        ]
+    else:
+        style_data_conditional = []
+
+    return style_data_conditional, [data[i] for i in selected_rows]
+
+@app.callback(
+    Output('diff-bar-chart', 'style'),
+    Output('diff-bar-chart', 'figure'),
+    Input('selected-from-tbl', 'data'),
+    prevent_initial_call=True
+)
+
+def draw_diff_chart(row_selected_store):
+    if len(row_selected_store) == 2:
+        d = pd.DataFrame(row_selected_store)
+        d.set_index('ovar', inplace=True)
+        diff_row = d.iloc[1, :] - d.iloc[0, :]
+        d = d._append(diff_row, ignore_index=True).T.rename(columns={2: 'diff'})
+
+        return {'display': 'block', 'width': '100%', 'height': '35vh'}, diverging_diff_plot(d.sort_values('diff', ascending=False))
+    else:
+        return {'display': 'none'}, {}
 
 if __name__ == "__main__":
     app.run_server(debug=True, host="0.0.0.0", port=5000)
