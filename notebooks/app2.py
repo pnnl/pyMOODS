@@ -487,7 +487,7 @@ def handle_checkbox(selected_rows, data):
                 "if": {"row_index": i},
                 "pointer-events": "none",
                 "opacity": "0.5"
-            } for i in range(len(df)) if i not in selected_rows
+            } for i in range(len(data)) if i not in selected_rows
         ]
     else:
         style_data_conditional = []
