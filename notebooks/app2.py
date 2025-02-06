@@ -101,7 +101,6 @@ def assign_cluster_data(df, clusters, selected):
     return data
 
 from plotly.subplots import make_subplots
-from scipy.stats import gaussian_kde
 
 def distplot_new(with_clusters, selected_clusters, selected_info=[]):
     dvars = [c for c in self.df.columns if 'x' in c]
@@ -161,12 +160,9 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
             # in the other rows
             else:
                 filter_query = ''
-
-
                 for idx in range(len(selected_info)):
                     row = selected_info[idx]['row']
                     curr_bounds = selected_info[idx]['bounds']
-
 
                     if idx == 0:
                         filter_query = f"({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
@@ -174,8 +170,6 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
                         filter_query += f"and ({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
 
                 filtered = with_clusters.query(filter_query).index
-                # print(filtered)
-                # with_clusters['active'] = with_clusters.apply(lambda row: (row[selected_info[-1]['row']] >= bounds[0]) & (row[selected_info[-1]['row']] <= bounds[1]), axis=1)
                 with_clusters['active'] = with_clusters.index.isin(filtered)
 
                 df_with_clusters = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
@@ -252,7 +246,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
 
 
     fig.update_layout(
-        margin=dict(t=20),
+        margin=dict(t=20, b=20, l=20, r=10),
         yaxis=dict(titlefont=dict(size=20)),
         legend=dict(
             x=1.03,
@@ -270,6 +264,60 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
         annotations=annotations,
         selectdirection='h', dragmode='select'
     )
+    return fig
+
+
+import numpy as np
+def diverging_diff_plot(df_with_diff):
+    differences = df_with_diff['diff']
+
+    max_abs_value = np.round(max(list(map(abs, differences))), 1)
+
+    positive_differences = [max(0, diff) for diff in differences]
+    negative_differences = [min(0, diff) for diff in differences]
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        y=df_with_diff.index,
+        x=positive_differences,
+        name='Solution B > Solution A',
+        orientation='h',
+        marker=dict(color='green')
+    ))
+
+    fig.add_trace(go.Bar(
+        y=df_with_diff.index,
+        x=negative_differences,
+        name='Solution B < Solution A',
+        orientation='h',
+        marker=dict(color='red')
+    ))
+
+    fig.update_layout(
+        # title='Diverging Bar Chart: Differences (Solution B - Solution A)',
+        xaxis_title='Difference (Solution B - Solution A)',
+        yaxis_title='dvar',
+        barmode='relative',
+        bargap=0.1,
+        showlegend=True,
+        xaxis=dict(
+            tickvals=[-max_abs_value, -max_abs_value/2, 0, max_abs_value/2, max_abs_value],
+            ticktext=[max_abs_value, max_abs_value/2, 0, max_abs_value/2, max_abs_value],
+            range=[-max_abs_value, max_abs_value]
+        ),
+        yaxis=dict(autorange="reversed")
+    )
+
+    fig.add_shape(
+        type="line",
+        x0=0, y0=-1, x1=0, y1=len(df_with_diff),
+        line=dict(color="black", width=2),
+        xref="x", yref="y"
+    )
+    fig.update_layout(margin=dict(t=20))
+    fig.update_yaxes(showticklabels=True, ticks="outside")  # Show tick marks outside the axis
+
     return fig
 
 
