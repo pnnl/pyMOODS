@@ -273,7 +273,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
     return fig
 
 
-from dash import Dash, html, dcc, Output, Input, State, no_update, callback_context
+from dash import Dash, html, dcc, Output, Input, State, no_update, callback_context, dash_table
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
