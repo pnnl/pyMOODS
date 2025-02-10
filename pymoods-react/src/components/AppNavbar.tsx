@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack';
 import MuiToolbar from '@mui/material/Toolbar';
 import { tabsClasses } from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
+import { useState } from 'react';
 
 const Toolbar = styled(MuiToolbar)({
   width: '100%',
@@ -21,20 +22,34 @@ const Toolbar = styled(MuiToolbar)({
   },
 });
 
+const drawerWidth = 240;
+
 export default function AppNavbar() {
   return (
+    // <AppBar
+    //   position="fixed"
+    //   sx={{
+    //     display: { xs: 'auto', md: 'none' },
+    //     boxShadow: 0,
+    //     bgcolor: 'background.paper',
+    //     backgroundImage: 'none',
+    //     borderBottom: '1px solid',
+    //     borderColor: 'divider',
+    //     top: 'var(--template-frame-height, 0px)',
+    //   }}
+    // >
     <AppBar
-      position="fixed"
-      sx={{
-        display: { xs: 'auto', md: 'none' },
-        boxShadow: 0,
-        bgcolor: 'background.paper',
-        backgroundImage: 'none',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        top: 'var(--template-frame-height, 0px)',
-      }}
-    >
+        position="fixed"
+        sx={{ 
+          width: `calc(100% - ${drawerWidth}px)`, 
+          ml: `${drawerWidth}px`,
+          boxShadow: 0,
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          top: 'var(--template-frame-height, 0px)',
+        }}
+      >
       <Toolbar variant="regular">
         <Stack
           direction="row"
@@ -50,7 +65,7 @@ export default function AppNavbar() {
             spacing={1}
             sx={{ justifyContent: 'center', mr: 'auto' }}
           >
-            <Typography variant="h4" component="h1" sx={{ color: 'text.primary' }}>
+            <Typography variant="h5" sx={{ color: 'text.primary' }}>
               pyMOODS Decision Support System
             </Typography>
           </Stack>
