@@ -33,6 +33,7 @@ from collections import defaultdict
 
 class Loader:
     def __init__(self,
+        data=None, data_ovars=None, data_dvars=None,
         from_path=None,
         from_problem=None,
         pop_size=200,
@@ -40,6 +41,12 @@ class Loader:
         n_gen=10000,
         **kwargs
     ):
+
+        if data is not None:
+            self.df = data
+            self.ovars = data_ovars
+            self.dvars = data_dvars
+            self.solution_mask = pd.Series(True, index=self.df.index)
 
         if from_path is not None:
             print('Reading', from_path, '...')
@@ -337,7 +344,7 @@ def show_clusters(points, clusters, columns=None, ax=None, show_legend=True):
 
 class Visualizer(Loader):
     def __init__(
-        self, from_path=None, from_problem=None,
+        self, 
         left=None,
         right=None,
         Projection=UMAP(random_state=123456789, n_jobs=1),
@@ -345,7 +352,7 @@ class Visualizer(Loader):
         **kwargs,
     ):
 
-        super().__init__(from_path, from_problem, **kwargs)
+        super().__init__(**kwargs)
 
         self.left = left or self.ovars
         self.X_left = self.df[self.left]
