@@ -342,6 +342,39 @@ def show_clusters(points, clusters, columns=None, ax=None, show_legend=True):
             ax.scatter(*points.loc[clusters.index][mask & ~multi_cluster_mask].values.T, s=2, color=ec)
             ax.scatter(*points.loc[clusters.index][multi_cluster_mask].values.T, s=2, color='black')
 
+def create_hypergraph_from_dataframe(df, min_overlap_size=2, min_cluster_size=1):
+    incidence_dict = defaultdict(list)
+
+    nodes = {}
+
+    for k, dfk in df.groupby(df.columns.tolist()):
+        nodes[k] = dfk.index
+        if (np.array(k) != -1).sum() >= min_overlap_size:
+            for (c, kc) in zip(dfk.columns, k):
+                if kc != -1 and len(dfk) >= min_cluster_size:
+                    incidence_dict[(c, kc)].append(k)
+
+    return hnx.Hypergraph(incidence_dict), nodes, df
+
+def show_collapsed_hypergraph(H, nodes, cmap, scale=10):
+
+    max_len = max(map(len, nodes.values()))
+    
+    color = [cmap[c] for c, ci in H.edges()]
+    alpha = np.array([0, 0, 0, -.75])
+
+    plt.figure(figsize=(8, 8))
+    hnx.draw(
+        H,
+        with_node_labels=False,
+        with_edge_labels=False,
+        node_radius={k: (scale*(len(v)/max_len)**.5) for k, v in nodes.items()},
+        edges_kwargs=dict(
+            facecolor=[ci + alpha for ci in color],
+            edgecolor=color, linewidth=1
+        )
+    )
+
 class Visualizer(Loader):
     def __init__(
         self, 
@@ -367,13 +400,13 @@ class Visualizer(Loader):
             ('clu', Cluster)
         ])
         
-        self.y_left =  pd.DataFrame(pipe.fit_predict(self.X_left), index=self.df.index)
+        self.y_left =  pd.Series(pipe.fit_predict(self.X_left), index=self.df.index)
         self.left_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
         
-        self.y_right =  pd.DataFrame(pipe.fit_predict(self.X_right), index=self.df.index)
+        self.y_right =  pd.Series(pipe.fit_predict(self.X_right), index=self.df.index)
         self.right_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
 
-        self.y_joint =  pd.DataFrame(pipe.fit_predict(self.X_joint), index=self.df.index)
+        self.y_joint =  pd.Series(pipe.fit_predict(self.X_joint), index=self.df.index)
         self.joint_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
 
         # calculate specialization & clusters
@@ -421,11 +454,13 @@ class Visualizer(Loader):
         self.df_clustered = df_clustered
 
 
-    def get_overlapping_clusters(self, clu, threshold=1.0, drop_intermediate=False):
+    def get_overlapping_clusters(self, clu, threshold=1.0, drop_intermediate=False, use_joint_embedding=True):
+        xy = self.joint_xy if use_joint_embedding else self.left_xy
+
         def get_clustering(mask):
 
             return pd.Series(
-                clu.fit_predict(self.joint_xy.loc[mask.index[mask]]),
+                clu.fit_predict(xy.loc[mask.index[mask]]),
                 index=mask.index[mask]
             )
 
@@ -544,40 +579,16 @@ class Visualizer(Loader):
             plt.xticks([], [])
             plt.yticks([], [])
 
-    def show_hypergraph(self, min_size=1, **kwargs):
-        df = self.get_overlapping_clusters(**kwargs)
+    def create_hypergraph(self, min_overlap_size=2, min_cluster_size=1, **kwargs):
+        return create_hypergraph_from_dataframe(self.get_overlapping_clusters(**kwargs), min_overlap_size, min_cluster_size)
 
-        incidence_dict = defaultdict(list)
+    def show_hypergraph(self, **kwargs):
 
-        nodes = {}
-
-        for k, dfk in df.groupby(df.columns.tolist()):
-            nodes[k] = dfk.index
-            if (np.array(k) != -1).sum() > 1:
-                for (c, kc) in zip(dfk.columns, k):
-                    if kc != -1 and len(dfk) >= min_size:
-                        incidence_dict[(c, kc)].append(k)
-
-        H = hnx.Hypergraph(incidence_dict)
-
-        max_len = max(map(len, nodes.values()))
-        
-        color_map = {c: plt.cm.tab10(i) for i, c in enumerate(df.columns)}
-        color = [color_map[c] for c, ci in H.edges()]
-        alpha = np.array([0, 0, 0, -.75])
-
-        plt.figure(figsize=(8, 8))
-        hnx.draw(
-            H,
-            with_node_labels=False,
-            with_edge_labels=False,
-            node_radius={k: (10*(len(v)/max_len)**.5) for k, v in nodes.items()},
-            edges_kwargs=dict(
-                facecolor=[ci + alpha for ci in color],
-                edgecolor=color, linewidth=1
-            )
+        H, nodes, df = self.create_hypergraph(**kwargs)        
+        show_collapsed_hypergraph(
+            H, nodes,
+            cmap = {c: plt.cm.tab10(i) for i, c in enumerate(df.columns)}
         )
-
 
     def show_splom(self, s=2, rows=None, cols=None):
         rows = rows or self.ovars
@@ -685,17 +696,25 @@ class Visualizer(Loader):
         plt.axis('off')
         
         self.show_joint_clustering(
-        fig=fig,
-        ax_left=plt.subplot(223),
-        ax_right=plt.subplot(224)
-    )
+            fig=fig,
+            ax_left=plt.subplot(223),
+            ax_right=plt.subplot(224)
+        )
 
     def show_specialization_clustering(
         self,
+        left_xy=None,
+        right_xy=None,
         s_min = 5,
         s_max = 25,
         selection={}
     ):
+        if left_xy is None:
+            left_xy = self.df_clustered[['x', 'y']]
+
+        if right_xy is None:
+            right_xy = self.left_xy.values.T
+
         mask = self.df_clustered.cluster.isnull()
 
         labels, values = np.unique(self.df_clustered.label, return_inverse=True)
@@ -711,7 +730,7 @@ class Visualizer(Loader):
         
         ax_left = plt.subplot(221)
         get_cluster_hulls(
-            self.df_clustered[['x', 'y']],
+            left_xy,
             self.df_clustered.cluster,
             marker_color=marker_color,
             marker_size=marker_size,
@@ -739,7 +758,7 @@ class Visualizer(Loader):
         
         ax_right = plt.subplot(222)
         plt.scatter(
-            *self.left_xy.values.T,
+            *right_xy.values.T,
             c=marker_color,
             s=marker_size
         )
@@ -752,8 +771,8 @@ class Visualizer(Loader):
         selected = self.df_clustered.label.apply(lambda i: i in selection or len(selection) == 0)
 
         for xyA, xyB, c, s in zip(
-            self.right_xy[~mask].values,
-            self.left_xy[~mask].values,
+            left_xy[~mask].values,
+            right_xy[~mask].values,
             marker_color[~mask],
             selected[~mask]
         ):
