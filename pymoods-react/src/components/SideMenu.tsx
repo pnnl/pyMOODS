@@ -1,7 +1,6 @@
 import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
 import { Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 const drawerWidth = 240;
 
@@ -82,7 +81,7 @@ export default function SideMenu() {
             </SidebarSelect >
           </FormControl>
         </Box>
-        
+
         <Box sx={{ p: 2 }}>
           <Typography variant="h6" sx={{ color: 'white' }}>
             Filters
@@ -128,7 +127,6 @@ export default function SideMenu() {
           {/* Add summary content here */}
         </Box>
       </Box>
-      <Divider />
     </Drawer>
   );
 }
