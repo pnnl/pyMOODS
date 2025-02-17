@@ -2,7 +2,7 @@ import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
-import { Typography, Select, MenuItem, FormControl, InputLabel, Input } from '@mui/material';
+import { Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 const drawerWidth = 240;
 
 const Drawer = styled(MuiDrawer)({
@@ -82,26 +82,44 @@ export default function SideMenu() {
             </SidebarSelect >
           </FormControl>
         </Box>
-
-        <Divider sx={{ my: 2 }} />
-
+        
         <Box sx={{ p: 2 }}>
           <Typography variant="h6" sx={{ color: 'white' }}>
             Filters
           </Typography>
-          {[...Array(4)].map((_, index) => (
-            <FormControl fullWidth sx={{ mt: 2 }} key={index}>
-              <InputLabel sx={{ color: 'white' }}>Filter {index + 1}</InputLabel>
-              <Select defaultValue="">
-                <MenuItem value={10}>Option 1</MenuItem>
-                <MenuItem value={20}>Option 2</MenuItem>
-                <MenuItem value={30}>Option 3</MenuItem>
-              </Select>
-            </FormControl>
-          ))}
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
+            <SidebarInputLabel sx={{ color: 'white' }}>Battery Technology</SidebarInputLabel>
+            <SidebarSelect>
+              <MenuItem value={10}>Option 1</MenuItem>
+              <MenuItem value={20}>Option 2</MenuItem>
+              <MenuItem value={30}>Option 3</MenuItem>
+            </SidebarSelect>
+          </FormControl>
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
+            <SidebarInputLabel sx={{ color: 'white' }}>Battery Power Rating (MW)</SidebarInputLabel>
+            <SidebarSelect>
+              <MenuItem value={10}>Option 1</MenuItem>
+              <MenuItem value={20}>Option 2</MenuItem>
+              <MenuItem value={30}>Option 3</MenuItem>
+            </SidebarSelect>
+          </FormControl>
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
+            <SidebarInputLabel sx={{ color: 'white' }}>Battery Duration (Hours)</SidebarInputLabel>
+            <SidebarSelect>
+              <MenuItem value={10}>Option 1</MenuItem>
+              <MenuItem value={20}>Option 2</MenuItem>
+              <MenuItem value={30}>Option 3</MenuItem>
+            </SidebarSelect>
+          </FormControl>
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
+            <SidebarInputLabel sx={{ color: 'white' }}>Location</SidebarInputLabel>
+            <SidebarSelect>
+              <MenuItem value={10}>Option 1</MenuItem>
+              <MenuItem value={20}>Option 2</MenuItem>
+              <MenuItem value={30}>Option 3</MenuItem>
+            </SidebarSelect>
+          </FormControl>
         </Box>
-
-        <Divider sx={{ my: 2 }} />
 
         <Box sx={{ p: 2 }}>
           <Typography variant="h6" sx={{ color: 'white' }}>
