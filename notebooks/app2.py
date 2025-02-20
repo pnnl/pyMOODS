@@ -268,6 +268,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
     return fig
 
 
+
 import numpy as np
 def diverging_diff_plot(df_with_diff):
     differences = df_with_diff['diff']
@@ -526,6 +527,7 @@ def update_histogram(selected_data_store, selected_clusters):
 
         return distplot_new(with_clusters, selected_clusters, selected_data_store)
     return distplot_new(with_clusters, selected_clusters)
+
 
 @app.callback(
     Output('data-table', 'style_data_conditional'),
