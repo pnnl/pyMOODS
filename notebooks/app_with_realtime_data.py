@@ -118,8 +118,6 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     return fig
 
 def assign_cluster_data(df, clusters, selected, dvars):
-    # dvars = [c for c in self.df.columns if 'x' in c]
-
     data = pd.concat([
         df.loc[clusters.index[clusters[c] == i], dvars]\
             .assign(y=f'{c}-{i}', ovar=c)
@@ -133,12 +131,10 @@ def assign_cluster_data(df, clusters, selected, dvars):
 from plotly.subplots import make_subplots
 
 def distplot_new(with_clusters, dvars, selected_info=[]):
-    # dvars = [c for c in self.df.columns if 'x' in c]
     df_with_clusters = pd.melt(with_clusters, id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
         .reset_index()\
         .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
-    dvars = sorted(df_with_clusters.dvar.unique())
-    ovars = sorted(df_with_clusters.ovar.unique())
+    ovar = 'objective'
     colors = px.colors.qualitative.D3
 
     fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=False, vertical_spacing=0.05)
@@ -147,16 +143,16 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
         row_mask = (df_with_clusters.dvar == dvar)
         if len(selected_info) == 0:
             data = df_with_clusters[row_mask]
+
             plot = go.Figure()
-            for ovar, color in zip(ovars, colors):
-                plot.add_trace(
-                    go.Histogram(
-                        x=data[data["ovar"] == ovar]["value"],
-                        name=f"{ovar}",
-                        marker=dict(color=color),
-                        nbinsx=len(dvars)*10
-                    )
+            plot.add_trace(
+                go.Histogram(
+                    x=data.value,
+                    name=f"{ovar}",
+                    marker=dict(color='#2874b4'),
+                    nbinsx=100
                 )
+            )
 
             for trace in plot.data:
                 trace.showlegend = (i==0)
@@ -166,23 +162,22 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
                 selection = [d for d in selected_info if d['row'] == dvar]
                 bounds = [selection[0]['bounds']['x0'], selection[0]['bounds']['x1']]
                 data = df_with_clusters[row_mask]
+                current = data.sort_values('value').reset_index(drop=True)
+
+                selected_indices = current[current.value.between(bounds[0], bounds[1])].index
 
                 plot = go.Figure()
-                for ovar, color in zip(ovars, colors):
-                    current = data[data.ovar == ovar].sort_values('value').reset_index(drop=True)
-                    selected_indices = current[current.value.between(bounds[0], bounds[1])].index
-
-                    plot.add_trace(
-                        go.Histogram(
-                            x=current.value,
-                            name=ovar,
-                            nbinsx=len(dvars)*10,
-                            marker=dict(color=color),
-                            selectedpoints=selected_indices,
-                            selected=dict(marker=dict(color=color)),
-                            unselected=dict(marker=dict(color='lightgray'))
-                        )
+                plot.add_trace(
+                    go.Histogram(
+                        x=current.value,
+                        name='objective',
+                        nbinsx=100,
+                        marker=dict(color=colors[0]),
+                        selectedpoints=selected_indices,
+                        selected=dict(marker=dict(color='#2874b4')),
+                        unselected=dict(marker=dict(color='lightgray'))
                     )
+                )
                 for trace in plot.data:
                     trace.showlegend = (i==0)
                     fig.add_trace(trace, row=i+1, col=1)
@@ -200,31 +195,28 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
                     else:
                         filter_query += f"and ({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
 
-                filtered = with_clusters.query(filter_query).index
-                with_clusters['active'] = with_clusters.index.isin(filtered)
+                filtered = with_clusters.query(filter_query)
+                with_clusters['active'] = with_clusters.index.isin(filtered.index)
 
-                df_with_clusters = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+                df_with_clusters = pd.melt(with_clusters, id_vars=['y', 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
                     .reset_index()\
                     .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
 
-
                 data = df_with_clusters[row_mask]
 
+                current = data.sort_values('value').reset_index(drop=True)
                 plot = go.Figure()
-                for ovar, color in zip(ovars, colors):
-                    current = data[data.ovar == ovar].sort_values('value').reset_index(drop=True)
-                    selected_indices = current[current.active == True].index
-                    plot.add_trace(
-                        go.Histogram(
-                            x=current.value,
-                            name=ovar,
-                            nbinsx=len(dvars)*10,
-                            marker=dict(color=color),
-                            selectedpoints=selected_indices,
-                            selected=dict(marker=dict(color=color)),
-                            unselected=dict(marker=dict(color='lightgray'))
-                        )
+                plot.add_trace(
+                    go.Histogram(
+                        x=current.value,
+                        name='objective',
+                        nbinsx=100,
+                        marker=dict(color=colors[0]),
+                        selectedpoints=current[current.active == True].index,
+                        # selected=dict(marker=dict(color='#2874b4')),
+                        unselected=dict(marker=dict(color='lightgray'))
                     )
+                )
 
                 for trace in plot.data:
                     trace.showlegend = (i==0)
@@ -232,15 +224,17 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
 
 
     if len(selected_info) > 0:
-        for i in range(len(selected_info)):
-            row = selected_info[i]['row']
-            bounds = selected_info[i]['bounds']
+        for j in range(len(selected_info)):
+            row = selected_info[j]['row']
+            bounds = selected_info[j]['bounds']
+
             fig.add_shape(
                 dict(
-                    {"type": "rect", "line": {"width": 1, "dash": "dot", "color": "darkgrey"}, 'yref': f'y{int(row[1])+1}'},
+                    {"type": "rect", "line": {"width": 1, "dash": "dot", "color": "darkgrey"}, 'xref': f'x{dvars.index(row)+1}', 'yref': f'y{dvars.index(row)+1}'},
                     **bounds
                 )
             )
+
 
     # Add titles as annotations on the left of each subplot
     annotations = [
@@ -387,7 +381,7 @@ app.layout = html.Div([
             ], style={'border': '1px solid #d3d3d3', 'marginRight': '1%'}),
             html.Div([
                 html.H6('Threshold (Epsilon)', style={'paddingTop': '1%', 'marginLeft': '3%', 'marginBottom': '5px'}),
-                dcc.Slider(0, 1, 0.1, value=1, id='th-slider')
+                dcc.Slider(0, 1, 0.1, value=kwargs['threshold'], id='th-slider')
             ], style={'width': '30vw', 'border': '1px solid #d3d3d3'}),
         ], style={'display': 'flex', 'alignItems': 'flex-start'}),
         html.Div(dbc.Button('Reset', id='reset-select', outline=True, color='primary', n_clicks=0), style={'display': 'inline-block',}),
@@ -403,8 +397,8 @@ app.layout = html.Div([
             dcc.Loading(id='loading-2', children=[
                 dash_table.DataTable(
                     id='data-table',
-                    columns=[{'name': i, 'id': i} for i in ['ovar'] + self.dvars],
-                    data=assign_cluster_data(self.df, all_clusters, all_clusters.columns, dvars)[['ovar'] + dvars].round(4).sample(n=5).to_dict(orient='records'),
+                    columns=[{'name': i, 'id': i} for i in  ['ovar', 'y'] + self.dvars],
+                    data=assign_cluster_data(self.df, all_clusters, all_clusters.columns, dvars)[['ovar', 'y'] + dvars].round(4).sample(n=5).to_dict(orient='records'),
                     row_selectable="multi",
                     style_table={'width': '90%', 'marginTop': '1rem'},
                     selected_rows=[],
@@ -422,7 +416,8 @@ app.layout = html.Div([
         ], style={'width': '50%', 'height': '100%'})
 
     ], style={'display': 'flex', 'width': '100vw', 'height': '100vh'}),
-    dcc.Store(id='selected-from-tbl', data=[])
+    dcc.Store(id='selected-from-tbl', data=[]),
+    dcc.Store(id='selected-hist-data-store', data=[])
 
 ])
 
@@ -430,15 +425,30 @@ app.layout = html.Div([
     Output('cluster-scatterplot', 'figure'),
     Output('obj-dec-histogram', 'figure'),
     Output('data-table', 'data'),
+    Output('data-table', 'selected_rows'),
     Input('location-dropdown', 'value'),
     Input('technology-dropdown', 'value'),
     Input('duration-dropdown', 'value'),
     Input('power-dropdown', 'value'),
+    Input('th-slider', 'value'),
+    Input('selected-hist-data-store', 'data'),
     prevent_initial_call=True
 )
 
-def update_scatterplot_with_hyperparameters(sel_location, sel_technology, sel_duration, sel_power):
-    df = self.df.loc[all_clusters.index]
+def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration, sel_power, th_value, selected_from_hist):
+    changed_id = [p['prop_id'] for p in callback_context.triggered]
+
+    kwargs = dict(
+        threshold=th_value,
+        clu = HDBSCAN(
+            cluster_selection_epsilon=1.,
+            min_cluster_size=10
+        ),
+        drop_intermediate=False
+    )
+
+    curr_clusters = self.get_overlapping_clusters(**kwargs)
+    df = self.df.loc[curr_clusters.index]
     location_filter, technology_filter, duration_filter, power_filter = df.location.unique(), df.technology.unique(), df.duration.unique(), df.power.unique()
     if len(sel_location) > 0:
         location_filter = sel_location
@@ -450,9 +460,91 @@ def update_scatterplot_with_hyperparameters(sel_location, sel_technology, sel_du
         power_filter = sel_power
 
     filtered = df[(df.location.isin(location_filter)) & (df.technology.isin(technology_filter)) & (df.duration.isin(duration_filter)) & (df.power.isin(power_filter))]
-    updated_data_with_clusters = assign_cluster_data(self.df, all_clusters.loc[filtered.index], all_clusters.columns, dvars)
+    updated_data_with_clusters = assign_cluster_data(self.df, curr_clusters.loc[filtered.index], curr_clusters.columns, dvars)
 
-    return draw_clusters_scatterplot(all_clusters.loc[filtered.index], points), distplot_new(updated_data_with_clusters, dvars), updated_data_with_clusters[['ovar'] + dvars].round(4).sample(n=5).to_dict(orient='records')
+    if 'selected-hist-data-store.data' in changed_id:
+        if len(selected_from_hist) > 0:
+            with_clusters_copy = updated_data_with_clusters.copy()
+            filter_query=""
+            for obj in selected_from_hist:
+                filtered_dvar = obj['row']
+                filtered_range = obj['bounds']
+                if filter_query == '':
+                    filter_query += f"({filtered_dvar} >= {filtered_range['x0']}) and ({filtered_dvar} <= {filtered_range['x1']})"
+                else:
+                    filter_query += f" and ({filtered_dvar} >= {filtered_range['x0']}) and ({filtered_dvar} <= {filtered_range['x1']})"
+
+            with_clusters = with_clusters_copy.query(filter_query)
+            return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points, with_clusters.index), distplot_new(updated_data_with_clusters, dvars, selected_from_hist), with_clusters[['ovar', 'y'] + dvars].round(4).sample(n=5).to_dict(orient='records'), no_update
+
+    return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points), distplot_new(updated_data_with_clusters, dvars), updated_data_with_clusters[['ovar', 'y'] + dvars].round(4).sample(n=5).to_dict(orient='records'), []
+
+@app.callback(
+    Output('selected-hist-data-store', 'data'),
+    Input('obj-dec-histogram', 'selectedData'),
+    Input('reset-select', 'n_clicks'),
+    State('selected-hist-data-store', 'data'),
+    State('th-slider', 'value'),
+    prevent_initial_call=True
+)
+
+def save_selected_hist_data(selectedData, reset_click, curr_selected_data, th_value):
+    changed_id = [p['prop_id'] for p in callback_context.triggered]
+    kwargs = dict(
+        threshold=th_value,
+        clu = HDBSCAN(
+            cluster_selection_epsilon=1.,
+            min_cluster_size=10
+        ),
+        drop_intermediate=False
+    )
+
+    curr_clusters = self.get_overlapping_clusters(**kwargs)
+
+    if 'reset-select.n_clicks' in changed_id:
+        if selectedData:
+            return []
+        raise PreventUpdate
+    if selectedData:
+        updated_data_with_clusters = assign_cluster_data(self.df, curr_clusters, curr_clusters.columns, dvars)
+        with_clusters_long = pd.melt(updated_data_with_clusters, id_vars=['y', 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False).reset_index()\
+            .rename(columns={'index': 'orig_index'})
+
+        if 'points' not in selectedData:
+            return {}
+        else:
+            pts = selectedData['points']
+
+            if len(pts) > 0:
+                ranges = selectedData['range']
+
+                x = [k for k in ranges.keys() if 'x' in k][0]
+                y = [k for k in ranges.keys() if 'y' in k][0]
+
+                if x=='x':
+                    selected_row='x0'
+                else:
+                    selected_row = f"x{int(x[1])-1}"
+
+                selection_bounds = {
+                    "x0": ranges[x][0],
+                    "x1": ranges[x][1],
+                    "y0": ranges[y][0],
+                    "y1": ranges[y][1],
+                }
+
+                range_mask = (with_clusters_long.value >= ranges[x][0]) & (with_clusters_long.value <= ranges[x][1])
+                selected_row_mask = (with_clusters_long.dvar == selected_row)
+                subset = with_clusters_long[selected_row_mask & range_mask]
+
+                if len(curr_selected_data) == 0:
+                    return [{'row': f"{dvars[int(selected_row.split('x')[1])]}", 'bounds': selection_bounds}]
+                else:
+                    current = curr_selected_data.copy()
+                    current.append({'row': f"{dvars[int(selected_row.split('x')[1])]}", 'bounds': selection_bounds})
+                    return current
+    raise PreventUpdate
+
 
 @app.callback(
     Output('data-table', 'style_data_conditional'),
@@ -485,7 +577,10 @@ def handle_table_checkbox(selected_rows, data):
 def draw_diff_chart(row_selected_store):
     if len(row_selected_store) == 2:
         d = pd.DataFrame(row_selected_store)
-        d.set_index('ovar', inplace=True)
+        index_col = ['ovar']
+        if 'y' in d:
+            index_col = ['ovar', 'y']
+        d.set_index(index_col, inplace=True)
         diff_row = d.iloc[1, :] - d.iloc[0, :]
         d = d._append(diff_row, ignore_index=True).T.rename(columns={2: 'diff'})
 
