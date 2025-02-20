@@ -48,7 +48,7 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     fig = go.Figure()
     no_cluster_mask = ~points.index.isin(clusters.index)
     no_cluster_df = points[no_cluster_mask]
-    # print(no_cluster_mask)
+
     fig.add_trace(go.Scatter(x=no_cluster_df[0], y=no_cluster_df[1], mode='markers', marker=dict(color='lightgray', size=4, opacity=0.1), name='unassigned'))
     for i, c in enumerate(clusters):
         # if c in sorted(clusters.columns):
