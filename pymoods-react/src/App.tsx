@@ -1,5 +1,4 @@
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import AppNavbar from './components/AppNavbar';
 import MainGrid from './components/MainGrid';
 import SideMenu from './components/SideMenu';
@@ -11,22 +10,14 @@ function App() {
   return (
       <Box sx={{ display: 'flex' }}>
         <SideMenu />
+      <Box sx={{ flexGrow: 1 }}>
         <AppNavbar />
         {/* Main content */}
-        <Box component="main">
-          <Stack
-            spacing={2}
-            sx={{
-              alignItems: 'center',
-              mx: 3,
-              pb: 5,
-              mt: { xs: 8, md: 0 },
-            }}
-          >
-            <MainGrid />
-          </Stack>
+        <Box component="main" sx={{ padding: '16px' }}>
+          <MainGrid />
         </Box>
       </Box>
+    </Box>
   );
 }
 
