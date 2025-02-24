@@ -21,7 +21,7 @@ const Toolbar = styled(MuiToolbar)({
   },
 });
 
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 export default function AppNavbar() {
   return (

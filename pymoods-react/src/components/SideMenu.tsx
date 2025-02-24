@@ -2,7 +2,7 @@ import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import { Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-const drawerWidth = 240;
+const drawerWidth = 220;
 
 const Drawer = styled(MuiDrawer)({
   width: drawerWidth,
@@ -18,31 +18,37 @@ const Drawer = styled(MuiDrawer)({
 const SidebarSelect = styled(Select)({
   color: 'black',
   backgroundColor: 'white',
+  height: '32px',
+  '.MuiOutlinedInput-input': {
+    padding: '6px 14px',
+  },
   '.MuiOutlinedInput-notchedOutline': {
-    borderColor: '#f7f7f7', // White outline
+    borderColor: '#f7f7f7',
   },
   '&:hover .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#ccc', // Lighter white on hover
+    borderColor: '#ccc',
   },
   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'white', // White when focused
+    borderColor: 'white',
   },
   '& .MuiSvgIcon-root': {
-    color: '#616265', // White dropdown icon
+    color: '#616265',
   }
 });
 
 const SidebarInputLabel = styled(InputLabel)({
   color: 'white',
   position: 'relative',
+  fontSize: '14px',
   top: 'unset',
   left: 'unset',
   transform: 'none',
   marginBottom: '4px',
   textAlign: 'left',
-  paddingLeft: '8px',
+  whiteSpace: 'normal',
+  overflowWrap: 'break-word',
   '&.Mui-focused': {
-    color: 'white', // Keep the label white when focused
+    color: 'white',
   }
 });
 
@@ -67,10 +73,10 @@ export default function SideMenu() {
       >
         {/* <Button variant="contained">Upload Data</Button> */}
         <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ color: 'white' }}>
+          <Typography variant="h6" sx={{ color: 'white', textAlign: 'left' }}>
             Use Cases
           </Typography>
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
+          <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
             <SidebarInputLabel>
               Select Use Case
             </SidebarInputLabel>
@@ -83,10 +89,10 @@ export default function SideMenu() {
         </Box>
 
         <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ color: 'white' }}>
+          <Typography variant="h6" sx={{ color: 'white', textAlign: 'left' }}>
             Filters
           </Typography>
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
+          <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white' }}>Battery Technology</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
@@ -121,7 +127,7 @@ export default function SideMenu() {
         </Box>
 
         <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ color: 'white' }}>
+          <Typography variant="h6" sx={{ color: 'white', textAlign: 'left' }}>
             Summary
           </Typography>
           {/* Add summary content here */}
