@@ -5,13 +5,16 @@ import MuiToolbar from '@mui/material/Toolbar';
 import { tabsClasses } from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
 
+import ECompLogo from '../assets/e-comp-logo.png';
+import PNNLLogo from '../assets/pnnl-logo.svg';
+
 const Toolbar = styled(MuiToolbar)({
   width: '100%',
   padding: '12px',
   display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'start',
-  justifyContent: 'center',
+  flexDirection: 'row', // Change to row for horizontal alignment
+  alignItems: 'center', // Ensure vertical alignment
+  justifyContent: 'space-between', // Push content to left & right
   gap: '12px',
   flexShrink: 0,
   [`& ${tabsClasses.flexContainer}`]: {
@@ -38,24 +41,20 @@ export default function AppNavbar() {
         }}
       >
       <Toolbar variant="regular">
-        <Stack
-          direction="row"
-          sx={{
-            alignItems: 'center',
-            flexGrow: 1,
-            width: '100%',
-            gap: 1,
-          }}
-        >
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ justifyContent: 'center', mr: 'auto' }}
-          >
-            <Typography variant="h5" sx={{ color: 'text.primary' }}>
-              pyMOODS Decision Support System
-            </Typography>
-          </Stack>
+        <Typography variant="h5" sx={{ color: 'text.primary' }}>
+          pyMOODS Decision Support System
+        </Typography>
+        <Stack direction="row" spacing={2} sx={{ ml: 'auto', alignItems: 'center', pr: 4.5 }}>
+          <img 
+            src={PNNLLogo} 
+            alt="Logo 1" 
+            style={{ height: '60px', width: 'auto' }} 
+          />
+          <img 
+            src={ECompLogo} 
+            alt="Logo 2" 
+            style={{ height: '60px', width: 'auto' }} 
+          />
         </Stack>
       </Toolbar>
     </AppBar>
