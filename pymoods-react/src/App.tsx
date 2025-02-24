@@ -1,7 +1,6 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import AppNavbar from './components/AppNavbar';
-import Header from './components/Header';
 import MainGrid from './components/MainGrid';
 import SideMenu from './components/SideMenu';
 
@@ -24,7 +23,6 @@ function App() {
               mt: { xs: 8, md: 0 },
             }}
           >
-            <Header />
             <MainGrid />
           </Stack>
         </Box>
