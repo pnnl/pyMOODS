@@ -44,7 +44,7 @@ def get_convex_hull(points):
         return unique_points  # Return all points if convex hull fails
 
 def draw_clusters_scatterplot(clusters, points, selected_indices=None):
-    clusters = pd.get_dummies(clusters['objective'], dtype=int).replace(0, -1)
+    clusters = pd.get_dummies(clusters.iloc[:, 0], dtype=int).replace(0, -1)
     fig = go.Figure()
     no_cluster_mask = ~points.index.isin(clusters.index)
     no_cluster_df = points[no_cluster_mask]
@@ -118,9 +118,10 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     return fig
 
 def assign_cluster_data(df, clusters, selected, dvars):
+    y_name = clusters.columns[0]
     data = pd.concat([
         df.loc[clusters.index[clusters[c] == i], dvars]\
-            .assign(y=f'{c}-{i}', ovar=c)
+            .assign(**{y_name:i}, ovar=c)
         for c in clusters
         for i in clusters[c].unique()
         if i != -1
@@ -131,9 +132,10 @@ def assign_cluster_data(df, clusters, selected, dvars):
 from plotly.subplots import make_subplots
 
 def distplot_new(with_clusters, dvars, selected_info=[]):
-    df_with_clusters = pd.melt(with_clusters, id_vars=['y', 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+    y = with_clusters['ovar'].values[0]
+    df_with_clusters = pd.melt(with_clusters, id_vars=[y, 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
         .reset_index()\
-        .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
+        .rename(columns={'index': 'orig_index'}).sort_values([y, 'dvar', 'ovar'])
     ovar = 'objective'
     colors = px.colors.qualitative.D3
 
@@ -198,9 +200,9 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
                 filtered = with_clusters.query(filter_query)
                 with_clusters['active'] = with_clusters.index.isin(filtered.index)
 
-                df_with_clusters = pd.melt(with_clusters, id_vars=['y', 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+                df_with_clusters = pd.melt(with_clusters, id_vars=[y, 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
                     .reset_index()\
-                    .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
+                    .rename(columns={'index': 'orig_index'}).sort_values([y, 'dvar', 'ovar'])
 
                 data = df_with_clusters[row_mask]
 
@@ -293,55 +295,105 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
     return fig
 
 import numpy as np
-def diverging_diff_plot(df_with_diff):
-    differences = df_with_diff['diff']
+def diverging_bar_chart(comp_df, a_name, b_name):
+    group_a = comp_df.iloc[:, 0]
+    group_b = comp_df.iloc[:, 1]
 
-    max_abs_value = np.round(max(list(map(abs, differences))), 1)
-
-    positive_differences = [max(0, diff) for diff in differences]
-    negative_differences = [min(0, diff) for diff in differences]
+    max_abs_value = np.round(max(group_a.values + group_b.values), -2)
+    if type(a_name) != str:
+        a_name = str(int(a_name))
+    if type(b_name) != str:
+        b_name = str(int(b_name))
 
     fig = go.Figure()
 
     fig.add_trace(go.Bar(
-        y=df_with_diff.index,
-        x=positive_differences,
-        name='Solution B > Solution A',
+        y=comp_df.index,
+        x=[-x for x in group_a],
+        name=a_name,
         orientation='h',
-        marker=dict(color='green')
+        marker=dict(color='rgba(0, 0, 255, 0.5)'),
+        hovertemplate='<b>%{customdata[1]}</b><br>%{y}: %{customdata[0]}<extra></extra>',  # Custom hover template
+        customdata=list(zip(group_a, [a_name] * len(group_a))),  # Custom data with name
+
     ))
 
     fig.add_trace(go.Bar(
-        y=df_with_diff.index,
-        x=negative_differences,
-        name='Solution B < Solution A',
+        y=comp_df.index,
+        x=group_b,
+        name=b_name,
         orientation='h',
-        marker=dict(color='red')
+        marker=dict(color='rgba(255, 165, 0, 0.5)'),
+        hovertemplate='<b>%{customdata[1]}</b><br>%{y}: %{customdata[0]}<extra></extra>',  # Custom hover template
+        customdata=list(zip(group_b, [b_name] * len(group_b)))
     ))
 
+    annot_right = []
+    loc = 0.9
+    for idx in comp_df.index:
+        annot_right.append(
+            dict(
+                x=1,  # Position it slightly outside the chart (1 = right edge of plot)
+                y=loc,  # Center vertically (normalized: 0 is bottom, 1 is top)
+                xref="paper",  # Position relative to entire figure (not data space)
+                yref="paper",
+                text="{0:+.03f}".format(comp_df.loc[idx, 'diff']),  # Annotation text
+                showarrow=False,  # No arrow
+                font=dict(size=14, color="black"),
+                align="left",
+                xanchor='left'
+            )
+        )
+        loc -= 0.25
+
     fig.update_layout(
-        # title='Diverging Bar Chart: Differences (Solution B - Solution A)',
-        xaxis_title='Difference (Solution B - Solution A)',
+        xaxis_title='Values',
         yaxis_title='dvar',
-        barmode='relative',
+        barmode='overlay',
         bargap=0.1,
-        showlegend=True,
-        xaxis=dict(
-            tickvals=[-max_abs_value, -max_abs_value/2, 0, max_abs_value/2, max_abs_value],
-            ticktext=[max_abs_value, max_abs_value/2, 0, max_abs_value/2, max_abs_value],
-            range=[-max_abs_value, max_abs_value]
-        ),
-        yaxis=dict(autorange="reversed")
+        showlegend=False,
+        # xaxis=dict(
+        #     tickvals=[-max_abs_value, -max_abs_value*0.75 -max_abs_value*0.5, -max_abs_value*0.25, 0, max_abs_value*0.25, max_abs_value*0.5, max_abs_value*0.75, max_abs_value],
+        #     ticktext=[-max_abs_value, -max_abs_value*0.75, -max_abs_value*0.5, -max_abs_value*0.25, 0, max_abs_value*0.25, max_abs_value/2, max_abs_value*0.75,  max_abs_value],
+        #     range=[-max_abs_value, max_abs_value]
+        # ),
+        yaxis=dict(autorange="reversed"),
+        annotations=[
+            dict(
+                text=a_name,  # Text of the annotation
+                xref="paper",  # Use "paper" to refer to the entire plotting area
+                yref="paper",  # Use "paper" to refer to the entire plotting area
+                x=0.2,  # X position (0.5 is the middle of the chart)
+                y=1.15,  # Y position (1.1 places it above the chart)
+                showarrow=False,  # Don't show an arrow
+                font=dict(size=16)
+            ),
+            dict(
+                text=b_name,  # Text of the annotation
+                xref="paper",  # Use "paper" to refer to the entire plotting area
+                yref="paper",  # Use "paper" to refer to the entire plotting area
+                x=0.8,  # X position (0.5 is the middle of the chart)
+                y=1.15,  # Y position (1.1 places it above the chart)
+                showarrow=False,  # Don't show an arrow
+                font=dict(size=16)
+            ),
+
+        ] + annot_right,
     )
+
+
 
     fig.add_shape(
         type="line",
-        x0=0, y0=-1, x1=0, y1=len(df_with_diff),
+        x0=0, y0=-1, x1=0, y1=len(comp_df),
         line=dict(color="black", width=2),
         xref="x", yref="y"
     )
-    fig.update_layout(margin=dict(t=20))
-    fig.update_yaxes(showticklabels=True, ticks="outside")  # Show tick marks outside the axis
+    fig.update_layout(
+        margin=dict(t=45),
+        xaxis=dict(tickfont=dict(size=12)),
+        yaxis=dict(tickfont=dict(size=12))
+    )
 
     return fig
 
@@ -349,8 +401,12 @@ from dash import Dash, html, dcc, Output, Input, State, no_update, callback_cont
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 
+params = ['location', 'technology', 'duration', 'power']
 points = self.joint_xy
 all_clusters = self.get_overlapping_clusters(**kwargs)
+init_with_clusters = assign_cluster_data(self.df, self.df[['location']], ['location'], dvars)
+init_table_summary = init_with_clusters.iloc[:, :3].groupby(['location']).agg(['mean', 'std']).round(3)
+init_table_summary.columns =  ['_'.join(col) for col in init_table_summary.columns]
 
 app = Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -377,12 +433,18 @@ app.layout = html.Div([
                         dcc.Dropdown(id='power-dropdown', options=sorted(self.df.power.unique()), value=[], multi=True)
                     ], style={'width': '24%'})
                 ], style={'display': 'flex', 'justifyContent': 'space-between',  'width': '50vw', 'padding': '1%'})
-                # dcc.Dropdown(id='cluster-dropdown', placeholder='Select a cluster', options=all_clusters.columns, value=[sorted(all_clusters.columns)[0]], multi=True, style={'width': '40vw'})
             ], style={'border': '1px solid #d3d3d3', 'marginRight': '1%'}),
             html.Div([
-                html.H6('Threshold (Epsilon)', style={'paddingTop': '1%', 'marginLeft': '3%', 'marginBottom': '5px'}),
-                dcc.Slider(0, 1, 0.1, value=kwargs['threshold'], id='th-slider')
-            ], style={'width': '30vw', 'border': '1px solid #d3d3d3'}),
+                html.Div([
+                    html.H6('Color points by', style={'paddingTop': '1%', 'marginLeft': '2%', 'marginBottom': '5px'}),
+                    dcc.Dropdown(id='color-var-dropdown', options=params+['clustering (DBSCAN)'], value='location', clearable=False, style={'paddingLeft': '2%', 'paddingRight': '2%', 'marginBottom': '1%'})
+                ], style={'width': '30vw', 'border': '1px solid #d3d3d3'}),
+                html.Div([
+                    html.H6('Threshold (Epsilon)', style={'paddingTop': '1%', 'marginLeft': '2%', 'marginBottom': '5px'}),
+                    dcc.Slider(0, 1, 0.1, value=kwargs['threshold'], id='th-slider')
+                ], id='slider-container', style={'width': '30vw', 'border': '1px solid #d3d3d3', 'display': 'none'}),
+            ], style={'display': 'flex', 'flexDirection': 'column'}),
+
         ], style={'display': 'flex', 'alignItems': 'flex-start'}),
         html.Div(dbc.Button('Reset', id='reset-select', outline=True, color='primary', n_clicks=0), style={'display': 'inline-block',}),
     ], style={'display': 'flex', 'padding': '5px', 'justifyContent': 'space-between'}),
@@ -390,15 +452,15 @@ app.layout = html.Div([
         html.Div([
             dcc.Loading(id='loading-1', children=[
                 dcc.Graph(id='cluster-scatterplot',
-                          figure=draw_clusters_scatterplot(all_clusters, points),
+                          figure=draw_clusters_scatterplot(self.df[['location']], points),
                           config={'displayModeBar': False}, style={'height': '50vh'})
             ]),
             html.Hr(),
             dcc.Loading(id='loading-2', children=[
                 dash_table.DataTable(
                     id='data-table',
-                    columns=[{'name': i, 'id': i} for i in  ['ovar', 'y'] + self.dvars],
-                    data=assign_cluster_data(self.df, all_clusters, all_clusters.columns, dvars)[['ovar', 'y'] + dvars].round(4).sample(n=5).to_dict(orient='records'),
+                    columns=[{'name': 'location', 'id': 'location'}, {'name': 'Battery size (MW)(mean)', 'id': 'size_mean'}, {'name': 'Battery size (MW)(std)', 'id': 'size_std'}, {'name': 'Cable size (MW)(mean)', 'id': 'cable_mean'}, {'name': 'Cable size (MW)(std)', 'id': 'cable_std'} ],
+                    data=init_table_summary.reset_index().to_dict(orient='records'),
                     row_selectable="multi",
                     style_table={'width': '90%', 'marginTop': '1rem'},
                     selected_rows=[],
@@ -410,7 +472,7 @@ app.layout = html.Div([
 
         html.Div([
             dcc.Loading(id='loading-3',
-                        children=dcc.Graph(id='obj-dec-histogram', figure=distplot_new(assign_cluster_data(self.df, all_clusters, all_clusters.columns, dvars), dvars),  style={'height': '50vh'})),
+                        children=dcc.Graph(id='obj-dec-histogram', figure=distplot_new(init_with_clusters, dvars),  style={'height': '50vh'})),
             html.Hr(),
             dcc.Loading(id='loading-4', children=dcc.Graph(id='diff-bar-chart', style={'height': '35vh'}))
         ], style={'width': '50%', 'height': '100%'})
@@ -418,8 +480,22 @@ app.layout = html.Div([
     ], style={'display': 'flex', 'width': '100vw', 'height': '100vh'}),
     dcc.Store(id='selected-from-tbl', data=[]),
     dcc.Store(id='selected-hist-data-store', data=[])
-
 ])
+
+@app.callback(
+    Output('slider-container', 'style'),
+    Output('data-table', 'columns'),
+    Input('color-var-dropdown', 'value'),
+    prevent_initial_call=True
+)
+
+def control_slider(colorby):
+    common_dicts = [{'name': 'Battery size (MW)(mean)', 'id': 'size_mean'}, {'name': 'Battery size (MW)(std)', 'id': 'size_std'}, {'name': 'Cable size (MW)(mean)', 'id': 'cable_mean'}, {'name': 'Cable size (MW)(std)', 'id': 'cable_std'}]
+    add = [{'name': colorby, 'id': colorby}]
+    if colorby == 'clustering (DBSCAN)':
+        add = [{'name': 'objective', 'id': 'objective'}]
+        return {'width': '30vw', 'border': '1px solid #d3d3d3', 'display': 'block'}, add + common_dicts
+    return {'width': '30vw', 'border': '1px solid #d3d3d3', 'display': 'none'}, add + common_dicts
 
 @app.callback(
     Output('cluster-scatterplot', 'figure'),
@@ -430,12 +506,13 @@ app.layout = html.Div([
     Input('technology-dropdown', 'value'),
     Input('duration-dropdown', 'value'),
     Input('power-dropdown', 'value'),
+    Input('color-var-dropdown', 'value'),
     Input('th-slider', 'value'),
     Input('selected-hist-data-store', 'data'),
     prevent_initial_call=True
 )
 
-def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration, sel_power, th_value, selected_from_hist):
+def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration, sel_power, colorby, th_value, selected_from_hist):
     changed_id = [p['prop_id'] for p in callback_context.triggered]
 
     kwargs = dict(
@@ -447,8 +524,15 @@ def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration
         drop_intermediate=False
     )
 
-    curr_clusters = self.get_overlapping_clusters(**kwargs)
-    df = self.df.loc[curr_clusters.index]
+    df = self.df.copy()
+    if colorby == 'clustering (DBSCAN)':
+        y = 'objective'
+        curr_clusters = self.get_overlapping_clusters(**kwargs)
+        df = self.df.loc[curr_clusters.index]
+    else:
+        y = colorby
+        curr_clusters = df[[colorby]]
+
     location_filter, technology_filter, duration_filter, power_filter = df.location.unique(), df.technology.unique(), df.duration.unique(), df.power.unique()
     if len(sel_location) > 0:
         location_filter = sel_location
@@ -461,6 +545,8 @@ def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration
 
     filtered = df[(df.location.isin(location_filter)) & (df.technology.isin(technology_filter)) & (df.duration.isin(duration_filter)) & (df.power.isin(power_filter))]
     updated_data_with_clusters = assign_cluster_data(self.df, curr_clusters.loc[filtered.index], curr_clusters.columns, dvars)
+    data_table_summary = updated_data_with_clusters.iloc[:, :3].groupby([y]).agg(['mean', 'std']).round(3)
+    data_table_summary.columns =  ['_'.join(col) for col in data_table_summary.columns]
 
     if 'selected-hist-data-store.data' in changed_id:
         if len(selected_from_hist) > 0:
@@ -475,9 +561,11 @@ def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration
                     filter_query += f" and ({filtered_dvar} >= {filtered_range['x0']}) and ({filtered_dvar} <= {filtered_range['x1']})"
 
             with_clusters = with_clusters_copy.query(filter_query)
-            return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points, with_clusters.index), distplot_new(updated_data_with_clusters, dvars, selected_from_hist), with_clusters[['ovar', 'y'] + dvars].round(4).sample(n=5).to_dict(orient='records'), no_update
+            data_table_summary = with_clusters.iloc[:, :3].groupby([y]).agg(['mean', 'std']).round(3)
+            data_table_summary.columns =  ['_'.join(col) for col in data_table_summary.columns]
+            return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points, with_clusters.index), distplot_new(updated_data_with_clusters, dvars, selected_from_hist), data_table_summary.reset_index().to_dict(orient='records'), no_update
 
-    return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points), distplot_new(updated_data_with_clusters, dvars), updated_data_with_clusters[['ovar', 'y'] + dvars].round(4).sample(n=5).to_dict(orient='records'), []
+    return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points), distplot_new(updated_data_with_clusters, dvars), data_table_summary.reset_index().to_dict(orient='records'), []
 
 @app.callback(
     Output('selected-hist-data-store', 'data'),
@@ -485,10 +573,11 @@ def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration
     Input('reset-select', 'n_clicks'),
     State('selected-hist-data-store', 'data'),
     State('th-slider', 'value'),
+    State('color-var-dropdown', 'value'),
     prevent_initial_call=True
 )
 
-def save_selected_hist_data(selectedData, reset_click, curr_selected_data, th_value):
+def save_selected_hist_data(selectedData, reset_click, curr_selected_data, th_value, colorby):
     changed_id = [p['prop_id'] for p in callback_context.triggered]
     kwargs = dict(
         threshold=th_value,
@@ -499,7 +588,12 @@ def save_selected_hist_data(selectedData, reset_click, curr_selected_data, th_va
         drop_intermediate=False
     )
 
-    curr_clusters = self.get_overlapping_clusters(**kwargs)
+    if colorby == 'clustering (DBSCAN)':
+        y = 'objective'
+        curr_clusters = self.get_overlapping_clusters(**kwargs)
+    else:
+        y = colorby
+        curr_clusters = self.df[[colorby]]
 
     if 'reset-select.n_clicks' in changed_id:
         if selectedData:
@@ -507,7 +601,7 @@ def save_selected_hist_data(selectedData, reset_click, curr_selected_data, th_va
         raise PreventUpdate
     if selectedData:
         updated_data_with_clusters = assign_cluster_data(self.df, curr_clusters, curr_clusters.columns, dvars)
-        with_clusters_long = pd.melt(updated_data_with_clusters, id_vars=['y', 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False).reset_index()\
+        with_clusters_long = pd.melt(updated_data_with_clusters, id_vars=[y, 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False).reset_index()\
             .rename(columns={'index': 'orig_index'})
 
         if 'points' not in selectedData:
@@ -571,20 +665,24 @@ def handle_table_checkbox(selected_rows, data):
     Output('diff-bar-chart', 'style'),
     Output('diff-bar-chart', 'figure'),
     Input('selected-from-tbl', 'data'),
+    State('color-var-dropdown', 'value'),
     prevent_initial_call=True
 )
 
-def draw_diff_chart(row_selected_store):
+def draw_diff_chart(row_selected_store, colorby):
     if len(row_selected_store) == 2:
         d = pd.DataFrame(row_selected_store)
-        index_col = ['ovar']
-        if 'y' in d:
-            index_col = ['ovar', 'y']
+        if colorby == 'clustering (DBSCAN)':
+            index_col='objective'
+        else:
+            index_col = colorby
+        a, b = [d.iloc[0, :][index_col], d.iloc[1, :][index_col]]
+
         d.set_index(index_col, inplace=True)
         diff_row = d.iloc[1, :] - d.iloc[0, :]
         d = d._append(diff_row, ignore_index=True).T.rename(columns={2: 'diff'})
 
-        return {'display': 'block', 'width': '100%', 'height': '35vh'}, diverging_diff_plot(d.sort_values('diff', ascending=False))
+        return {'display': 'block', 'width': '100%', 'height': '35vh'}, diverging_bar_chart(d, a, b)
     else:
         return {'display': 'none'}, {}
 
