@@ -12,9 +12,9 @@ const Toolbar = styled(MuiToolbar)({
   width: '100%',
   padding: '12px',
   display: 'flex',
-  flexDirection: 'row', // Change to row for horizontal alignment
-  alignItems: 'center', // Ensure vertical alignment
-  justifyContent: 'space-between', // Push content to left & right
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
   gap: '12px',
   flexShrink: 0,
   [`& ${tabsClasses.flexContainer}`]: {
