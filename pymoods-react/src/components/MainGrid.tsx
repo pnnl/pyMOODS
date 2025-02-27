@@ -23,7 +23,17 @@ export default function MainGrid() {
       }}
     >
       {/* Tabs Navigation */}
-      <Tabs value={tabIndex} onChange={handleChange} variant="fullWidth">
+      <Tabs 
+        value={tabIndex} 
+        onChange={handleChange} 
+        variant="standard" 
+        sx={{
+          '.MuiTab-root': { 
+            outline: 'none',
+            '&.Mui-selected': { borderBottom: '3px solid'},
+          }
+        }}
+      >
         <Tab label="Overview" />
         <Tab label="Offshore" />
       </Tabs>
