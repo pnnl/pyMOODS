@@ -397,6 +397,97 @@ def diverging_bar_chart(comp_df, a_name, b_name):
 
     return fig
 
+def diverging_bar_chart2(comp_df, a_name, b_name, font_size=14, x_labels=None):
+    group_a = comp_df.iloc[:, 0]
+    group_b = comp_df.iloc[:, 1]
+
+    num_plots = len(comp_df)
+    rows = (num_plots // 2) + (num_plots % 2)  # 2-column layout
+
+    # Create subplots
+    fig = make_subplots(
+        rows=rows, cols=2,
+        shared_xaxes=False,
+        shared_yaxes=False,
+        horizontal_spacing=0.15,
+        vertical_spacing=0.2
+    )
+
+    row, col = 1, 1
+    max_values = []
+
+    for i, idx in enumerate(comp_df.index):
+        # Compute a different max for each subplot
+        raw_max = max(abs(group_a.loc[idx]), abs(group_b.loc[idx]))
+        max_abs_value = np.round(raw_max, -2) if raw_max > 100 else np.round(raw_max, -1)
+        max_abs_value = max(max_abs_value, 10)  # Ensure a minimum threshold
+        max_values.append(max_abs_value)
+
+        fig.add_trace(go.Bar(
+            y=[idx],
+            x=[-group_a.loc[idx]],
+            name=a_name,
+            orientation='h',
+            marker=dict(color='rgba(0, 0, 255, 0.6)'),
+            hovertemplate=f'<b>{a_name}</b><br>{idx}: {group_a.loc[idx]}<extra></extra>',
+        ), row=row, col=col)
+
+        fig.add_trace(go.Bar(
+            y=[idx],
+            x=[group_b.loc[idx]],
+            name=b_name,
+            orientation='h',
+            marker=dict(color='rgba(255, 165, 0, 0.6)'),
+            hovertemplate=f'<b>{b_name}</b><br>{idx}: {group_b.loc[idx]}<extra></extra>',
+        ), row=row, col=col)
+
+        col += 1
+        if col > 2:
+            col = 1
+            row += 1
+
+    # Apply individual x-axis scales for each subplot
+    row, col = 1, 1
+    for i, idx in enumerate(comp_df.index):
+        max_abs_value = max_values[i]  # Unique max value for this subplot
+
+        # Define custom x-axis tick values (ensuring symmetry)
+        tick_values = np.array([
+            -max_abs_value, -max_abs_value * 0.75, -max_abs_value * 0.5, -max_abs_value * 0.25, 0,
+            max_abs_value * 0.25, max_abs_value * 0.5, max_abs_value * 0.75, max_abs_value
+        ])
+
+        # Ensure clean integer labels if possible
+        tick_labels = [str(int(abs(val))) if val.is_integer() else str(round(abs(val), 1)) for val in tick_values]
+
+        # Update subplot x-axis settings
+        fig.update_xaxes(
+            tickmode='array',
+            tickvals=tick_values,
+            ticktext=tick_labels,
+            tickfont=dict(size=font_size),
+            range=[-max_abs_value, max_abs_value],  # Ensure 0 is centered
+            row=row,
+            col=col
+        )
+
+        # Adjust subplot row/col index
+        col += 1
+        if col > 2:
+            col = 1
+            row += 1
+
+    # Update layout (remove top margin)
+    fig.update_layout(
+        height=250 * rows,
+        barmode='relative',
+        bargap=0.3,
+        showlegend=False,
+        margin=dict(t=0)
+    )
+
+    return fig
+
 from dash import Dash, html, dcc, Output, Input, State, no_update, callback_context, dash_table
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
@@ -682,7 +773,7 @@ def draw_diff_chart(row_selected_store, colorby):
         diff_row = d.iloc[1, :] - d.iloc[0, :]
         d = d._append(diff_row, ignore_index=True).T.rename(columns={2: 'diff'})
 
-        return {'display': 'block', 'width': '100%', 'height': '35vh'}, diverging_bar_chart(d, a, b)
+        return {'display': 'block', 'width': '100%', 'height': '35vh'}, diverging_bar_chart2(d, a, b)
     else:
         return {'display': 'none'}, {}
 
