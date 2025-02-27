@@ -3,6 +3,7 @@ import { Box, Tabs, Tab, Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
 
 export default function MainGrid() {
+  const appNavbarHeight = 200;
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -10,7 +11,17 @@ export default function MainGrid() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, p: 3, bgcolor: 'background.default', minHeight: '100vh', pt: 8 }}>
+    <Box 
+      sx={{ 
+        width: '100%', 
+        maxWidth: { sm: '100%', md: '1700px' }, 
+        minHeight: `calc(100vh - ${appNavbarHeight}px)`,
+        flex: 1,
+        // display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
       {/* Tabs Navigation */}
       <Tabs value={tabIndex} onChange={handleChange} variant="fullWidth">
         <Tab label="Overview" />
@@ -44,5 +55,5 @@ export default function MainGrid() {
         )}
       </Box>
     </Box>
-  );
+  )
 }
