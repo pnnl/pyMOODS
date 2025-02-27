@@ -34,15 +34,16 @@ export default function MainGrid() {
           }
         }}
       >
-        <Tab label="Overview" />
-        <Tab label="Offshore" />
+        <Tab label="Use Cases" />
+        <Tab label="Exploratory Analysis" />
       </Tabs>
 
       {/* Tab Content */}
       <Box sx={{ mt: 2 }}>
+        {/* Overview Tab */}
         {tabIndex === 0 && (
           <Box>
-            <Typography variant="h6">Overview</Typography>
+            <Typography variant="h6">Solution Space</Typography>
             <Plot
               data={[
                 { type: 'scatter', mode: 'lines+markers', x: [1, 2, 3], y: [2, 6, 3] }
@@ -52,6 +53,7 @@ export default function MainGrid() {
           </Box>
         )}
 
+        {/* Offshore Tab */}
         {tabIndex === 1 && (
           <Box>
             <Typography variant="h6">Offshore</Typography>
