@@ -390,9 +390,9 @@ def diverging_bar_chart(comp_df, a_name, b_name):
         xref="x", yref="y"
     )
     fig.update_layout(
-        margin=dict(t=45),
-        xaxis=dict(tickfont=dict(size=12)),
-        yaxis=dict(tickfont=dict(size=12))
+        margin=dict(t=45, b=40),
+        xaxis=dict(tickfont=dict(size=14)),
+        yaxis=dict(tickfont=dict(size=14))
     )
 
     return fig
@@ -462,7 +462,7 @@ app.layout = html.Div([
                     columns=[{'name': 'location', 'id': 'location'}, {'name': 'Battery size (MW)(mean)', 'id': 'size_mean'}, {'name': 'Battery size (MW)(std)', 'id': 'size_std'}, {'name': 'Cable size (MW)(mean)', 'id': 'cable_mean'}, {'name': 'Cable size (MW)(std)', 'id': 'cable_std'} ],
                     data=init_table_summary.reset_index().to_dict(orient='records'),
                     row_selectable="multi",
-                    style_table={'width': '90%', 'marginTop': '1rem'},
+                    style_table={'width': '95%', 'marginTop': '1rem', 'fontSize': '13px'},
                     selected_rows=[],
                     style_data_conditional=[],
                     page_size=10
@@ -477,7 +477,7 @@ app.layout = html.Div([
             dcc.Loading(id='loading-4', children=dcc.Graph(id='diff-bar-chart', style={'height': '35vh'}))
         ], style={'width': '50%', 'height': '100%'})
 
-    ], style={'display': 'flex', 'width': '100vw', 'height': '100vh'}),
+    ], style={'display': 'flex', 'width': '100vw', 'height': '80vh'}),
     dcc.Store(id='selected-from-tbl', data=[]),
     dcc.Store(id='selected-hist-data-store', data=[])
 ])
@@ -563,7 +563,7 @@ def update_plots_with_hyperparameters(sel_location, sel_technology, sel_duration
             with_clusters = with_clusters_copy.query(filter_query)
             data_table_summary = with_clusters.iloc[:, :3].groupby([y]).agg(['mean', 'std']).round(3)
             data_table_summary.columns =  ['_'.join(col) for col in data_table_summary.columns]
-            return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points, with_clusters.index), distplot_new(updated_data_with_clusters, dvars, selected_from_hist), data_table_summary.reset_index().to_dict(orient='records'), no_update
+            return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points, with_clusters.index), distplot_new(updated_data_with_clusters, dvars, selected_from_hist), data_table_summary.reset_index().to_dict(orient='records'), []
 
     return draw_clusters_scatterplot(curr_clusters.loc[filtered.index], points), distplot_new(updated_data_with_clusters, dvars), data_table_summary.reset_index().to_dict(orient='records'), []
 
