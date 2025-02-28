@@ -10,7 +10,6 @@ import PNNLLogo from '../assets/pnnl-logo.svg';
 
 const Toolbar = styled(MuiToolbar)({
   width: '100%',
-  padding: '12px',
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'center',
@@ -25,7 +24,7 @@ const Toolbar = styled(MuiToolbar)({
 });
 
 const drawerWidth = 220;
-const navbarHeight= 84;
+const navbarHeight= 64;
 
 export default function AppNavbar() {
   return (
@@ -50,12 +49,12 @@ export default function AppNavbar() {
           <img 
             src={PNNLLogo} 
             alt="Logo 1" 
-            style={{ height: '60px', width: 'auto' }} 
+            style={{ height: '48px', width: 'auto' }} 
           />
           <img 
             src={ECompLogo} 
             alt="Logo 2" 
-            style={{ height: '60px', width: 'auto' }} 
+            style={{ height: '48px', width: 'auto' }} 
           />
         </Stack>
       </Toolbar>
