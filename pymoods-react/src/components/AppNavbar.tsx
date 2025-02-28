@@ -25,6 +25,7 @@ const Toolbar = styled(MuiToolbar)({
 });
 
 const drawerWidth = 220;
+const navbarHeight= 84;
 
 export default function AppNavbar() {
   return (
@@ -32,6 +33,7 @@ export default function AppNavbar() {
         position="fixed"
         sx={{ 
           width: `calc(100% - ${drawerWidth}px)`, 
+          height: `${navbarHeight}px`,
           ml: `${drawerWidth}px`,
           boxShadow: 0,
           bgcolor: 'background.paper',
