@@ -20,6 +20,7 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     fig = go.Figure()
     no_cluster_mask = ~points.index.isin(clusters.index)
     no_cluster_df = points[no_cluster_mask]
+
     fig.add_trace(go.Scatter(x=no_cluster_df[0], y=no_cluster_df[1], mode='markers', marker=dict(color='lightgray', size=4, opacity=0.1), name='unassigned'))
     for i, c in enumerate(clusters):
         if c in sorted(clusters.columns):
@@ -69,7 +70,7 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
 
 
     fig.update_layout(
-        margin=dict(t=20),
+        margin=dict(t=20, b=20),
         legend=dict(
             x=1.03,
             bordercolor='#d3d3d3',
@@ -89,7 +90,7 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     return fig
 
 def assign_cluster_data(df, clusters, selected):
-    dvars = [c for c in df.columns if 'x' in c]
+    dvars = [c for c in self.df.columns if 'x' in c]
     data = pd.concat([
         df.loc[clusters.index[clusters[c] == i], dvars]\
             .assign(y=f'{c}-{i}', ovar=c)
@@ -267,6 +268,7 @@ def distplot_new(with_clusters, selected_clusters, selected_info=[]):
     return fig
 
 
+
 import numpy as np
 def diverging_diff_plot(df_with_diff):
     differences = df_with_diff['diff']
@@ -337,7 +339,8 @@ kwargs = dict(
         )
 points = self.joint_xy
 all_clusters = self.get_overlapping_clusters(**kwargs)
-dvars = [c for c in self.df.columns if 'x' in c]
+init_cl_selected = ['f0']
+# dvars = [c for c in self.df.columns if 'x' in c]
 
 app.layout = html.Div([
     html.Div([
@@ -356,13 +359,16 @@ app.layout = html.Div([
     html.Div(id='graph-container', children=[
         html.Div([
             dcc.Loading(id='loading-1', children=[
-                dcc.Graph(id='cluster-scatterplot', config={'displayModeBar': False}, style={'height': '50vh'})
+                dcc.Graph(id='cluster-scatterplot',
+                          figure=draw_clusters_scatterplot(all_clusters[init_cl_selected], points),
+                          config={'displayModeBar': False}, style={'height': '50vh'})
             ]),
             html.Hr(),
             dcc.Loading(id='loading-2', children=[
                 dash_table.DataTable(
                     id='data-table',
-                    columns=[{'name': i, 'id': i} for i in ['ovar'] + [c for c in self.df.columns if c.startswith('x') ]],
+                    columns=[{'name': i, 'id': i} for i in ['ovar'] + self.dvars],
+                    data=assign_cluster_data(self.df, all_clusters[init_cl_selected], all_clusters[init_cl_selected].columns)[['ovar'] + self.dvars].round(4).sample(n=5).to_dict(orient='records'),
                     row_selectable="multi",
                     style_table={'width': '90%', 'marginTop': '1rem'},
                     selected_rows=[],
@@ -373,7 +379,8 @@ app.layout = html.Div([
         ], style={'width': '50%'}),
 
         html.Div([
-            dcc.Loading(id='loading-3', children=dcc.Graph(id='obj-dec-histogram', style={'height': '50vh'})),
+            dcc.Loading(id='loading-3',
+                        children=dcc.Graph(id='obj-dec-histogram', figure=distplot_new(assign_cluster_data(self.df, all_clusters[init_cl_selected], all_clusters[init_cl_selected].columns), init_cl_selected),  style={'height': '50vh'})),
             html.Hr(),
             dcc.Loading(id='loading-4', children=dcc.Graph(id='diff-bar-chart', style={'height': '35vh'}))
         ], style={'width': '50%', 'height': '100%'})
@@ -396,6 +403,7 @@ app.layout = html.Div([
 
 def draw_figures(selected_clusters, th, selected_from_hist):
     changed_id = [p['prop_id'] for p in callback_context.triggered]
+
     output = []
     if len(selected_clusters) > 0:
         kwargs = dict(
@@ -424,7 +432,6 @@ def draw_figures(selected_clusters, th, selected_from_hist):
                     filter_query += f" and ({filtered_dvar} >= {filtered_range['x0']}) and ({filtered_dvar} <= {filtered_range['x1']})"
 
             with_clusters = with_clusters_copy.query(filter_query)
-        # print(with_clusters.shape)
         # with_clusters_long = pd.melt(with_clusters[with_clusters.ovar.isin(selected_clusters)], id_vars=['y', 'ovar'], value_vars=self.dvars, var_name='dvar', ignore_index=False)\
         #     .reset_index()\
         #     .rename(columns={'index': 'orig_index'}).sort_values(['y', 'dvar', 'ovar'])
@@ -520,6 +527,7 @@ def update_histogram(selected_data_store, selected_clusters):
 
         return distplot_new(with_clusters, selected_clusters, selected_data_store)
     return distplot_new(with_clusters, selected_clusters)
+
 
 @app.callback(
     Output('data-table', 'style_data_conditional'),

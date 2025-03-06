@@ -15,6 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.cluster import DBSCAN, HDBSCAN
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
 from scipy.cluster import hierarchy
 from scipy.spatial import ConvexHull
@@ -138,7 +139,7 @@ class Loader:
             
 lightgray = '#edecea'
 
-def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, ax=None, with_labels=True):
+def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, ax=None, with_labels=True, ignore={-1, None}):
     grouped = X.groupby(y)
 
     s = marker_size**.5 if type(marker_size) in {int, float}\
@@ -148,7 +149,7 @@ def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, a
         [
             dfk.iloc[ConvexHull(dfk).vertices].values if len(dfk) > 3 else dfk.values
             for k, dfk in grouped
-            if k is not None
+            if k not in ignore
         ],
         closed=True,
         facecolor=color,
@@ -228,16 +229,25 @@ def explain_groups(
     ar=3,
     width = 12,
     linewidth_minor = 2,
-    linewidth_major = 5
+    linewidth_major = 5,
+    xlim=(0, 1)
 ):
     y_names, y_int = np.unique(y, return_inverse=True)
     y_height = np.arange(len(y_names))
     
     #
     
-    clf = LogisticRegression().fit(X, y_int)
+    clf = LogisticRegression()
+    Pipeline([
+        ('norm', StandardScaler()),
+        ('clf', clf)
+    ]).fit(X, y_int)
+
+    coef_mat = clf.coef_
+    if len(coef_mat) == 1:
+        coef_mat = np.vstack((coef_mat, -coef_mat))
     
-    coef = pd.DataFrame(clf.coef_, columns=X.columns, index=y_names)
+    coef = pd.DataFrame(coef_mat, columns=X.columns, index=y_names)
     
     default = hex2color(cnames['lightgray']) + (1,)
     
@@ -281,7 +291,9 @@ def explain_groups(
             alpha=color_mask
         )
     
-        plt.xlim(0, 1)
+        if xlim:
+            plt.xlim(*xlim)
+
         plt.xlabel(col)
         
         if i == 0:
