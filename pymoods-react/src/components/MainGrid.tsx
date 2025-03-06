@@ -3,7 +3,7 @@ import { Box, Tabs, Tab, Typography } from '@mui/material';
 import Plot from 'react-plotly.js';
 
 export default function MainGrid() {
-  const appNavbarHeight = 200;
+  const navbarHeight= 64;
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -15,7 +15,8 @@ export default function MainGrid() {
       sx={{ 
         width: '100%', 
         maxWidth: { sm: '100%', md: '1700px' }, 
-        minHeight: `calc(100vh - ${appNavbarHeight}px)`,
+        minHeight: `calc(100vh - ${navbarHeight}px)`,
+        mt: `56px`,
         flex: 1,
         // display: 'flex',
         flexDirection: 'column',

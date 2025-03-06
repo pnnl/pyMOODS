@@ -12,7 +12,7 @@ function App() {
       <SideMenu />
       <AppNavbar />
       {/* Main content */}
-      <Box component="main" sx={{ padding: '16px' }}>
+      <Box component="main" sx={{ paddingLeft: '16px' }}>
         <MainGrid />
       </Box>
     </Box>
