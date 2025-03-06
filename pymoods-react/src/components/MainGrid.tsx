@@ -1,27 +1,72 @@
-import Grid from '@mui/material/Grid2';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+import { useState } from 'react';
+import { Box, Tabs, Tab, Typography } from '@mui/material';
+import Plot from 'react-plotly.js';
 
 export default function MainGrid() {
+  const navbarHeight= 64;
+  const [tabIndex, setTabIndex] = useState(0);
+
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
+
   return (
-    <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
-      {/* cards */}
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Overview
-      </Typography>
-      <Grid
-        container
-        spacing={2}
-        columns={12}
-        sx={{ mb: (theme) => theme.spacing(2) }}
+    <Box 
+      sx={{ 
+        width: '100%', 
+        maxWidth: { sm: '100%', md: '1700px' }, 
+        minHeight: `calc(100vh - ${navbarHeight}px)`,
+        mt: `56px`,
+        flex: 1,
+        // display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Tabs Navigation */}
+      <Tabs 
+        value={tabIndex} 
+        onChange={handleChange} 
+        variant="standard" 
+        sx={{
+          '.MuiTab-root': { 
+            outline: 'none',
+            '&.Mui-selected': { borderBottom: '3px solid'},
+          }
+        }}
       >
-      </Grid>
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Details
-      </Typography>
-      <Grid container spacing={2} columns={12}>
-        
-      </Grid>
+        <Tab label="Use Cases" />
+        <Tab label="Exploratory Analysis" />
+      </Tabs>
+
+      {/* Tab Content */}
+      <Box sx={{ mt: 2 }}>
+        {/* Overview Tab */}
+        {tabIndex === 0 && (
+          <Box>
+            <Typography variant="h6">Solution Space</Typography>
+            <Plot
+              data={[
+                { type: 'scatter', mode: 'lines+markers', x: [1, 2, 3], y: [2, 6, 3] }
+              ]}
+              layout={{ title: 'Overview Plot' }}
+            />
+          </Box>
+        )}
+
+        {/* Offshore Tab */}
+        {tabIndex === 1 && (
+          <Box>
+            <Typography variant="h6">Offshore</Typography>
+            <Plot
+              data={[
+                { type: 'bar', x: ['A', 'B', 'C'], y: [4, 7, 9] }
+              ]}
+              layout={{ title: 'Offshore Plot' }}
+            />
+          </Box>
+        )}
+      </Box>
     </Box>
-  );
+  )
 }
