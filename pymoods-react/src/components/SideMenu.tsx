@@ -2,7 +2,7 @@ import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import { Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-const drawerWidth = 220;
+const drawerWidth = 200;
 
 const Drawer = styled(MuiDrawer)({
   width: drawerWidth,
