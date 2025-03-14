@@ -141,6 +141,16 @@ button {
   justify-content: flex-start; */
 }
 
+.offshore {
+  /*overflow: hidden;*/
+  color: black;
+  background-color: white;
+  height: 150%;
+  display: flex;
+  margin-left: -0.8rem;
+  /* margin-bottom:10em; */
+}
+
 .mop-custom-container-style {
   /* overflow: hidden; */
   color: black;

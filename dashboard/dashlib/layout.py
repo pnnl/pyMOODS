@@ -6,7 +6,9 @@ import dash_bootstrap_components as dbc
 
 import pandas as pd
 from .components import blank_figure
+# from dashlib.offshore_windfarm.screen3 import get_location_dropdown, create_network_graph
 from dashlib.offshore_windfarm.screen3 import get_location_dropdown
+
 interface_layout = dbc.Container(
     [
         dbc.Row([
@@ -136,7 +138,6 @@ interface_layout = dbc.Container(
                                 type="text",
                                 size="sm"),
                             html.Div(id='summary-table'),
-                            
                         ],
                         className='upload-section'),
                     width={'size': 2},
@@ -156,159 +157,10 @@ interface_layout = dbc.Container(
                                 className='custom-tab',
                                 selected_className='custom-tab--selected',
                                 children=[
-                                    dbc.Container(
-                                        [
-                                            dbc.Row(
-                                                [
-                                                    dbc.Col(
-                                                        [
-                                                            html.
-                                                            H4("Objective Space",
-                                                               style={
-                                                                   "fontWeight":
-                                                                   "600",
-                                                                   "fontFamily":
-                                                                   "Helvetica",
-                                                                   "margin":
-                                                                   "20px 0 0 0",
-                                                                   "textAlign":
-                                                                   "center"
-                                                               }),
-                                                            html.Div(
-                                                                id=
-                                                                'objective-space-content',
-                                                                children=[
-                                                                    html.
-                                                                    H6(id=
-                                                                       'obj-help',
-                                                                       style={
-                                                                           'textAlign':
-                                                                           'center'
-                                                                       }),
-                                                                    dcc.
-                                                                    Loading(
-                                                                        id=
-                                                                        'loading-graph',
-                                                                        children
-                                                                        =[
-                                                                            dcc
-                                                                            .
-                                                                            Graph(
-                                                                                figure
-                                                                                =blank_figure(
-                                                                                ),
-                                                                                id
-                                                                                ='graph1',
-                                                                                style
-                                                                                ={
-                                                                                    'height':
-                                                                                    '35vh'
-                                                                                }
-                                                                            )
-                                                                        ],
-                                                                        target_components
-                                                                        ={
-                                                                            'graph1':
-                                                                            [
-                                                                                'figure'
-                                                                            ]
-                                                                        })
-                                                                ])
-                                                        ],
-                                                        width=6,
-                                                        id='graph-col'),
-                                                    dbc.Col([
-                                                        html.H4(
-                                                            "Decision Space",
-                                                            style={
-                                                                "fontWeight":
-                                                                "600",
-                                                                "fontFamily":
-                                                                "Helvetica",
-                                                                "textAlign":
-                                                                "center",
-                                                                "margin":
-                                                                "20px 0 0 0"
-                                                            }),
-                                                        html.H6(
-                                                            id='dec-help',
-                                                            style={
-                                                                'textAlign':
-                                                                'center'
-                                                            }),
-                                                        html.Div(
-                                                            id=
-                                                            'decision-space-content',
-                                                            children=[
-                                                                html.Div(
-                                                                    id="sliders"
-                                                                )
-                                                            ])
-                                                    ],
-                                                            width=6,
-                                                            id="radar-col"),
-                                                    dbc.Alert(
-                                                        'No data exists reflecting that change',
-                                                        id='no-data-alert',
-                                                        color='danger',
-                                                        is_open=False,
-                                                        dismissable=True,
-                                                        duration=5000,
-                                                        style={
-                                                            'position':
-                                                            'absolute',
-                                                            'top': '15%',
-                                                            'left': '50%',
-                                                            'zIndex': 999
-                                                        })
-                                                ],
-                                                className=
-                                                "my-custom-container-style"),
-                                            dbc.Row([
-                                                dbc.Col([
-                                                    dbc.Card(
-                                                        dbc.CardBody([
-                                                            html.
-                                                            H4("Plot Description",
-                                                               className=
-                                                               "card-title")
-                                                        ],style={
-                                                                'height':
-                                                                '27vh'
-                                                            }))
-                                                ],
-                                                        className=
-                                                        "card2-container"),
-                                                dbc.Col([
-                                                    dbc.Card(
-                                                        dbc.CardBody([
-                                                            html.
-                                                            H4("Fairness Index (Future Capability)",
-                                                               className=
-                                                               "card-title2")
-                                                        ],style={
-                                                                'height':
-                                                                '27vh'
-                                                            }))
-                                                ],
-                                                        className=
-                                                        "card2-container"),
-                                            ],
-                                                    className="align-cards")
-                                        ],
-                                        fluid=True,
-                                        className='dbc-container-style')
-                                ]),
-                            dcc.Tab(
-                                label='MOP Structure',
-                                value='tab-2-example-graph',
-                                className='custom-tab',
-                                selected_className='custom-tab--selected',
-                                children=[
-                                    dbc.Container(
-                                        [
-                                            dbc.Row([
-                                                dbc.Col(html.H4(
+                                    dbc.Container([
+                                        dbc.Row([
+                                            dbc.Col([
+                                                html.H4(
                                                     "Objective Space",
                                                     style={
                                                         "fontWeight": "600",
@@ -317,8 +169,39 @@ interface_layout = dbc.Container(
                                                         "margin": "20px 0 0 0",
                                                         "textAlign": "center"
                                                     }),
-                                                        width=6),
-                                                dbc.Col(html.H4(
+                                                html.Div(
+                                                    id=
+                                                    'objective-space-content',
+                                                    children=[
+                                                        html.H6(
+                                                            id='obj-help',
+                                                            style={
+                                                                'textAlign':
+                                                                'center'
+                                                            }),
+                                                        dcc.Loading(
+                                                            id='loading-graph',
+                                                            children=[
+                                                                dcc.Graph(
+                                                                    figure=
+                                                                    blank_figure(
+                                                                    ),
+                                                                    id='graph1',
+                                                                    style={
+                                                                        'height':
+                                                                        '35vh'
+                                                                    })
+                                                            ],
+                                                            target_components={
+                                                                'graph1':
+                                                                ['figure']
+                                                            })
+                                                    ])
+                                            ],
+                                                    width=6,
+                                                    id='graph-col'),
+                                            dbc.Col([
+                                                html.H4(
                                                     "Decision Space",
                                                     style={
                                                         "fontWeight": "600",
@@ -327,77 +210,157 @@ interface_layout = dbc.Container(
                                                         "textAlign": "center",
                                                         "margin": "20px 0 0 0"
                                                     }),
-                                                        width=6),
+                                                html.H6(id='dec-help',
+                                                        style={
+                                                            'textAlign':
+                                                            'center'
+                                                        }),
+                                                html.Div(
+                                                    id='decision-space-content',
+                                                    children=[
+                                                        html.Div(id="sliders")
+                                                    ])
                                             ],
-                                                    className=
-                                                    "mop-custom-container-style"
+                                                    width=6,
+                                                    id="radar-col"),
+                                            dbc.Alert(
+                                                'No data exists reflecting that change',
+                                                id='no-data-alert',
+                                                color='danger',
+                                                is_open=False,
+                                                dismissable=True,
+                                                duration=5000,
+                                                style={
+                                                    'position': 'absolute',
+                                                    'top': '15%',
+                                                    'left': '50%',
+                                                    'zIndex': 999
+                                                })
+                                        ],
+                                                className=
+                                                "my-custom-container-style"),
+                                        dbc.Row([
+                                            dbc.Col([
+                                                dbc.Card(
+                                                    dbc.CardBody([
+                                                        html.H4(
+                                                            "Plot Description",
+                                                            className=
+                                                            "card-title")
+                                                    ],
+                                                                 style={
+                                                                     'height':
+                                                                     '27vh'
+                                                                 }))
+                                            ],
+                                                    className="card2-container"
                                                     ),
-                                            dbc.Row(
-                                                [
-                                                    dbc.Col(
-                                                        dcc.Graph(
-                                                            id=
-                                                            "mop-objective-graph",
-                                                            figure=blank_figure(
-                                                            ),
-                                                            style={
-                                                                'height':
-                                                                '42vh'
-                                                            }),
-                                                        width=6,
+                                            dbc.Col([
+                                                dbc.Card(
+                                                    dbc.CardBody([
+                                                        html.
+                                                        H4("Fairness Index (Future Capability)",
+                                                           className=
+                                                           "card-title2")
+                                                    ],
+                                                                 style={
+                                                                     'height':
+                                                                     '27vh'
+                                                                 }))
+                                            ],
+                                                    className="card2-container"
                                                     ),
-                                                    dbc.Col(
-                                                        dcc.Graph(
-                                                            id=
-                                                            "mop-decision-graph",
-                                                            figure=blank_figure(
-                                                            ),
-                                                            style={
-                                                                'height':
-                                                                '42vh'
-                                                            }),
-                                                        width=6,
-                                                    ),
-                                                ],
+                                        ],
+                                                className="align-cards")
+                                    ],
+                                                  fluid=True,
+                                                  className=
+                                                  'dbc-container-style')
+                                ]),
+                            dcc.Tab(
+                                label='MOP Structure',
+                                value='tab-2-example-graph',
+                                className='custom-tab',
+                                selected_className='custom-tab--selected',
+                                children=[
+                                    dbc.Container([
+                                        dbc.Row([
+                                            dbc.Col(html.H4(
+                                                "Objective Space",
+                                                style={
+                                                    "fontWeight": "600",
+                                                    "fontFamily": "Helvetica",
+                                                    "margin": "20px 0 0 0",
+                                                    "textAlign": "center"
+                                                }),
+                                                    width=6),
+                                            dbc.Col(html.H4(
+                                                "Decision Space",
+                                                style={
+                                                    "fontWeight": "600",
+                                                    "fontFamily": "Helvetica",
+                                                    "textAlign": "center",
+                                                    "margin": "20px 0 0 0"
+                                                }),
+                                                    width=6),
+                                        ],
                                                 className=
                                                 "mop-custom-container-style"),
-                                            dbc.Row(
-                                                [
-                                                    dbc.Col(
-                                                        [
-                                                            dbc.Card(
-                                                                dbc.CardBody([
-                                                                    html.
-                                                                    H4("Plot Description",
-                                                                       className
-                                                                       ="card-title"
-                                                                       ),], style={
-                                                                'height':
-                                                                '27vh'
-                                                            })),
-                                                        ],
-                                                        className=
-                                                        "card2-container"),
-                                                    dbc.Col([
-                                                        dbc.Card(
-                                                            dbc.CardBody([
-                                                                html.
-                                                                H4("Fairness Index (Future Capability)",
-                                                                   className=
-                                                                   "card-title2"
-                                                                   )
-                                                            ],style={
-                                                                'height':
-                                                                '27vh'
-                                                            })), 
-                                                    ],
-                                                            className=
-                                                            "card2-container"),
-                                                ],
-                                                className="align-cards")
+                                        dbc.Row([
+                                            dbc.Col(
+                                                dcc.Graph(
+                                                    id="mop-objective-graph",
+                                                    figure=blank_figure(),
+                                                    style={'height': '42vh'}),
+                                                width=6,
+                                            ),
+                                            dbc.Col(
+                                                dcc.Graph(
+                                                    id="mop-decision-graph",
+                                                    figure=blank_figure(),
+                                                    style={'height': '42vh'}),
+                                                width=6,
+                                            ),
                                         ],
-                                        fluid=True,
-                                        className="mop-container-style")
+                                                className=
+                                                "mop-custom-container-style"),
+                                        dbc.Row([
+                                            dbc.Col([
+                                                dbc.Card(
+                                                    dbc.CardBody([
+                                                        html.H4(
+                                                            "Plot Description",
+                                                            className=
+                                                            "card-title"),
+                                                    ],
+                                                                 style={
+                                                                     'height':
+                                                                     '27vh'
+                                                                 })),
+                                            ],
+                                                    className="card2-container"
+                                                    ),
+                                            dbc.Col([
+                                                dbc.Card(
+                                                    dbc.CardBody([
+                                                        html.
+                                                        H4("Fairness Index (Future Capability)",
+                                                           className=
+                                                           "card-title2")
+                                                    ],
+                                                                 style={
+                                                                     'height':
+                                                                     '27vh'
+                                                                 })),
+                                            ],
+                                                    className="card2-container"
+                                                    ),
+                                        ],
+                                                className="align-cards")
+                                    ],
+                                                  fluid=True,
+                                                  className=
+                                                  "mop-container-style")
                                 ]),
                             dcc.Tab(
                                 label='Offshore Windfarm UseCase',
@@ -407,108 +370,165 @@ interface_layout = dbc.Container(
                                 children=[
                                     dbc.Container(
                                         [
+                                            # dbc.Row(
+                                            #     [
+                                            #         # dbc.Col(dcc.Graph(id ="network-graph",
+                                            #                         #   figure=create_network_graph()
+                                            #             dbc.Col(style={
+                                            #                     "fontWeight":
+                                            #                     "600",
+                                            #                     "fontFamily":
+                                            #                     "Helvetica",
+                                            #                     "margin":
+                                            #                     "20px 0 0 0",
+                                            #                     # "textAlign":
+                                            #                     # "center"
+                                            #                 },
+                                            #             width=4),
+                                            #         dbc.Col(
+                                            #             html.H4(
+                                            #                 "Objective Space",
+                                            #                 style={
+                                            #                     "fontWeight":
+                                            #                     "400",
+                                            #                     "fontFamily":
+                                            #                     "Helvetica",
+                                            #                     "margin":
+                                            #                     "20px 0 0 0",
+                                            #                     "textAlign":
+                                            #                     "center"
+                                            #                 }),
+                                            #             width=4),
+                                            #         dbc.Col(
+                                            #             html.H4(
+                                            #                 "Decision Space",
+                                            #                 style={
+                                            #                     "fontWeight":
+                                            #                     "400",
+                                            #                     "fontFamily":
+                                            #                     "Helvetica",
+                                            #                     "textAlign":
+                                            #                     "center",
+                                            #                     "margin":
+                                            #                     "20px 0 0 0"
+                                            #                 }),
+                                            #             width=4)
+                                            #     ],
+                                            #     className=
+                                            #     "my-custom-container-style"),
                                             dbc.Row(
                                                 [
-                                                    dbc.Col(
-                                                        html.H4(
-                                                            "Objective Space",
+                                                    dbc.Col(dcc.Graph(
+                                                        id='graph4',figure=blank_figure(),config={'displayModeBar' : False},
+                                                        style={'height': '37vh'}),
+                                                            width={
+                                                                'size': 5,
+                                                                'order': 1
+                                                            },
                                                             style={
-                                                                "fontWeight":
-                                                                "600",
-                                                                "fontFamily":
-                                                                "Helvetica",
-                                                                "margin":
-                                                                "20px 0 0 0",
-                                                                "textAlign":
-                                                                "center"
+                                                                'overflow':
+                                                                'hidden', "paddingRight": "10px",
                                                             }),
-                                                        width=6),
                                                     dbc.Col(
+                                                        html.Div([
+                                                            html.
+                                                            H4("Objective Space",
+                                                               style={
+                                                                   "textAlign":
+                                                                   "center",
+                                                                   "marginTop":
+                                                                   "10px","fontWeight":
+                                                                "700","fontFamily":
+                                                                "Helvetica",
+                                                                  
+                                                               }),
+                                                            dcc.Graph(
+                                                                id='graph3',
+                                                                figure=
+                                                                blank_figure(),
+                                                                style={
+                                                                    'height':
+                                                                    '25vh',
+                                                                })
+                                                        ]),
+                                                        # width=4,
+                                                        width={
+                                                            'size': 3,
+                                                            'order': 2
+                                                        },
+                                                        style={
+                                                            'overflow':
+                                                            'hidden', "textAlign":"center"
+                                                        }),
+                                                    dbc.Col(html.Div([
                                                         html.H4(
                                                             "Decision Space",
                                                             style={
-                                                                "fontWeight":
-                                                                "600",
-                                                                "fontFamily":
-                                                                "Helvetica",
                                                                 "textAlign":
                                                                 "center",
-                                                                "margin":
-                                                                "20px 0 0 0"
+                                                                "marginTop":
+                                                                "10px","fontWeight":
+                                                                "700","fontFamily":
+                                                                "Helvetica",
                                                             }),
-                                                        width=6)
-                                                ],
-                                                className=
-                                                "my-custom-container-style"),
-                                            dbc.Row(
-                                                [
-                                                    dbc.Col(
-                                                        dcc.Graph(
-                                                            figure=blank_figure(
-                                                            ),
-                                                            id='graph3',
-                                                            style={
-                                                                'height':
-                                                                '42vh'
-                                                            })
-                                                    ,
-                                                            width=6,
-                                                            style={
-                                                                'overflow':
-                                                                'hidden'
-                                                            }),
-                                                    dbc.Col(
                                                         html.Div(id="sliders3",
                                                                  style={
                                                                      'height':
-                                                                     '42vh'
-                                                                 }),
-                                                        width=6,
-                                                        style={
-                                                            'overflow':
-                                                            'hidden'
-                                                        }),
-                                                ],
-                                                className=
-                                                "my-custom-container-style"),
-                                            dbc.Row(
-                                                [
-                                                    dbc.Col([
-                                                        dbc.Card(
-                                                            dbc.CardBody([
-                                                                html.
-                                                                H4("Wind Speed Timeseries",
-                                                                   className=
-                                                                   "card-title"
-                                                                   ),
-                                                                dcc.Graph(id="time-series-graph",style={
-                                                                'height':
-                                                                '40vh'
+                                                                     '25vh'
+                                                                 })
+                                                    ]),
+                                                            width={
+                                                                'size': 4,
+                                                                'order': 3
+                                                            },
+                                                            style={
+                                                                'overflow':
+                                                                'hidden',"paddingLeft":"10px"
                                                             }),
-                                                            ]))
-                                                    ],
-                                                            className=
-                                                            "card3-container"),
-                                                    dbc.Col([
-                                                        dbc.Card(
-                                                            dbc.CardBody([
-                                                                html.
-                                                                H4("LMP",
-                                                                   className=
-                                                                   "card-title2"
-                                                                   ),
-                                                                dcc.Graph(id="fairness-index-graph",style={
-                                                                'height':
-                                                                '40vh'
-                                                            }),
-                                                            ]))
-                                                    ],
-                                                            className=
-                                                            "card3-container"),
                                                 ],
-                                                className="align3-cards")
+                                                className="offshore"),
+                                            dbc.Row([
+                                                dbc.Col([
+                                                    dbc.Card(
+                                                        dbc.CardBody([
+                                                            html.
+                                                            H4("Wind Speed Timeseries",
+                                                               className=
+                                                               "card-title"),
+                                                            dcc.Graph(
+                                                                id=
+                                                                "time-series-graph",
+                                                                style={
+                                                                    'height':
+                                                                    '35vh'
+                                                                }),
+                                                        ]))
+                                                ],
+                                                        className=
+                                                        "card3-container"),
+                                                dbc.Col([
+                                                    dbc.Card(
+                                                        dbc.CardBody([
+                                                            html.H4(
+                                                                "LMP",
+                                                                className=
+                                                                "card-title2"),
+                                                            dcc.Graph(
+                                                                id=
+                                                                "fairness-index-graph",
+                                                                style={
+                                                                    'height':
+                                                                    '35vh'
+                                                                }),
+                                                        ]))
+                                                ],
+                                                        className=
+                                                        "card3-container"),
+                                            ],
+                                                    className="align3-cards")
                                         ],
-                                        fluid=True,className='dbc-container3-style')
+                                        fluid=True,
+                                        className='dbc-container3-style')
                                 ]),
                         ],
                         colors={
@@ -517,8 +537,7 @@ interface_layout = dbc.Container(
                             "background": "#98A5C0"
                         },
                     ),
-                    width={'size': 8
-                           },
+                    width={'size': 8},
                 ),
                 dbc.Col(
                     html.Div(
@@ -569,32 +588,50 @@ interface_layout = dbc.Container(
                                       style={'display': 'none'}),
                             html.Br(),
                             html.Div([
-                            html.Div([dbc.Label("HYPERPARAMETERS",
-                                      style={
-                                          'fontSize': "40px",
-                                          'display': 'none'
-                                        #   'textAlign': 'left',
-                                        #   'alignItems': 'left',
-                                        #   'left':'0px'
-                                      },
-                                      id="grid-2"),
-                            html.Div(id="hyperparameter-dropdowns",
-                                      style={'display':'none'}
-                                      )],style={
-                                          'textAlign': 'left',
-                                          'alignItems': 'left'}),
-                            html.Div([dbc.Label("Location", style={"fontSize":"15px",'left':'0px','textAlign': 'left', 'marginTop':'4px' }),
-                            get_location_dropdown()], style={
-                                          'textAlign': 'left',
-                                           'width':'150%', 'display':'none'}, id="location"),
-                            # dbc.Label("Input-parameters:",
-                            #           style={
-                            #               'fontSize': '15px',
-                            #               'display': 'none'
-                            #           },
-                            #           id="grid-2"),
-                            # html.Label("Location",style={'display':'none'}),
-                            # html.Div(get_location_dropdown(),style={'display':'none'}),
+                                html.Div(
+                                    [
+                                        dbc.Label(
+                                            "HYPERPARAMETERS",
+                                            style={
+                                                'fontSize': "40px",
+                                                'display': 'none'
+                                                #   'textAlign': 'left',
+                                                #   'alignItems': 'left',
+                                                #   'left':'0px'
+                                            },
+                                            id="grid-2"),
+                                        html.Div(id="hyperparameter-dropdowns",
+                                                 style={'display': 'none'})
+                                    ],
+                                    style={
+                                        'textAlign': 'left',
+                                        'alignItems': 'left'
+                                    }),
+                                html.Div(
+                                    [
+                                        dbc.Label("Location",
+                                                  style={
+                                                      "fontSize": "15px",
+                                                      'left': '0px',
+                                                      'textAlign': 'left',
+                                                      'marginTop': '4px'
+                                                  }),
+                                        get_location_dropdown()
+                                    ],
+                                    style={
+                                        'textAlign': 'left',
+                                        'width': '150%',
+                                        'display': 'none'
+                                    },
+                                    id="location"),
+                                # dbc.Label("Input-parameters:",
+                                #           style={
+                                #               'fontSize': '15px',
+                                #               'display': 'none'
+                                #           },
+                                #           id="grid-2"),
+                                # html.Label("Location",style={'display':'none'}),
+                                # html.Div(get_location_dropdown(),style={'display':'none'}),
                             ])
                         ],
                         className='control-section',
@@ -611,8 +648,7 @@ interface_layout = dbc.Container(
                         'overflow': 'hidden',
                         'marginLeft': '0px'
                     })
-            ],
-        ),
+            ], ),
     ],
     className="main-container",
     fluid=True)

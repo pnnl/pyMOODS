@@ -9,9 +9,9 @@
         }
     },
     "hyperparameters": {
-        "technology": {"name":"Battery Technology", "description": "", "values": ["LFP"]},
-        "power": {"name":"Battery Power Rating (MW)", "description": "", "values": [100]},
-        "duration": {"name":"Battery Duration (Hours)", "description": "", "values": [2, 4]},
+        "technology": {"name":"Battery Technology", "description": "", "values": ["LFP", "LAB", "NMC", "VRF"]},
+        "power": {"name":"Battery Power Rating (MW)", "description": "", "values": [100, 1000]},
+        "duration": {"name":"Battery Duration (Hours)", "description": "", "values": [2, 4, 6, 8]},
         "other_cols": {
             "cost": {"name":"Battery Installation Cost ($/kWH)", "description": ""}
         }

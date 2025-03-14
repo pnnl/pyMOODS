@@ -227,7 +227,6 @@ app.layout = html.Div([
         Output("data-generated", "data"),
         Output('obj-weights-store', 'data'),
         Output('graph1', 'figure'),
-        #   Output('update-message','children')
     ],
     [
         Input("generated-dtlz-button", "n_clicks"),
