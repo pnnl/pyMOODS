@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
-import Plot from 'react-plotly.js';
+import createPlotlyComponent from 'react-plotly.js/factory';
+import Plotly from 'plotly.js-basic-dist';
+
+const Plot = createPlotlyComponent(Plotly);
 
 export default function MainGrid() {
   const navbarHeight= 64;
