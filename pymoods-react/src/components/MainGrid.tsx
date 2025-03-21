@@ -47,10 +47,10 @@ export default function MainGrid() {
       <Box sx={{ mt: 2 }}>
         {/* Use Case Tab */}
         {tabIndex === 0 && (
-          <Box>
-            <Typography variant="body1" sx={{ fontSize: '18px' }}>Solution Space</Typography>
-            <LMPPlot  />
-          </Box>
+            <Box>
+              <Typography variant="body1" sx={{ fontSize: '18px' }}>Solution Space</Typography>
+              <LMPPlot />
+            </Box>
         )}
 
         {/* Exploratory Analysis Tab */}

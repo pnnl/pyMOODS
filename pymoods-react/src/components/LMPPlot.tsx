@@ -90,14 +90,14 @@ const LMPPlot: React.FC = () => {
                 LMP
             </Typography>
             <Plot
-            data={plotData()}
-            layout={{
-                title: 'LMP Over Time',
-                xaxis: { title: { text: 'Hour', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
-                yaxis: { title: { text: 'LMP', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
-                paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-            }}
+                data={plotData()}
+                layout={{
+                    title: 'LMP Over Time',
+                    xaxis: { title: { text: 'Hour', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
+                    yaxis: { title: { text: 'LMP', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
+                    paper_bgcolor: 'transparent',
+                    plot_bgcolor: 'transparent',
+                }}
             />
         </Box>
       );
