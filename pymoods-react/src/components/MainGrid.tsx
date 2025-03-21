@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Box, Tabs, Tab, Typography } from '@mui/material';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
-import OffshoreScatterPlot from './OffshoreScatterPlot';
 import LMPPlot from './LMPPlot';
 
 const Plot = createPlotlyComponent(Plotly);
@@ -23,7 +22,6 @@ export default function MainGrid() {
         minHeight: `calc(100vh - ${navbarHeight}px)`,
         mt: `56px`,
         flex: 1,
-        // display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
       }}
@@ -35,8 +33,9 @@ export default function MainGrid() {
         variant="standard" 
         sx={{
           '.MuiTab-root': { 
-            outline: 'none',
-            '&.Mui-selected': { borderBottom: '3px solid'},
+        // outline: 'none',
+        fontSize: '12px', // Smaller font size
+        '&.Mui-selected': { borderBottom: '3px solid'},
           }
         }}
       >
@@ -49,7 +48,7 @@ export default function MainGrid() {
         {/* Use Case Tab */}
         {tabIndex === 0 && (
           <Box>
-            <Typography variant="h6">Solution Space</Typography>
+            <Typography variant="body1" sx={{ fontSize: '18px' }}>Solution Space</Typography>
             <LMPPlot  />
           </Box>
         )}

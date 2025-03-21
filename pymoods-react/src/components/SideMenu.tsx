@@ -73,11 +73,11 @@ export default function SideMenu() {
       >
         {/* <Button variant="contained">Upload Data</Button> */}
         <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ color: 'white', textAlign: 'left' }}>
+            <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Use Cases
-          </Typography>
+            </Typography>
           <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
-            <SidebarInputLabel>
+            <SidebarInputLabel sx={{ fontSize: '12px' }}>
               Select Use Case
             </SidebarInputLabel>
             <SidebarSelect>
@@ -89,11 +89,11 @@ export default function SideMenu() {
         </Box>
 
         <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ color: 'white', textAlign: 'left' }}>
+          <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Filters
           </Typography>
           <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white' }}>Battery Technology</SidebarInputLabel>
+            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Technology</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
               <MenuItem value={20}>Option 2</MenuItem>
@@ -101,7 +101,7 @@ export default function SideMenu() {
             </SidebarSelect>
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white' }}>Battery Power Rating (MW)</SidebarInputLabel>
+            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Power Rating (MW)</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
               <MenuItem value={20}>Option 2</MenuItem>
@@ -109,7 +109,7 @@ export default function SideMenu() {
             </SidebarSelect>
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white' }}>Battery Duration (Hours)</SidebarInputLabel>
+            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Duration (Hours)</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
               <MenuItem value={20}>Option 2</MenuItem>
@@ -117,7 +117,7 @@ export default function SideMenu() {
             </SidebarSelect>
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white' }}>Location</SidebarInputLabel>
+            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Location</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
               <MenuItem value={20}>Option 2</MenuItem>
@@ -127,7 +127,7 @@ export default function SideMenu() {
         </Box>
 
         <Box sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ color: 'white', textAlign: 'left' }}>
+          <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Summary
           </Typography>
           {/* Add summary content here */}

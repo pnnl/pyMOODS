@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Papa from 'papaparse';
+import Box from '@mui/material/Box';
+import { Typography } from '@mui/material';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -83,19 +85,21 @@ const LMPPlot: React.FC = () => {
       };
     
       return (
-        <div>
-          <h4>LMP</h4>
-          <Plot
+        <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography variant="body1" sx={{ textAlign: 'center'}}>
+                LMP
+            </Typography>
+            <Plot
             data={plotData()}
             layout={{
-              title: 'LMP Over Time',
-              xaxis: { title: { text: 'Hour', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
-              yaxis: { title: { text: 'LMP', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
-              paper_bgcolor: 'transparent',
-              plot_bgcolor: 'transparent',
+                title: 'LMP Over Time',
+                xaxis: { title: { text: 'Hour', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
+                yaxis: { title: { text: 'LMP', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
             }}
-          />
-        </div>
+            />
+        </Box>
       );
     };
 
