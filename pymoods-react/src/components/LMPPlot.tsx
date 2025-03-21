@@ -7,8 +7,8 @@ import Papa from 'papaparse';
 const Plot = createPlotlyComponent(Plotly);
 
 interface CsvRow {
-    INTERVALSTARTTIME_GMT?: string;
-    LMP?: string;
+    INTERVALSTARTTIME_GMT: string;
+    LMP: string;
     [key: string]: any;
 }
 
@@ -28,7 +28,7 @@ const LMPPlot: React.FC = () => {
             header: true,
             dynamicTyping: true,
             complete: (results) => {
-              setColumns(Object.keys(results.data[0]));
+              setColumns(Object.keys(results.data[0] as CsvRow));
               setData(results.data);
             },
           });
@@ -54,7 +54,7 @@ const LMPPlot: React.FC = () => {
     
         const hourlyLMPMean = Object.keys(hourlyLMP).map(hour => ({
           hour: parseInt(hour),
-          LMP: hourlyLMP[hour].reduce((sum, val) => sum + val, 0) / hourlyLMP[hour].length
+          LMP: hourlyLMP[hour].reduce((sum: any, val: any) => sum + val, 0) / hourlyLMP[hour].length
         }));
     
         const x = hourlyLMPMean.map(row => row.hour);
@@ -73,7 +73,7 @@ const LMPPlot: React.FC = () => {
     
       return (
         <div>
-          <h2>Fairness Index (LMP Over Time)</h2>
+          <h4>LMP Over Time</h4>
           <Plot
             data={plotData()}
             layout={{
