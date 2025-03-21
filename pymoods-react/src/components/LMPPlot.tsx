@@ -1,55 +1,91 @@
 import { useState, useEffect } from 'react';
+// import Plotly from "plotly.js-basic-dist";
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import * as d3 from "d3";
+import Papa from 'papaparse';
 
 const Plot = createPlotlyComponent(Plotly);
 
+interface CsvRow {
+    INTERVALSTARTTIME_GMT?: string;
+    LMP?: string;
+    [key: string]: any;
+}
+
 const LMPPlot: React.FC = () => {
-  const [data, setData] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] });
+    const [data, setData] = useState<any[]>([]);
+    const [columns, setColumns] = useState<string[]>([]);
 
-  useEffect(() => {
-    d3.csv("/data/LMP.csv").then((csvData) => {
-      const x: number[] = [];
-      const y: number[] = [];
+    useEffect(() => {
+        // Load and parse the CSV file
+        const fetchData = async () => {
+          const response = await fetch('/data/LMP.csv');
+          const reader = response.body?.getReader();
+          const result = await reader?.read();
+          const decoder = new TextDecoder('utf-8');
+          const csv = decoder.decode(result?.value);
+          Papa.parse(csv, {
+            header: true,
+            dynamicTyping: true,
+            complete: (results) => {
+              setColumns(Object.keys(results.data[0]));
+              setData(results.data);
+            },
+          });
+        };
+    
+        fetchData();
+      }, []);
 
-      csvData.forEach((row, index) => {
-        if (row.INTERVALSTARTTIME_GMT && row.LMP) {
-          x.push(index); // Convert timestamps to sequential numbers for plotting
-          y.push(parseFloat(row.LMP));
-        }
-      });
-
-      setData({ x, y });
-    });
-  }, []);
-
-  return (
-    <Plot
-      data={[{
-        x: data.x,
-        y: data.y,
-        type: 'scatter',
-        mode: 'lines+markers',
-        marker: { color: 'blue' }
-      }]}
-      layout={{
-        title: 'LMP Plot',
-        xaxis: {
-          title: 'Hour',
-          tickmode: 'array',
-          tickvals: [0, 5, 10, 15, 20],
-          ticktext: ['0', '5', '10', '15', '20']
-        },
-        yaxis: {
-          title: 'LMP',
-          tickmode: 'array',
-          tickvals: [0, 10, 20, 30, 40, 50, 60, 70],
-          ticktext: ['0', '10', '20', '30', '40', '50', '60', '70']
-        }
-      }}
-    />
-  );
-};
+      const plotData = () => {
+        if (data.length === 0) return [];
+    
+        const parsedData = data.map(row => ({
+          ...row,
+          INTERVALSTARTTIME_GMT: new Date(row.INTERVALSTARTTIME_GMT)
+        }));
+    
+        const hourlyLMP = parsedData.reduce((acc, row) => {
+          const hour = row.INTERVALSTARTTIME_GMT.getHours();
+          if (!acc[hour]) acc[hour] = [];
+          acc[hour].push(row.LMP);
+          return acc;
+        }, {});
+    
+        const hourlyLMPMean = Object.keys(hourlyLMP).map(hour => ({
+          hour: parseInt(hour),
+          LMP: hourlyLMP[hour].reduce((sum, val) => sum + val, 0) / hourlyLMP[hour].length
+        }));
+    
+        const x = hourlyLMPMean.map(row => row.hour);
+        const y = hourlyLMPMean.map(row => row.LMP);
+    
+        return [
+          {
+            x,
+            y,
+            type: 'scatter',
+            mode: 'lines',
+            marker: { color: 'blue' },
+          },
+        ];
+      };
+    
+      return (
+        <div>
+          <h2>Fairness Index (LMP Over Time)</h2>
+          <Plot
+            data={plotData()}
+            layout={{
+              title: 'LMP Over Time',
+              xaxis: { title: 'Hour of Day', showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5, title_standoff: 10 },
+              yaxis: { title: 'LMP', showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5, title_standoff: 10 },
+              paper_bgcolor: 'transparent',
+              plot_bgcolor: 'transparent',
+            }}
+          />
+        </div>
+      );
+    };
 
 export default LMPPlot;
