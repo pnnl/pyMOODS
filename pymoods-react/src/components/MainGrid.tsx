@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Tabs, Tab, Typography } from '@mui/material';
+import { Box, Tabs, Tab, Typography, Grid } from '@mui/material';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
 import LMPPlot from './LMPPlot';
@@ -47,10 +47,28 @@ export default function MainGrid() {
       <Box sx={{ mt: 2 }}>
         {/* Use Case Tab */}
         {tabIndex === 0 && (
-            <Box>
-              <Typography variant="body1" sx={{ fontSize: '18px' }}>Solution Space</Typography>
-              <LMPPlot />
-            </Box>
+          <Box>
+            <Grid container spacing={2}>
+              {/* Top row with 3 LMPPlot components */}
+              <Grid xs={12} md={4}>
+                <LMPPlot />
+              </Grid>
+              <Grid xs={12} md={4}>
+                <LMPPlot />
+              </Grid>
+              <Grid xs={12} md={4}>
+                <LMPPlot />
+              </Grid>
+              
+              {/* Bottom row with 2 LMPPlot components */}
+              <Grid xs={12} md={6}>
+                <LMPPlot />
+              </Grid>
+              <Grid xs={12} md={6}>
+                <LMPPlot />
+              </Grid>
+            </Grid>
+          </Box>
         )}
 
         {/* Exploratory Analysis Tab */}
