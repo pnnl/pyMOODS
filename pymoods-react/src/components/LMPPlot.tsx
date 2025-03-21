@@ -37,7 +37,7 @@ const LMPPlot: React.FC = () => {
         fetchData();
       }, []);
 
-      const plotData = () => {
+      const plotData = (): Partial<Plotly.Data>[] => {
         if (data.length === 0) return [];
     
         const parsedData = data.map(row => ({
@@ -73,13 +73,13 @@ const LMPPlot: React.FC = () => {
     
       return (
         <div>
-          <h4>LMP Over Time</h4>
+          <h4>LMP</h4>
           <Plot
             data={plotData()}
             layout={{
               title: 'LMP Over Time',
-              xaxis: { title: 'Hour of Day', showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5, title_standoff: 10 },
-              yaxis: { title: 'LMP', showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5, title_standoff: 10 },
+              xaxis: { title: { text: 'Hour', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
+              yaxis: { title: { text: 'LMP', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
               paper_bgcolor: 'transparent',
               plot_bgcolor: 'transparent',
             }}
