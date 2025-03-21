@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-// import Plotly from "plotly.js-basic-dist";
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Papa from 'papaparse';
@@ -52,10 +51,22 @@ const LMPPlot: React.FC = () => {
           return acc;
         }, {});
     
-        const hourlyLMPMean = Object.keys(hourlyLMP).map(hour => ({
-          hour: parseInt(hour),
-          LMP: hourlyLMP[hour].reduce((sum: any, val: any) => sum + val, 0) / hourlyLMP[hour].length
-        }));
+        const hourlyLMPMean = Object.keys(hourlyLMP).map(hour => {
+          const lmpValues = hourlyLMP[hour];
+          const validLMPValues = lmpValues.filter((val: number) => !isNaN(val));
+          const meanLMP = validLMPValues.reduce((sum: any, val: any) => sum + val, 0) / validLMPValues.length;
+  
+          // Log each hour's LMP values and mean to check for any issues
+          console.log(`Hour: ${hour}, LMP Values:`, lmpValues, `Mean LMP: ${meanLMP}`);
+  
+          return {
+              hour: parseInt(hour),
+              LMP: meanLMP
+          };
+      });
+       
+        // Log hourlyLMPMean to check for any issues
+        console.log("Hourly LMP Mean:", hourlyLMPMean);
     
         const x = hourlyLMPMean.map(row => row.hour);
         const y = hourlyLMPMean.map(row => row.LMP);
