@@ -86,13 +86,12 @@ const LMPPlot: React.FC = () => {
     
       return (
         <Box display="flex" flexDirection="column" alignItems="center">
-            <Typography variant="body1" sx={{ textAlign: 'center'}}>
-                LMP
-            </Typography>
             <Plot
                 data={plotData()}
                 layout={{
-                    title: 'LMP Over Time',
+                    width: 450,
+                    height: 325,
+                    title: {text: 'LMP'},
                     xaxis: { title: { text: 'Hour', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
                     yaxis: { title: { text: 'LMP', standoff: 10 }, showgrid: true, showline: true, zeroline: true, linecolor: 'black', tickcolor: 'black', ticks: 'outside', ticklen: 5 },
                     paper_bgcolor: 'transparent',
