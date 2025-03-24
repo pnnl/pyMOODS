@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Papa from 'papaparse';
+import * as d3 from 'd3';
 import Box from '@mui/material/Box';
 
 const Plot = createPlotlyComponent(Plotly);
@@ -28,6 +29,7 @@ interface CsvRow {
 
 const OffshoreClusterScatterPlot: React.FC = () => {
     const [data, setData] = useState<CsvRow[]>([]);
+    const [hullData, setHullData] = useState<Record<string, [number, number][]> | null>(null);
     
     useEffect(() => {
         const fetchData = async () => {
@@ -66,6 +68,7 @@ const OffshoreClusterScatterPlot: React.FC = () => {
                     // Only update state after processing all files
                     if (file === CSV_FILES[CSV_FILES.length - 1]) {
                         setData(allData);
+                        computeConvexHulls(allData);
                     }
                 },
             });
@@ -75,21 +78,49 @@ const OffshoreClusterScatterPlot: React.FC = () => {
         fetchData();
     }, []);
 
-      const plotData = (): Partial<Plotly.Data>[] => {
+    // Function to compute convex hulls using D3.js
+    const computeConvexHulls = (allData: CsvRow[]) => {
+        const hulls: Record<string, [number, number][]> = {};
+
+        CSV_FILES.forEach((file) => {
+        const points = allData
+            .filter((row) => row.site === file.label)
+            .map((row) => [row.windSpeed100m, row.windDirection100m] as [number, number]);
+
+        const hull = d3.polygonHull(points);
+        if (hull) {
+            hulls[file.label] = hull;
+        }
+        });
+
+        setHullData(hulls);
+    };
+
+    const plotData = (): Partial<Plotly.Data>[] => {
         if (data.length === 0) return [];
-    
-        return CSV_FILES.map((file) => ({
+
+        const scatterData = CSV_FILES.map((file) => ({
             x: data.filter((row) => row.site === file.label).map((row) => row.windSpeed100m),
             y: data.filter((row) => row.site === file.label).map((row) => row.windDirection100m),
             mode: 'markers',
             type: 'scatter',
-            marker: {
-              size: 6,
-              color: file.color,
-            },
+            marker: { size: 6, color: file.color },
             name: file.label,
         }));
-      };
+
+        const hullTraces =
+            hullData &&
+            Object.entries(hullData).map(([site, hull]) => ({
+                x: [...hull.map((p) => p[0]), hull[0][0]], // Close the polygon
+                y: [...hull.map((p) => p[1]), hull[0][1]], // Close the polygon
+                mode: 'lines',
+                line: { color: CSV_FILES.find((f) => f.label === site)?.color, width: 2 },
+                name: `${site} Hull`,
+                showlegend: false,
+            }));
+
+        return [...scatterData, ...(hullTraces || [])] as Partial<Plotly.Data>[];
+    };
     
       return (
         <Box display="flex" flexDirection="column" alignItems="center">
@@ -99,8 +130,8 @@ const OffshoreClusterScatterPlot: React.FC = () => {
                     width: 600,
                     height: 400,
                     title: {text: 'Solution Space'},
-                    xaxis: { showticklabels: false }, // Hide x-axis intervals
-                    yaxis: { showticklabels: false }, // Hide y-axis intervals
+                    xaxis: { showticklabels: false },
+                    yaxis: { showticklabels: false },
                     paper_bgcolor: 'transparent',
                     plot_bgcolor: 'transparent',
                     legend: { x: 1, y: 1 },
