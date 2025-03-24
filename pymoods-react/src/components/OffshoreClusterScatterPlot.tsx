@@ -6,9 +6,7 @@ import Box from '@mui/material/Box';
 
 const Plot = createPlotlyComponent(Plotly);
 
-const CSV_FILES = [
-    '/data/COTTONWOOD_2018.csv'
-];
+const CSV_FILE = '/data/COTTONWOOD_2018.csv';
 
 interface CsvRow {
     Year: number;
@@ -16,9 +14,9 @@ interface CsvRow {
     Day: number;
     Hour: number;
     Minute: number;
-    'wind speed at 100m (m/s)': number;
-    'wind direction at 100m (deg)': number;
-    'wind speed at 140m (m/s)': number;
+    windSpeed100m: number;
+    windDirection100m: number;
+    windSpeed140m: number;
 }
 
 const OffshoreClusterScatterPlot: React.FC = () => {
@@ -26,31 +24,36 @@ const OffshoreClusterScatterPlot: React.FC = () => {
     
     useEffect(() => {
         const fetchData = async () => {
-          const allData: CsvRow[] = [];
+          const response = await fetch(CSV_FILE);
+          const csvText = await response.text();
     
-          for (const file of CSV_FILES) {
-            const response = await fetch(file);
-            const csvText = await response.text();
+          Papa.parse(csvText, {
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: (results) => {
+              const rawRows = results.data as string[][];
     
-            Papa.parse(csvText, {
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
-              complete: (results) => {
-                const parsedData = results.data as CsvRow[];
+              // Find the actual data start row (where "Year" is the first column)
+              const headerRowIndex = rawRows.findIndex((row) => row[0] === 'Year');
+              if (headerRowIndex === -1) return;
     
-                // Ensure valid numerical data
-                const filteredData = parsedData.filter(
-                  (row) =>
-                    !isNaN(row['wind speed at 100m (m/s)']) &&
-                    !isNaN(row['wind direction at 100m (deg)'])
-                );
+              const headers = rawRows[headerRowIndex] as string[];
+              const validData = rawRows.slice(headerRowIndex + 1);
     
-                allData.push(...filteredData);
-                setData([...allData]);
-              },
-            });
-          }
+              const parsedData: CsvRow[] = validData.map((row) => ({
+                Year: Number(row[0]),
+                Month: Number(row[1]),
+                Day: Number(row[2]),
+                Hour: Number(row[3]),
+                Minute: Number(row[4]),
+                windSpeed100m: Number(row[5]),
+                windDirection100m: Number(row[6]),
+                windSpeed140m: Number(row[7]),
+              }));
+    
+              setData(parsedData);
+            },
+          });
         };
     
         fetchData();
@@ -61,11 +64,16 @@ const OffshoreClusterScatterPlot: React.FC = () => {
     
         return [
             {
-              x: data.map((row) => row['wind speed at 100m (m/s)']),
-              y: data.map((row) => row['wind direction at 100m (deg)']),
+              x: data.map((row) => row.windSpeed100m),
+              y: data.map((row) => row.windDirection100m),
               mode: 'markers',
               type: 'scatter',
-              marker: { size: 6, color: data.map((row) => row['wind speed at 140m (m/s)']) },
+              marker: { 
+                size: 6, 
+                color: data.map((row) => row.windSpeed140m),
+                colorscale: 'Viridis', 
+                showscale: true,
+              },
               name: 'Wind Clusters',
             },
         ];
