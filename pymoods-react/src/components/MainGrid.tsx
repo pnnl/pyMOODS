@@ -50,14 +50,11 @@ export default function MainGrid() {
         {tabIndex === 0 && (
           <Box>
             <Grid container spacing={2}>
-              {/* Top row with 3 LMPPlot components */}
-              <Grid xs={12} md={4}>
+              {/* Top row with 2 LMPPlot components */}
+              <Grid xs={12} md={6}>
                 <OffshoreClusterScatterPlot />
               </Grid>
-              <Grid xs={12} md={4}>
-                <LMPPlot />
-              </Grid>
-              <Grid xs={12} md={4}>
+              <Grid xs={12} md={6}>
                 <LMPPlot />
               </Grid>
               

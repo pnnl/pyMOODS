@@ -99,8 +99,8 @@ const OffshoreClusterScatterPlot: React.FC = () => {
                     width: 600,
                     height: 400,
                     title: {text: 'Solution Space'},
-                    xaxis: { title: 'Wind Speed at 100m (m/s)' },
-                    yaxis: { title: 'Wind Direction at 100m (deg)' },
+                    xaxis: { showticklabels: false }, // Hide x-axis intervals
+                    yaxis: { showticklabels: false }, // Hide y-axis intervals
                     paper_bgcolor: 'transparent',
                     plot_bgcolor: 'transparent',
                     legend: { x: 1, y: 1 },
