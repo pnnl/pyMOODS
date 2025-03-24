@@ -7,8 +7,11 @@ import Box from '@mui/material/Box';
 const Plot = createPlotlyComponent(Plotly);
 
 const CSV_FILES = [
-    { path: '/data/COTTONWOOD_2018.csv', label: 'Cottonwood', color: 'blue' },
-    { path: '/data/JOHNDAY_2018.csv', label: 'Johnday', color: 'red' },
+    { path: '/data/COTTONWOOD_2018.csv', label: 'COTTONWOOD', color: 'blue' },
+    { path: '/data/JOHNDAY_2018.csv', label: 'JOHNDAY', color: 'orange' },
+    { path: '/data/MOSSLAND_2018.csv', label: 'MOSSLAND', color: 'green' },
+    { path: '/data/TESLA_2018.csv', label: 'TESLA', color: 'red' },
+    { path: '/data/WCASCADE_2018.csv', label: 'WCASCADE', color: 'purple' },
 ];
 
 interface CsvRow {
