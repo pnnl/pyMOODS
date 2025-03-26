@@ -119,7 +119,41 @@ const OffshoreClusterScatterPlot: React.FC = () => {
                 showlegend: false,
             }));
 
-        return [...scatterData, ...(hullTraces || [])] as Partial<Plotly.Data>[];
+        // Find the min and max values for both x and y axes
+        const xValues = data.map((row) => row.windSpeed100m);
+        const yValues = data.map((row) => row.windDirection100m);
+
+        const xMin = Math.min(...xValues);
+        const xMax = Math.max(...xValues);
+        const yMin = Math.min(...yValues);
+        const yMax = Math.max(...yValues);
+
+        // Add some padding to the axes to "zoom out"
+        const xPadding = (xMax - xMin) * 0.1;  // 10% padding on both sides
+        const yPadding = (yMax - yMin) * 0.1;  // 10% padding on both sides
+
+        return [
+            ...scatterData,
+            ...(hullTraces || []),
+            {
+              layout: {
+                width: 600,
+                height: 400,
+                title: 'Wind Speed & Direction Clustering',
+                xaxis: {
+                  title: 'Wind Speed at 100m (m/s)',
+                  range: [xMin - xPadding, xMax + xPadding],  // Set the x axis range with padding
+                },
+                yaxis: {
+                  title: 'Wind Direction at 100m (deg)',
+                  range: [yMin - yPadding, yMax + yPadding],  // Set the y axis range with padding
+                },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                legend: { x: 1, y: 1 },
+              },
+            },
+        ] as Partial<Plotly.Data>[];
     };
     
       return (
