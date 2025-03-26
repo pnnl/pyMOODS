@@ -3,7 +3,7 @@ import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Papa from 'papaparse';
 import Box from '@mui/material/Box';
-import { Typography } from '@mui/material';
+// import { Typography } from '@mui/material';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -47,7 +47,7 @@ const LMPPlot: React.FC = () => {
         }));
     
         const hourlyLMP = parsedData.reduce((acc, row) => {
-          const hour = row.INTERVALSTARTTIME_GMT.getHours();
+          const hour = row.INTERVALSTARTTIME_GMT.getUTCHours();
           if (!acc[hour]) acc[hour] = [];
           acc[hour].push(row.LMP);
           return acc;
