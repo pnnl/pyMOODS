@@ -3,6 +3,7 @@ import { Box, Tabs, Tab, Typography, Grid } from '@mui/material';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import Plotly from 'plotly.js-basic-dist';
 import LMPPlot from './LMPPlot';
+import OffshoreClusterScatterPlot from './OffshoreClusterScatterPlot';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -49,14 +50,11 @@ export default function MainGrid() {
         {tabIndex === 0 && (
           <Box>
             <Grid container spacing={2}>
-              {/* Top row with 3 LMPPlot components */}
-              <Grid xs={12} md={4}>
-                <LMPPlot />
+              {/* Top row with 2 LMPPlot components */}
+              <Grid xs={12} md={6}>
+                <OffshoreClusterScatterPlot />
               </Grid>
-              <Grid xs={12} md={4}>
-                <LMPPlot />
-              </Grid>
-              <Grid xs={12} md={4}>
+              <Grid xs={12} md={6}>
                 <LMPPlot />
               </Grid>
               
