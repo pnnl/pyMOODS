@@ -312,10 +312,11 @@ def generate_objective_graph(data):
     # target_max = objective_value * 1.2 if objective_value > 0 else 100
     
     fig = go.Figure(go.Indicator(
-        mode = "number+delta",
+        mode = "number",
         value=objective_mean,
-        delta={"reference": objective_std,"valueformat":".2f"},
-        title={"text": f"Mean & Std of {objective_col.capitalize()}"},
+        # delta={"reference": objective_std,"valueformat":".2f"},
+        title={"text": f"Standard Deviation: {objective_std:.2f} & <br> Mean:",
+               "font":{"size": 15}},
         number ={"font": {"size": 50}, "valueformat":".2f"},
         domain={"x":[0,1], "y":[0,1]}
         # gauge={
