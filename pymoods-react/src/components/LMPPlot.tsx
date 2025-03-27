@@ -46,7 +46,7 @@ const LMPPlot: React.FC = () => {
         }));
     
         const hourlyLMP = parsedData.reduce((acc, row) => {
-          const hour = row.INTERVALSTARTTIME_GMT.getHours();
+          const hour = row.INTERVALSTARTTIME_GMT.getUTCHours();
           if (!acc[hour]) acc[hour] = [];
           acc[hour].push(row.LMP);
           return acc;
