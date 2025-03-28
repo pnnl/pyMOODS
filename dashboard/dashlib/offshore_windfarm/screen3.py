@@ -295,7 +295,7 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
 
 def draw_clusters_scatterplot_json(clusters, points, selected_indices=None):
     fig = draw_clusters_scatterplot(clusters, points, selected_indices)
-    return fig.to_json()  # Serialize the figure to JSON
+    return fig.to_json()  # Serialize the entire figure, including legend and layout
 
 def generate_objective_graph(data):
     objective_col = list(objective_functions.keys())[0]

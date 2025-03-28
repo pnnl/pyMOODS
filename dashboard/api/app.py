@@ -17,11 +17,12 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:8080"}})
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
     # Generate the scatterplot JSON
-    scatterplot_json = draw_clusters_scatterplot_json(clusters, points)
+    scatterplot_figure = draw_clusters_scatterplot_json(clusters, points)
+    scatterplot_json = scatterplot_figure.to_json()  # Convert the figure to JSON
     return jsonify({"scatterplot": scatterplot_json})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 
 # # Load data and initialize Visualizer
 # CSV_FILE_PATH = "../data/v2_test_summary.csv"
@@ -29,17 +30,6 @@ if __name__ == '__main__':
 # ovars = ['objective']
 # dvars = ['size', 'cable']
 # visualizer = Visualizer(data=data, data_ovars=ovars, data_dvars=dvars)
-
-# @app.route('/api/plot/scatter', methods=['GET'])
-# def get_scatter_plot():
-#     points = visualizer.joint_xy
-#     clusters = visualizer.get_overlapping_clusters(
-#         threshold=0.5,
-#         clu=visualizer.Cluster,
-#         drop_intermediate=False
-#     )
-#     fig = visualizer.draw_clusters_scatterplot(clusters, points)
-#     return jsonify(fig.to_dict())
 
 # @app.route('/api/plot/time_series', methods=['GET'])
 # def get_time_series():

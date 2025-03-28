@@ -49,22 +49,23 @@ export default function MainGrid() {
         {/* Use Case Tab */}
         {tabIndex === 0 && (
           <Box>
+            
             <Grid container spacing={2}>
               {/* Top row with 2 LMPPlot components */}
               <Grid xs={12} md={6}>
                 <OffshoreWindfarmClusterScatterPlot />
               </Grid>
-              <Grid xs={12} md={6}>
+              {/* <Grid xs={12} md={6}>
                 <LMPPlot />
-              </Grid>
+              </Grid> */}
               
               {/* Bottom row with 2 LMPPlot components */}
-              <Grid xs={12} md={6}>
+              {/* <Grid xs={12} md={6}>
                 <LMPPlot />
               </Grid>
               <Grid xs={12} md={6}>
                 <LMPPlot />
-              </Grid>
+              </Grid> */}
             </Grid>
           </Box>
         )}
