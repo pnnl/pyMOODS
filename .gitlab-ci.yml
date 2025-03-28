@@ -57,6 +57,7 @@ docs:
     - mv build/html public
   artifacts:
     paths:
+      # The folder that contains the files to be exposed at the Page URL
       - public
   only:
     - main  # Trigger on main branch
