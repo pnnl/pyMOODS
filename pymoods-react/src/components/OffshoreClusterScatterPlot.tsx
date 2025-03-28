@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import Plotly from "plotly.js-basic-dist";
+import * as Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import Papa from 'papaparse';
+import * as Papa from 'papaparse';
 import * as d3 from 'd3';
 import Box from '@mui/material/Box';
 
