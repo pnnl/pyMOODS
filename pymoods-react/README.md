@@ -1,50 +1,37 @@
-# React + TypeScript + Vite
+# pyMOODS in React
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Running Locally
 
-Currently, two official plugins are available:
+To view pyMOODS in React, run the following commands:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. In the `dashboard` directory, create or activate a venv and install the dependencies:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+pip install -r requirements.txt
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Activate the virtual environment. If you are using `venv`, run the following command:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+source venv/Scripts/activate
 ```
+
+3. In the `dashboard/api/` directory, run the following command to start the API server:
+
+```bash
+python app.py
+```
+
+4. In the `pymoods-react` directory, run the following command to install the dependencies:
+
+```bash
+yarn install
+```
+
+5. After the dependencies are installed, run the following command to start the development server:
+
+```bash
+yarn dev
+```
+
+The API should be running on `http://localhost:5000` and the React app should be running on `http://localhost:8080`. You can access the app in your web browser by navigating to `http://localhost:8080`.
