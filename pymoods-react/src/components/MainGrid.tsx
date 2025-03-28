@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Box, Tabs, Tab, Typography, Grid } from '@mui/material';
 import createPlotlyComponent from 'react-plotly.js/factory';
-import Plotly from 'plotly.js-basic-dist';
+import * as Plotly from 'plotly.js-basic-dist';
 import LMPPlot from './LMPPlot';
-import OffshoreClusterScatterPlot from './OffshoreClusterScatterPlot';
+import OffshoreWindfarmClusterScatterPlot from './OffshoreWindfarmClusterScatterPlot';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -52,7 +52,7 @@ export default function MainGrid() {
             <Grid container spacing={2}>
               {/* Top row with 2 LMPPlot components */}
               <Grid xs={12} md={6}>
-                <OffshoreClusterScatterPlot />
+                <OffshoreWindfarmClusterScatterPlot />
               </Grid>
               <Grid xs={12} md={6}>
                 <LMPPlot />
