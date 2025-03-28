@@ -50,6 +50,8 @@ deploy-job:      # This job runs in the deploy stage.
 docs-job:
   stage: docs
   image: python:3.8
+  before_script:
+    - pip3 install -r docs/requirements.txt
   script:
     - cd docs && make html
     - mv build/html public
