@@ -22,7 +22,7 @@ stages:          # List of stages for jobs, and their order of execution
 docs-job:
   stage: docs
   tags:
-    - pymoods
+    - scaled-shared
   image: python:3.8
   before_script:
     - pip install -r docs/requirements.txt
