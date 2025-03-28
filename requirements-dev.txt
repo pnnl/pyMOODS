@@ -1,0 +1,19 @@
+# Testing
+pytest>=6.0
+pytest-cov>=2.0
+pytest-mock>=3.0
+
+# Linting
+flake8>=3.8
+black>=21.0
+isort>=5.0
+mypy>=0.900
+
+# Documentation
+sphinx>=4.0
+sphinx-rtd-theme>=0.5
+sphinx-autodoc-typehints>=1.0
+
+# Packaging
+twine>=3.0
+wheel>=0.36
