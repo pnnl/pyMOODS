@@ -54,7 +54,8 @@ docs-job:
     - pip3 install -r docs/requirements.txt
   script:
     - cd docs && make html
-    - mv build/html public
+    - cd ..
+    - mv docs/build/html public/
   artifacts:
     paths:
       # The folder that contains the files to be exposed at the Page URL
