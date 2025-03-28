@@ -47,3 +47,16 @@ deploy-job:      # This job runs in the deploy stage.
   script:
     - echo "Deploying application..."
     - echo "Application successfully deployed."
+
+pages:
+  image: python:3.8
+  before_script:
+    - pip install -r docs/requirements.txt
+  script:
+    - cd docs && make html
+    - mv build/html public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main  # Trigger on main branch
