@@ -2,6 +2,10 @@
 
 [![Python Versions](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
 
+[![Latest Release](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/badges/release.svg)](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/releases)
+
+[![pipeline status](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/badges/main/pipeline.svg)](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/commits/main)
+
 pyMOODS is an open-source visual analytics framework designed to support informed decision-making in electricity infrastructure planning. It integrates multi-criteria decision-making (MCDM), visual analytics, and artificial intelligence to provide comprehensive planning solutions.
 
 ## Key Features
