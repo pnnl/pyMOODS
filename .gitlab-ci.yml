@@ -20,6 +20,7 @@ stages:          # List of stages for jobs, and their order of execution
   - build
   - test
   - deploy
+  - docs
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
@@ -46,7 +47,8 @@ deploy-job:      # This job runs in the deploy stage.
     - echo "Deploying application..."
     - echo "Application successfully deployed."
 
-pages:
+docs:
+  stage: docs
   image: python:3.8
   before_script:
     - pip install -r docs/requirements.txt
@@ -58,3 +60,6 @@ pages:
       - public
   only:
     - main  # Trigger on main branch
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success  # Changed from manual
