@@ -59,6 +59,3 @@ docs-job:
       - public
   only:
     - main  # Trigger on main branch
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: on_success  # Changed from manual
