@@ -47,7 +47,7 @@ deploy-job:      # This job runs in the deploy stage.
     - echo "Deploying application..."
     - echo "Application successfully deployed."
 
-docs:
+docs-job:
   stage: docs
   image: python:3.8
   before_script:
