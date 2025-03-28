@@ -1,3 +1,5 @@
+// PREVIOUSLY IMPLEMENTATION BEFORE API. DO NOT USE
+
 import { useState, useEffect } from 'react';
 import * as Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
