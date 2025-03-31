@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import * as Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Box } from '@mui/material';
-import SideMenu from './SideMenu';
+import SideMenu from '../SideMenu';
 
 const Plot = createPlotlyComponent(Plotly);
 
