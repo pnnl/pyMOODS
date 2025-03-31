@@ -41,7 +41,7 @@ export default function MainGrid() {
         }}
       >
         <Tab label="Use Cases" />
-        <Tab label="Exploratory Analysis" />
+        {/* <Tab label="Exploratory Analysis" /> */}
       </Tabs>
 
       {/* Tab Content */}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import { Box, FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, SelectChangeEvent } from '@mui/material';
+import { Box } from '@mui/material';
 import SideMenu from './SideMenu';
 
 const Plot = createPlotlyComponent(Plotly);
@@ -78,15 +78,6 @@ const OffshoreWindfarmClusterScatterPlot = () => {
       });
   }, [selectedParams]);
 
-  // Handle parameter selection changes
-  const handleParamChange = (param: keyof ParameterOptions) => (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value;
-    setSelectedParams({
-      ...selectedParams,
-      [param]: typeof value === 'string' ? value.split(',') : value,
-    });
-  };
-
   // Handle location change from SideMenu
   const handleLocationChange = (locations: string[]) => {
     setSelectedParams({
@@ -143,7 +134,8 @@ const OffshoreWindfarmClusterScatterPlot = () => {
             data={scatterplotData.data}
             layout={{
               ...scatterplotData.layout,
-              width: window.innerWidth * 0.5, // Make plot use 85% of window width
+              width: window.innerWidth * 0.40,
+              height: window.innerWidth * 0.20,
               autosize: true,
             }}
             config={scatterplotData.config}
