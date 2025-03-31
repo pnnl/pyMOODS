@@ -126,6 +126,24 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     )
     return fig
 
+def generate_objective_graph_data(data):
+    objective_col = 'objective'  # Use the standard column name from the data
+    if not data.empty:
+        objective_mean = float(data[objective_col].mean())
+        objective_std = float(data[objective_col].std())
+        # Print debug info to server console
+        print(f"Calculated objective data - mean: {objective_mean}, std: {objective_std}")
+    else:
+        objective_mean = 0
+        objective_std = 0
+        print("Warning: No data available for objective calculation")
+    
+    return {
+        "mean": objective_mean,
+        "std": objective_std,
+        "title": "objective"
+    }
+
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
     # Get query parameters (optional)
@@ -161,6 +179,34 @@ def get_scatterplot():
             "responsive": True
         }
     })
+
+@app.route('/api/objective', methods=['GET'])
+def get_objective_data():
+    # Get query parameters (optional)
+    location = request.args.getlist('location')
+    technology = request.args.getlist('technology')
+    duration = request.args.getlist('duration')
+    power = request.args.getlist('power')
+    
+    # Filter data based on parameters if provided
+    filtered_data = csv_data.copy()
+    
+    if location:
+        filtered_data = filtered_data[filtered_data['location'].isin(location)]
+    if technology:
+        filtered_data = filtered_data[filtered_data['technology'].isin(technology)]
+    if duration:
+        filtered_data = filtered_data[filtered_data['duration'].isin(duration)]
+    if power:
+        filtered_data = filtered_data[filtered_data['power'].isin(power)]
+    
+    # Generate objective data
+    objective_data = generate_objective_graph_data(filtered_data)
+    
+    # Print the response for debugging
+    print(f"Sending objective data response: {objective_data}")
+    
+    return jsonify(objective_data)
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
