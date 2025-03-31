@@ -164,8 +164,6 @@ const OffshoreWindfarmClusterScatterPlot = () => {
           </Select>
         </FormControl>
       </Box>
-
-      {/* Render SideMenu with location and technology filters */}
       <SideMenu 
         onLocationChange={handleLocationChange} 
         selectedLocations={selectedParams.location}
@@ -173,14 +171,20 @@ const OffshoreWindfarmClusterScatterPlot = () => {
         selectedTechnologies={selectedParams.technology}
       />
 
-      {scatterplotData && (
-        <Plot
-          data={scatterplotData.data}
-          layout={scatterplotData.layout}
-          config={scatterplotData.config}
-          style={{ width: '100%', height: '500px' }}
-        />
-      )}
+      <Box sx={{ flexGrow: 1 }}>
+        {scatterplotData && (
+          <Plot
+            data={scatterplotData.data}
+            layout={{
+              ...scatterplotData.layout,
+              width: window.innerWidth * 0.5, // Make plot use 85% of window width
+              autosize: true,
+            }}
+            config={scatterplotData.config}
+            style={{ width: '100%' }}
+          />
+        )}
+      </Box>
     </Box>
   );
 };
