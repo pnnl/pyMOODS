@@ -119,32 +119,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         {/* Duration Filter has been moved to SideMenu */}
-
-        {/* Power Filter */}
-        <FormControl sx={{ m: 1, width: 200 }} size="small">
-          <InputLabel id="power-label">Power</InputLabel>
-          <Select
-            labelId="power-label"
-            id="power-select"
-            multiple
-            value={selectedParams.power}
-            onChange={handleParamChange('power')}
-            input={<OutlinedInput label="Power" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
-                ))}
-              </Box>
-            )}
-          >
-            {paramOptions.power.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* Power Filter has been moved to SideMenu */}
       </Box>
       <SideMenu 
         onLocationChange={handleLocationChange} 
@@ -153,6 +128,13 @@ const OffshoreWindfarmClusterScatterPlot = () => {
         selectedTechnologies={selectedParams.technology}
         onDurationChange={handleDurationChange}
         selectedDurations={selectedParams.duration}
+        onPowerChange={(powers: string[]) => {
+          setSelectedParams({
+            ...selectedParams,
+            power: powers,
+          });
+        }}
+        selectedPowers={selectedParams.power}
       />
 
       <Box sx={{ flexGrow: 1 }}>

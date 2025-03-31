@@ -68,6 +68,8 @@ interface SideMenuProps {
   selectedTechnologies?: string[];
   onDurationChange?: (durations: string[]) => void;
   selectedDurations?: string[];
+  onPowerChange?: (powers: string[]) => void;
+  selectedPowers?: string[];
 }
 
 export default function SideMenu({ 
@@ -76,7 +78,9 @@ export default function SideMenu({
   onTechnologyChange,
   selectedTechnologies = [],
   onDurationChange,
-  selectedDurations = []
+  selectedDurations = [],
+  onPowerChange,
+  selectedPowers = []
 }: SideMenuProps) {
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
@@ -116,6 +120,14 @@ export default function SideMenu({
     const durations = typeof value === 'string' ? value.split(',') : value;
     if (onDurationChange) {
       onDurationChange(durations);
+    }
+  };
+
+  const handlePowerChange = (event: SelectChangeEvent<unknown>) => {
+    const value = event.target.value as string | string[];
+    const powers = typeof value === 'string' ? value.split(',') : value;
+    if (onPowerChange) {
+      onPowerChange(powers);
     }
   };
 
@@ -207,10 +219,24 @@ export default function SideMenu({
 
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Power Rating (MW)</SidebarInputLabel>
-            <SidebarSelect>
-              <MenuItem value={10}>Option 1</MenuItem>
-              <MenuItem value={20}>Option 2</MenuItem>
-              <MenuItem value={30}>Option 3</MenuItem>
+            <SidebarSelect
+              multiple
+              value={selectedPowers}
+              onChange={handlePowerChange}
+              input={<OutlinedInput label="Power" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {(selected as string[]).map((value: string) => (
+                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+                  ))}
+                </Box>
+              )}
+            >
+              {paramOptions.power.map((name) => (
+                <MenuItem key={name} value={name}>
+                  {name}
+                </MenuItem>
+              ))}
             </SidebarSelect>
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
