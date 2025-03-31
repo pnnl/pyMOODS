@@ -1,7 +1,9 @@
 import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import { Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Typography, Select, MenuItem, FormControl, InputLabel, Chip, OutlinedInput, SelectChangeEvent } from '@mui/material';
+import { useState, useEffect} from 'react';
+
 const drawerWidth = 200;
 
 const Drawer = styled(MuiDrawer)({
@@ -52,7 +54,44 @@ const SidebarInputLabel = styled(InputLabel)({
   }
 });
 
-export default function SideMenu() {
+interface ParameterOptions {
+  location: string[];
+  technology: string[];
+  duration: string[];
+  power: string[];
+}
+
+interface SideMenuProps {
+  onLocationChange?: (locations: string[]) => void;
+  selectedLocations?: string[];
+}
+
+export default function SideMenu({ onLocationChange, selectedLocations = [] }: SideMenuProps) {
+  const [paramOptions, setParamOptions] = useState<ParameterOptions>({
+    location: [],
+    technology: [],
+    duration: [],
+    power: []
+  });
+
+  // Fetch available parameter options
+  useEffect(() => {
+    fetch('http://localhost:5000/api/parameters')
+      .then((response) => response.json())
+      .then((data) => {
+        setParamOptions(data);
+      })
+      .catch((error) => console.error('Error fetching parameters:', error));
+  }, []);
+
+  const handleLocationChange = (event: SelectChangeEvent<unknown>) => {
+      const value = event.target.value as string | string[];
+      const locations = typeof value === 'string' ? value.split(',') : value;
+      if (onLocationChange) {
+        onLocationChange(locations);
+      }
+    };
+
   return (
     <Drawer
       variant="permanent"
@@ -92,7 +131,31 @@ export default function SideMenu() {
           <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Filters
           </Typography>
+          {/* Location Filter (moved from OffshoreWindfarmClusterScatterPlot) */}
           <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
+            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Location</SidebarInputLabel>
+            <SidebarSelect
+              multiple
+              value={selectedLocations}
+              onChange={handleLocationChange}
+              input={<OutlinedInput label="Location" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {(selected as string[]).map((value: string) => (
+                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+                  ))}
+                </Box>
+              )}
+            >
+              {paramOptions.location.map((name) => (
+                <MenuItem key={name} value={name}>
+                  {name}
+                </MenuItem>
+              ))}
+            </SidebarSelect>
+          </FormControl>
+          
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Technology</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
@@ -110,14 +173,6 @@ export default function SideMenu() {
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Duration (Hours)</SidebarInputLabel>
-            <SidebarSelect>
-              <MenuItem value={10}>Option 1</MenuItem>
-              <MenuItem value={20}>Option 2</MenuItem>
-              <MenuItem value={30}>Option 3</MenuItem>
-            </SidebarSelect>
-          </FormControl>
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Location</SidebarInputLabel>
             <SidebarSelect>
               <MenuItem value={10}>Option 1</MenuItem>
               <MenuItem value={20}>Option 2</MenuItem>

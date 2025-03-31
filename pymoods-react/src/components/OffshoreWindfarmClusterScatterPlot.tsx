@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Box, FormControl, InputLabel, Select, MenuItem, Chip, OutlinedInput, SelectChangeEvent } from '@mui/material';
+import SideMenu from './SideMenu';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -86,6 +87,14 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     });
   };
 
+  // Handle location change from SideMenu
+  const handleLocationChange = (locations: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      location: locations,
+    });
+  };
+
   if (loading && !scatterplotData) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
   }
@@ -93,31 +102,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {/* Location Filter */}
-        <FormControl sx={{ m: 1, width: 200 }} size="small">
-          <InputLabel id="location-label">Location</InputLabel>
-          <Select
-            labelId="location-label"
-            id="location-select"
-            multiple
-            value={selectedParams.location}
-            onChange={handleParamChange('location')}
-            input={<OutlinedInput label="Location" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
-                ))}
-              </Box>
-            )}
-          >
-            {paramOptions.location.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* Location Filter has been moved to SideMenu */}
 
         {/* Technology Filter */}
         <FormControl sx={{ m: 1, width: 200 }} size="small">
@@ -197,6 +182,12 @@ const OffshoreWindfarmClusterScatterPlot = () => {
           </Select>
         </FormControl>
       </Box>
+
+      {/* Render SideMenu with location filter */}
+      <SideMenu 
+        onLocationChange={handleLocationChange} 
+        selectedLocations={selectedParams.location} 
+      />
 
       {scatterplotData && (
         <Plot
