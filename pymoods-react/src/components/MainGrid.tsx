@@ -4,6 +4,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 import * as Plotly from 'plotly.js-basic-dist';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import OffshoreWindfarmClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
+import ObjectivePlot from './OffshoreWindfarmPlots/ObjectivePlot';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -56,7 +57,7 @@ export default function MainGrid() {
                 <OffshoreWindfarmClusterScatterPlot />
               </Grid>
               <Grid xs={12} md={6}>
-                <LMPPlot />
+                <ObjectivePlot />
               </Grid>
               
               {/* Bottom row with 2 LMPPlot components */}
