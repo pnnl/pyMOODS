@@ -103,6 +103,14 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     });
   };
 
+  // Handle duration change from SideMenu
+  const handleDurationChange = (durations: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      duration: durations,
+    });
+  };
+
   if (loading && !scatterplotData) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
   }
@@ -110,33 +118,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {/* Technology Filter has been moved to SideMenu */}
-
-        {/* Duration Filter */}
-        <FormControl sx={{ m: 1, width: 200 }} size="small">
-          <InputLabel id="duration-label">Duration</InputLabel>
-          <Select
-            labelId="duration-label"
-            id="duration-select"
-            multiple
-            value={selectedParams.duration}
-            onChange={handleParamChange('duration')}
-            input={<OutlinedInput label="Duration" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
-                ))}
-              </Box>
-            )}
-          >
-            {paramOptions.duration.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* Duration Filter has been moved to SideMenu */}
 
         {/* Power Filter */}
         <FormControl sx={{ m: 1, width: 200 }} size="small">
@@ -169,6 +151,8 @@ const OffshoreWindfarmClusterScatterPlot = () => {
         selectedLocations={selectedParams.location}
         onTechnologyChange={handleTechnologyChange}
         selectedTechnologies={selectedParams.technology}
+        onDurationChange={handleDurationChange}
+        selectedDurations={selectedParams.duration}
       />
 
       <Box sx={{ flexGrow: 1 }}>

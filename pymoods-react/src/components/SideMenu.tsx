@@ -66,13 +66,17 @@ interface SideMenuProps {
   selectedLocations?: string[];
   onTechnologyChange?: (technologies: string[]) => void;
   selectedTechnologies?: string[];
+  onDurationChange?: (durations: string[]) => void;
+  selectedDurations?: string[];
 }
 
 export default function SideMenu({ 
   onLocationChange, 
   selectedLocations = [],
   onTechnologyChange,
-  selectedTechnologies = []
+  selectedTechnologies = [],
+  onDurationChange,
+  selectedDurations = []
 }: SideMenuProps) {
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
@@ -106,6 +110,14 @@ export default function SideMenu({
         onTechnologyChange(technologies);
       }
     };
+
+  const handleDurationChange = (event: SelectChangeEvent<unknown>) => {
+    const value = event.target.value as string | string[];
+    const durations = typeof value === 'string' ? value.split(',') : value;
+    if (onDurationChange) {
+      onDurationChange(durations);
+    }
+  };
 
   return (
     <Drawer
@@ -203,10 +215,24 @@ export default function SideMenu({
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Duration (Hours)</SidebarInputLabel>
-            <SidebarSelect>
-              <MenuItem value={10}>Option 1</MenuItem>
-              <MenuItem value={20}>Option 2</MenuItem>
-              <MenuItem value={30}>Option 3</MenuItem>
+            <SidebarSelect
+              multiple
+              value={selectedDurations}
+              onChange={handleDurationChange}
+              input={<OutlinedInput label="Duration" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {(selected as string[]).map((value: string) => (
+                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+                  ))}
+                </Box>
+              )}
+            >
+              {paramOptions.duration.map((name) => (
+                <MenuItem key={name} value={name}>
+                  {name}
+                </MenuItem>
+              ))}
             </SidebarSelect>
           </FormControl>
         </Box>
