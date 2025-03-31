@@ -95,6 +95,14 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     });
   };
 
+  // Handle technology change from SideMenu
+  const handleTechnologyChange = (technologies: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      technology: technologies,
+    });
+  };
+
   if (loading && !scatterplotData) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
   }
@@ -102,33 +110,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {/* Location Filter has been moved to SideMenu */}
-
-        {/* Technology Filter */}
-        <FormControl sx={{ m: 1, width: 200 }} size="small">
-          <InputLabel id="technology-label">Technology</InputLabel>
-          <Select
-            labelId="technology-label"
-            id="technology-select"
-            multiple
-            value={selectedParams.technology}
-            onChange={handleParamChange('technology')}
-            input={<OutlinedInput label="Technology" />}
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value) => (
-                  <Chip key={value} label={value} size="small" />
-                ))}
-              </Box>
-            )}
-          >
-            {paramOptions.technology.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {/* Technology Filter has been moved to SideMenu */}
 
         {/* Duration Filter */}
         <FormControl sx={{ m: 1, width: 200 }} size="small">
@@ -183,10 +165,12 @@ const OffshoreWindfarmClusterScatterPlot = () => {
         </FormControl>
       </Box>
 
-      {/* Render SideMenu with location filter */}
+      {/* Render SideMenu with location and technology filters */}
       <SideMenu 
         onLocationChange={handleLocationChange} 
-        selectedLocations={selectedParams.location} 
+        selectedLocations={selectedParams.location}
+        onTechnologyChange={handleTechnologyChange}
+        selectedTechnologies={selectedParams.technology}
       />
 
       {scatterplotData && (

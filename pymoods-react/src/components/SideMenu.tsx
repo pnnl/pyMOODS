@@ -64,9 +64,16 @@ interface ParameterOptions {
 interface SideMenuProps {
   onLocationChange?: (locations: string[]) => void;
   selectedLocations?: string[];
+  onTechnologyChange?: (technologies: string[]) => void;
+  selectedTechnologies?: string[];
 }
 
-export default function SideMenu({ onLocationChange, selectedLocations = [] }: SideMenuProps) {
+export default function SideMenu({ 
+  onLocationChange, 
+  selectedLocations = [],
+  onTechnologyChange,
+  selectedTechnologies = []
+}: SideMenuProps) {
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
     technology: [],
@@ -89,6 +96,14 @@ export default function SideMenu({ onLocationChange, selectedLocations = [] }: S
       const locations = typeof value === 'string' ? value.split(',') : value;
       if (onLocationChange) {
         onLocationChange(locations);
+      }
+    };
+
+  const handleTechnologyChange = (event: SelectChangeEvent<unknown>) => {
+      const value = event.target.value as string | string[];
+      const technologies = typeof value === 'string' ? value.split(',') : value;
+      if (onTechnologyChange) {
+        onTechnologyChange(technologies);
       }
     };
 
@@ -157,12 +172,27 @@ export default function SideMenu({ onLocationChange, selectedLocations = [] }: S
           
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Technology</SidebarInputLabel>
-            <SidebarSelect>
-              <MenuItem value={10}>Option 1</MenuItem>
-              <MenuItem value={20}>Option 2</MenuItem>
-              <MenuItem value={30}>Option 3</MenuItem>
+            <SidebarSelect
+              multiple
+              value={selectedTechnologies}
+              onChange={handleTechnologyChange}
+              input={<OutlinedInput label="Technology" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {(selected as string[]).map((value: string) => (
+                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+                  ))}
+                </Box>
+              )}
+            >
+              {paramOptions.technology.map((name) => (
+                <MenuItem key={name} value={name}>
+                  {name}
+                </MenuItem>
+              ))}
             </SidebarSelect>
           </FormControl>
+
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Power Rating (MW)</SidebarInputLabel>
             <SidebarSelect>
