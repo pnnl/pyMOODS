@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Box, Tabs, Tab, Typography, Grid } from '@mui/material';
 import createPlotlyComponent from 'react-plotly.js/factory';
-import Plotly from 'plotly.js-basic-dist';
-import LMPPlot from './LMPPlot';
-import OffshoreClusterScatterPlot from './OffshoreClusterScatterPlot';
+import * as Plotly from 'plotly.js-basic-dist';
+import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
+import OffshoreWindfarmClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
+import ObjectivePlot from './OffshoreWindfarmPlots/ObjectivePlot';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -41,7 +42,7 @@ export default function MainGrid() {
         }}
       >
         <Tab label="Use Cases" />
-        <Tab label="Exploratory Analysis" />
+        {/* <Tab label="Exploratory Analysis" /> */}
       </Tabs>
 
       {/* Tab Content */}
@@ -49,22 +50,23 @@ export default function MainGrid() {
         {/* Use Case Tab */}
         {tabIndex === 0 && (
           <Box>
+            
             <Grid container spacing={2}>
               {/* Top row with 2 LMPPlot components */}
               <Grid xs={12} md={6}>
-                <OffshoreClusterScatterPlot />
+                <OffshoreWindfarmClusterScatterPlot />
               </Grid>
               <Grid xs={12} md={6}>
                 <LMPPlot />
               </Grid>
               
               {/* Bottom row with 2 LMPPlot components */}
-              <Grid xs={12} md={6}>
+              {/* <Grid xs={12} md={6}>
                 <LMPPlot />
               </Grid>
               <Grid xs={12} md={6}>
                 <LMPPlot />
-              </Grid>
+              </Grid> */}
             </Grid>
           </Box>
         )}
