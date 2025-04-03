@@ -1,9 +1,4 @@
-import sys
-import os
-import json
-
-# Add the dashboard directory to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys, os, json
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -16,28 +11,30 @@ from scipy.spatial import ConvexHull
 from scipy.spatial.qhull import QhullError
 from sklearn.cluster import HDBSCAN
 
-# Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Load configuration from JSON file
-CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
-with open(CONFIG_FILE_PATH, 'r') as config_file:
-    config = json.load(config_file)
+MOCODO_JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
+with open(MOCODO_JSON_PATH, 'r') as file:
+    mocodo_data = json.load(file)
 
 # Extract variables from configuration
-ovars = list(config["objective_functions"].keys())
-dvars = list(config["decision_variables"].keys())
-objective_col = ovars[0]
+objective_functions = list(mocodo_data["objective_functions"].keys())
+decision_variables = list(mocodo_data["decision_variables"].keys())
+objective_col = objective_functions[0]
 
 # Load data for the visualizations
 CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")
 csv_data = pd.read_csv(CSV_FILE_PATH)
 
 # Initialize visualization tools
-vis_obj = Visualizer(data=csv_data, data_ovars=ovars, data_dvars=dvars)
+vis_obj = Visualizer(data=csv_data, data_ovars=objective_functions, data_dvars=decision_variables)
 points = vis_obj.joint_xy
 
 kwargs = dict(
@@ -137,7 +134,7 @@ def generate_objective_graph_data(data):
         objective_mean = 0
         objective_std = 0
 
-    objective_name = config["objective_functions"][objective_col]["name"]
+    objective_name = mocodo_data["objective_functions"][objective_col]["name"]
     
     return {
         "mean": objective_mean,
