@@ -1,5 +1,7 @@
 import sys, os, json
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
@@ -7,34 +9,42 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.colors as pc
-from scipy.spatial import ConvexHull
-from scipy.spatial.qhull import QhullError
+from scipy.spatial import ConvexHull, QhullError
 from sklearn.cluster import HDBSCAN
+from flask_caching import Cache
 
 from dashlib.offshore_windfarm.vis import Visualizer
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Load configuration from JSON file
+# Configure cache - add this after creating the Flask app
+cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache'})
+
+# Paths to the data files
 MOCODO_JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
+CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")
+
+# Load and parse mocodo.json
 with open(MOCODO_JSON_PATH, 'r') as file:
     mocodo_data = json.load(file)
 
-# Extract variables from configuration
-objective_functions = list(mocodo_data["objective_functions"].keys())
-decision_variables = list(mocodo_data["decision_variables"].keys())
-objective_col = objective_functions[0]
+hyperparameters = mocodo_data["hyperparameters"]
+input_parameters = mocodo_data["input_parameters"]
+objective_functions = mocodo_data["objective_functions"]
+decision_variables = mocodo_data["decision_variables"]
+
+ovars = [list(objective_functions.keys())[0]]
+dvars = list(decision_variables.keys())
 
 # Load data for the visualizations
-CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")
 csv_data = pd.read_csv(CSV_FILE_PATH)
 
+# Convert CSV to JSON
+csv_data_json = csv_data.to_dict(orient="records")
+
 # Initialize visualization tools
-vis_obj = Visualizer(data=csv_data, data_ovars=objective_functions, data_dvars=decision_variables)
+vis_obj = Visualizer(data=csv_data, data_ovars=ovars, data_dvars=dvars)
 points = vis_obj.joint_xy
 
 kwargs = dict(
@@ -127,20 +137,77 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
 
 # Function to calculate the mean and std and display the objective space
 def generate_objective_graph_data(data):
+    # Get the objective column name from the mocodo data
+    objective_col = list(objective_functions.keys())[0]
+    objective_title = objective_functions[objective_col]['name']
+    
     if not data.empty:
-        objective_mean = float(data[objective_col].mean())
-        objective_std = float(data[objective_col].std())
+        objective_mean = data[objective_col].mean()
+        objective_std = data[objective_col].std()
     else:
         objective_mean = 0
         objective_std = 0
-
-    objective_name = mocodo_data["objective_functions"][objective_col]["name"]
     
     return {
         "mean": objective_mean,
         "std": objective_std,
-        "title": objective_name
+        "title": objective_title
     }
+
+# Add these new functions to pre-calculate statistics
+def calculate_all_statistics():
+    """Pre-calculate statistics for all possible parameter combinations."""
+    objective_col = list(objective_functions.keys())[0]
+    objective_title = objective_functions[objective_col]['name']
+    
+    all_locations = csv_data.location.unique().tolist()
+    all_technologies = csv_data.technology.unique().tolist()
+    all_durations = csv_data.duration.unique().tolist()
+    all_powers = csv_data.power.unique().tolist()
+    
+    stats_cache = {}
+    
+    # Calculate overall stats
+    overall_mean = csv_data[objective_col].mean()
+    overall_std = csv_data[objective_col].std()
+    stats_cache['all'] = {
+        "mean": float(overall_mean),
+        "std": float(overall_std),
+        "title": objective_title
+    }
+    
+    # Calculate stats for each parameter combination
+    param_combinations = {
+        'location': all_locations,
+        'technology': all_technologies, 
+        'duration': all_durations,
+        'power': all_powers
+    }
+    
+    # Pre-calculate for individual parameters
+    for param, values in param_combinations.items():
+        for value in values:
+            filtered = csv_data[csv_data[param] == value]
+            key = f"{param}:{value}"
+            stats_cache[key] = {
+                "mean": float(filtered[objective_col].mean()),
+                "std": float(filtered[objective_col].std()),
+                "title": objective_title
+            }
+    
+    # Handle common combinations (select a reasonable subset to avoid combinatorial explosion)
+    for loc in all_locations:
+        for tech in all_technologies:
+            filtered = csv_data[(csv_data['location'] == loc) & (csv_data['technology'] == tech)]
+            if not filtered.empty:
+                key = f"location:{loc},technology:{tech}"
+                stats_cache[key] = {
+                    "mean": float(filtered[objective_col].mean()),
+                    "std": float(filtered[objective_col].std()),
+                    "title": objective_title
+                }
+    
+    return stats_cache
 
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
@@ -178,6 +245,13 @@ def get_scatterplot():
         }
     })
 
+@app.route('/api/objective-stats', methods=['GET'])
+@cache.cached(timeout=3600)  # Cache for 1 hour
+def get_all_objective_stats():
+    """Return pre-calculated statistics for all parameter combinations."""
+    return jsonify(calculate_all_statistics())
+
+# Modify the existing objective endpoint to use the cached stats when possible
 @app.route('/api/objective', methods=['GET'])
 def get_objective_data():
     # Get query parameters (optional)
@@ -186,7 +260,22 @@ def get_objective_data():
     duration = request.args.getlist('duration')
     power = request.args.getlist('power')
     
-    # Filter data based on parameters if provided
+    # For simple cases, try to use pre-calculated stats
+    if len(location) == 1 and not technology and not duration and not power:
+        # Single location filter
+        cache_key = f"location:{location[0]}"
+        cached_stats = calculate_all_statistics().get(cache_key)
+        if cached_stats:
+            return jsonify(cached_stats)
+    
+    elif len(location) == 1 and len(technology) == 1 and not duration and not power:
+        # Location + technology filter
+        cache_key = f"location:{location[0]},technology:{technology[0]}"
+        cached_stats = calculate_all_statistics().get(cache_key)
+        if cached_stats:
+            return jsonify(cached_stats)
+    
+    # For other combinations, calculate on-the-fly
     filtered_data = csv_data.copy()
     
     if location:
@@ -194,11 +283,11 @@ def get_objective_data():
     if technology:
         filtered_data = filtered_data[filtered_data['technology'].isin(technology)]
     if duration:
-        filtered_data = filtered_data[filtered_data['duration'].isin(duration)]
+        filtered_data = filtered_data[filtered_data['duration'].isin([int(d) if d.isdigit() else float(d) for d in duration])]
     if power:
-        filtered_data = filtered_data[filtered_data['power'].isin(power)]
+        filtered_data = filtered_data[filtered_data['power'].isin([int(p) if p.isdigit() else float(p) for p in power])]
     
-    # Generate objective data
+    # Generate objective data using the filtered data
     objective_data = generate_objective_graph_data(filtered_data)
     
     return jsonify(objective_data)
