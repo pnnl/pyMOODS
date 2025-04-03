@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 
 # Add the dashboard directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -17,19 +18,25 @@ from sklearn.cluster import HDBSCAN
 
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
-from dashlib.components import blank_figure
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from the React app
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
+
+# Load configuration from JSON file
+CONFIG_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
+with open(CONFIG_FILE_PATH, 'r') as config_file:
+    config = json.load(config_file)
+
+# Extract variables from configuration
+ovars = list(config["objective_functions"].keys())
+dvars = list(config["decision_variables"].keys())
+objective_col = ovars[0]
 
 # Load data for the visualizations
 CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")
 csv_data = pd.read_csv(CSV_FILE_PATH)
 
 # Initialize visualization tools
-ovars = ['objective']
-dvars = ['size', 'cable']
 vis_obj = Visualizer(data=csv_data, data_ovars=ovars, data_dvars=dvars)
 points = vis_obj.joint_xy
 
@@ -45,21 +52,21 @@ kwargs = dict(
 clusters = vis_obj.get_overlapping_clusters(**kwargs)
 initial_clusters = csv_data[['location']]
 
+# Function to get the convex hull of a set of points for the cluster scatter plot
 def get_convex_hull(points):
-    # Drop duplicate points to avoid errors
     unique_points = points.drop_duplicates()
 
-    # ConvexHull requires at least 3 points in 2D, 4 in 3D
     min_points = max(3, unique_points.shape[1] + 1)
     if unique_points.shape[0] < min_points:
-        return unique_points  # Return all points if hull can't be computed
+        return unique_points
 
     try:
-        hull = ConvexHull(unique_points.values)  # Compute convex hull
-        return unique_points.iloc[hull.vertices]  # Return hull points
+        hull = ConvexHull(unique_points.values)
+        return unique_points.iloc[hull.vertices]
     except QhullError:
-        return unique_points  # Return all points if convex hull fails
+        return unique_points
 
+# Function to draw the offshore windfarm cluster scatter plot
 def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     clusters = pd.get_dummies(clusters.iloc[:, 0], dtype=int).replace(0, -1)
     fig = go.Figure()
@@ -80,11 +87,9 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
             fig.add_trace(go.Scatter(x=x_coords+[x_coords[0]], y=y_coords+[y_coords[0]], mode="lines", fill="toself", fillcolor=f"rgba{ec[:3] + (0.2,)}", line=dict(color=f"rgba{ec}"), showlegend=False))
 
         mask = clusters[c] != -1
-        # more than one item in that row with value other than -1
         multi_cluster_mask = (clusters[clusters.columns] != -1).sum(axis=1) > 1
 
         if selected_indices is not None:
-            # mask for checking any data in subset created in dist plot
             selected_mask = clusters.index.isin(selected_indices)
             unselected_single_cluster_df = points.loc[clusters.index][mask & ~multi_cluster_mask & ~selected_mask]
             fig.add_trace(go.Scatter(x=unselected_single_cluster_df[0], y=unselected_single_cluster_df[1], mode='markers', marker=dict(color='lightgray', size=5, opacity=0.5), name=f'{c} (unselected)'))
@@ -92,18 +97,15 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
             selected_single_cluster_df = points.loc[clusters.index][mask & ~multi_cluster_mask & selected_mask]
             fig.add_trace(go.Scatter(x=selected_single_cluster_df[0], y=selected_single_cluster_df[1], mode='markers', marker=dict(color=f'rgba{ec}', size=6), name=f'{c} (selected)'))
 
-            # # points with multiple clusters
             unselected_multi_cluster_df = points.loc[clusters.index][multi_cluster_mask & ~selected_mask]
             fig.add_trace(go.Scatter(x=unselected_multi_cluster_df[0], y=unselected_multi_cluster_df[1], mode='markers', marker=dict(color='lightgray', size=5, opacity=0.5), name='multi_cluster (unselected)', showlegend=False if i > 0 else True))
 
             selected_multi_cluster_df = points.loc[clusters.index][multi_cluster_mask & selected_mask]
             fig.add_trace(go.Scatter(x=selected_multi_cluster_df[0], y=selected_multi_cluster_df[1], mode='markers', marker=dict(opacity=1, color='black', size=6), name='multi_cluster (selected)', showlegend=False if i > 0 else True))
         else:
-            # excluding points with multiple clusters
             remaining_df = points.loc[clusters.index][mask & ~multi_cluster_mask]
             fig.add_trace(go.Scatter(x=remaining_df[0], y=remaining_df[1], mode='markers', marker=dict(color=f'rgba{ec}', size=5), name=c))
 
-            # points with multiple clusters
             multi_cluster_df = points.loc[clusters.index][multi_cluster_mask]
             fig.add_trace(go.Scatter(x=multi_cluster_df[0], y=multi_cluster_df[1], mode='markers', marker=dict(color='black', size=5), name='multiple_cluster', showlegend=False if i > 0 else True))
 
@@ -126,22 +128,21 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     )
     return fig
 
+# Function to calculate the mean and std and display the objective space
 def generate_objective_graph_data(data):
-    objective_col = 'objective'  # Use the standard column name from the data
     if not data.empty:
         objective_mean = float(data[objective_col].mean())
         objective_std = float(data[objective_col].std())
-        # Print debug info to server console
-        print(f"Calculated objective data - mean: {objective_mean}, std: {objective_std}")
     else:
         objective_mean = 0
         objective_std = 0
-        print("Warning: No data available for objective calculation")
+
+    objective_name = config["objective_functions"][objective_col]["name"]
     
     return {
         "mean": objective_mean,
         "std": objective_std,
-        "title": "objective"
+        "title": objective_name
     }
 
 @app.route('/api/scatterplot', methods=['GET'])
@@ -202,9 +203,6 @@ def get_objective_data():
     
     # Generate objective data
     objective_data = generate_objective_graph_data(filtered_data)
-    
-    # Print the response for debugging
-    print(f"Sending objective data response: {objective_data}")
     
     return jsonify(objective_data)
 
