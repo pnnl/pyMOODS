@@ -43,7 +43,7 @@ const ObjectivePlot: React.FC<ObjectivePlotProps> = ({
     power.forEach(pow => queryParams.append('power', pow));
     
     const queryString = queryParams.toString();
-    const url = `http://localhost:5000/api/objective${queryString ? '?' + queryString : ''}`;
+    const url = `http://localhost:80/api/objective${queryString ? '?' + queryString : ''}`;
     
     fetch(url)
       .then((response) => response.json())

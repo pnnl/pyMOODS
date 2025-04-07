@@ -40,7 +40,7 @@ const DecisionPlot: React.FC<DecisionPlotProps> = ({
         
         console.log("Fetching decision space with params:", payload);
         
-        const response = await fetch('http://localhost:5000/api/decision-space', {
+        const response = await fetch('http://localhost:80/api/decision-space', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
