@@ -28,6 +28,8 @@ MOCODO_JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dat
 with open(MOCODO_JSON_PATH, 'r') as json_file:
     mocodo_data = json.load(json_file)
 
+hyperparameters = mocodo_data["hyperparameters"]
+input_parameters = mocodo_data["input_parameters"]
 objective_functions = mocodo_data["objective_functions"]
 decision_variables = mocodo_data["decision_variables"]
 ovars = [list(objective_functions.keys())[0]]
@@ -165,23 +167,16 @@ def generate_objective_graph_data(data):
 
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
-    # Get query parameters (optional)
-    location = request.args.getlist('location')
-    technology = request.args.getlist('technology')
-    duration = request.args.getlist('duration')
-    power = request.args.getlist('power')
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
     
     # Filter data based on parameters if provided
     filtered_data = csv_data.copy()
     
-    if location:
-        filtered_data = filtered_data[filtered_data['location'].isin(location)]
-    if technology:
-        filtered_data = filtered_data[filtered_data['technology'].isin(technology)]
-    if duration:
-        filtered_data = filtered_data[filtered_data['duration'].isin(duration)]
-    if power:
-        filtered_data = filtered_data[filtered_data['power'].isin(power)]
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
     
     # Update clusters and points based on filtered data
     updated_clusters = filtered_data[['location']]
