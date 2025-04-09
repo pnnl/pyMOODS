@@ -196,23 +196,16 @@ def get_scatterplot():
 
 @app.route('/api/objective', methods=['GET'])
 def get_objective_data():
-    # Get query parameters (optional)
-    location = request.args.getlist('location')
-    technology = request.args.getlist('technology')
-    duration = request.args.getlist('duration')
-    power = request.args.getlist('power')
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
     
     # Filter data based on parameters if provided
     filtered_data = csv_data.copy()
     
-    if location:
-        filtered_data = filtered_data[filtered_data['location'].isin(location)]
-    if technology:
-        filtered_data = filtered_data[filtered_data['technology'].isin(technology)]
-    if duration:
-        filtered_data = filtered_data[filtered_data['duration'].isin(duration)]
-    if power:
-        filtered_data = filtered_data[filtered_data['power'].isin(power)]
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
     
     fig = generate_objective_graph_data(filtered_data)
     
