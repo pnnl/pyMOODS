@@ -95,6 +95,8 @@ const ObjectivePlot: React.FC<ObjectivePlotProps> = ({
 
   const plotData = (): Partial<Plotly.Data>[] => {
     if (!objectiveData) return [];
+
+    console.log("Objective Data:", objectiveData.mean, objectiveData.std);
     
     return [{
       type: 'indicator',
@@ -140,10 +142,7 @@ const ObjectivePlot: React.FC<ObjectivePlotProps> = ({
                 size: 10
               }
             }}
-            config={{
-              displayModeBar: false,
-              responsive: true
-            }}
+            config={objectiveData.config}
           />
         )}
       </Box>

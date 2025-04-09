@@ -142,25 +142,14 @@ def generate_objective_graph_data(data):
     else:
         objective_mean = 0
         objective_std = 0
-    
-    fig = go.Figure(go.Indicator(
-        mode = "number",
-        value=objective_mean,
-        title={"text": f"Standard Deviation: {objective_std:.2f} & <br> Mean:",
-               "font":{"size": 15}},
-        number ={"font": {"size": 50}, "valueformat":".2f"},
-        domain={"x":[0,1], "y":[0,1]}
-    ))
 
-    fig.update_layout(
-        width=250,
-        height=200,
-        font=dict(color="black", size=10),
-        font_family="Helvetica",
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=20, r=40, t=30, b=10))
-    return fig
+    return {
+        "mean": objective_mean,
+        "std": objective_std,
+        "config": {
+            "responsive": True
+        }
+    }
 
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
@@ -204,26 +193,11 @@ def get_objective_data():
         if values:
             filtered_data = filtered_data[filtered_data[key].isin(values)]
     
-    fig = generate_objective_graph_data(filtered_data)
+    # Generate mean and std data
+    graph_data = generate_objective_graph_data(filtered_data)
     
-    # Calculate mean and standard deviation
-    objective_col = list(objective_functions.keys())[0]
-    if not filtered_data.empty:
-        objective_mean = filtered_data[objective_col].mean()
-        objective_std = filtered_data[objective_col].std()
-    else:
-        objective_mean = 0
-        objective_std = 0
-    
-    # Return the full figure data as JSON along with mean and std
-    return jsonify({
-        "mean": objective_mean,
-        "std": objective_std,
-        "config": {
-            "displayModeBar": False,
-            "responsive": True
-        }
-    })
+    # Return the data as JSON
+    return jsonify(graph_data)
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
