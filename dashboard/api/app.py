@@ -140,8 +140,6 @@ def generate_objective_graph_data(data):
     if not data.empty:
         objective_mean = data[objective_col].mean()
         objective_std = data[objective_col].std()
-        # Print debug info to server console
-        print(f"Calculated objective data - mean: {objective_mean}, std: {objective_std}")
     else:
         objective_mean = 0
         objective_std = 0
@@ -209,9 +207,19 @@ def get_objective_data():
     
     fig = generate_objective_graph_data(filtered_data)
     
-    # Return the full figure data as JSON
+    # Calculate mean and standard deviation
+    objective_col = list(objective_functions.keys())[0]
+    if not filtered_data.empty:
+        objective_mean = filtered_data[objective_col].mean()
+        objective_std = filtered_data[objective_col].std()
+    else:
+        objective_mean = 0
+        objective_std = 0
+    
+    # Return the full figure data as JSON along with mean and std
     return jsonify({
-        "scatterplot": fig.to_json(),
+        "mean": objective_mean,
+        "std": objective_std,
         "config": {
             "displayModeBar": False,
             "responsive": True
