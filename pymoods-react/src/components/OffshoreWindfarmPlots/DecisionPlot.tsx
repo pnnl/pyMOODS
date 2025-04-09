@@ -1,129 +1,119 @@
 import { useState, useEffect } from 'react';
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import { CircularProgress, Box, Typography, Paper } from '@mui/material';
+import { Box } from '@mui/material';
 
 const Plot = createPlotlyComponent(Plotly);
 
-interface DecisionPlotProps {
-  selectedLocations?: string[];
-  selectedTechnologies?: string[];
-  selectedDurations?: string[];
-  selectedPowers?: string[];
+interface ParameterOptions {
+  location: string[];
+  technology: string[];
+  duration: string[];
+  power: string[];
 }
 
-const DecisionPlot: React.FC<DecisionPlotProps> = ({ 
-  selectedLocations = [], 
-  selectedTechnologies = [], 
-  selectedDurations = [], 
-  selectedPowers = [] 
-}) => {
-  const [decisionSpaceData, setDecisionSpaceData] = useState<any>(null);
+interface DecisionPlotData {
+  data: Plotly.Data[];
+  layout: Partial<Plotly.Layout>;
+  config?: Partial<Plotly.Config>;
+}
+
+const DecisionPlot = () => {
+  const [decisionPlotData, setDecisionPlotData] = useState<DecisionPlotData | null>(null);
+  const [paramOptions, setParamOptions] = useState<ParameterOptions>({
+    location: [],
+    technology: [],
+    duration: [],
+    power: []
+  });
+  const [selectedParams, setSelectedParams] = useState<{
+    location: string[];
+    technology: string[];
+    duration: string[];
+    power: string[];
+  }>({
+    location: [],
+    technology: [],
+    duration: [],
+    power: []
+  });
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // Fetch available parameter options
   useEffect(() => {
-    const fetchDecisionSpace = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Create the request payload from the selected parameters
-        const payload = {
-          location: selectedLocations,
-          hyperparameters: {
-            technology: selectedTechnologies,
-            duration: selectedDurations,
-            power: selectedPowers
-          }
-        };
-        
-        console.log("Fetching decision space with params:", payload);
-        
-        const response = await fetch('http://localhost:80/api/decision-space', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+    fetch('http://localhost:80/api/parameters')
+      .then((response) => response.json())
+      .then((data) => {
+        setParamOptions(data);
+      })
+      .catch((error) => console.error('Error fetching parameters:', error));
+  }, []);
 
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(`Error: ${data.error || response.statusText}`);
-        }
-        
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        
-        // Check if we have valid data
-        const parsedData = JSON.parse(data.decisionSpace);
-        if (!parsedData || !parsedData.data) {
-          throw new Error("Invalid or empty chart data received");
-        }
-        
-        setDecisionSpaceData(parsedData);
-      } catch (err: any) {
-        console.error("Error fetching decision space:", err);
-        setError(err.message);
-      } finally {
+  // Fetch scatterplot data with selected filters
+  useEffect(() => {
+    setLoading(true);
+    
+    // Build query string for selected parameters
+    const queryParams = new URLSearchParams();
+    
+    selectedParams.location.forEach(loc => queryParams.append('location', loc));
+    selectedParams.technology.forEach(tech => queryParams.append('technology', tech));
+    selectedParams.duration.forEach(dur => queryParams.append('duration', dur));
+    selectedParams.power.forEach(pow => queryParams.append('power', pow));
+    
+    const queryString = queryParams.toString();
+    const url = `http://localhost:80/api/decision${queryString ? '?' + queryString : ''}`;
+    
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        const plotData = JSON.parse(data.scatterplot); // Parse the JSON string
+        setDecisionPlotData(plotData);
         setLoading(false);
-      }
-    };
+      })
+      .catch((error) => {
+        console.error('Error fetching decision plot:', error);
+        setLoading(false);
+      });
+  }, [selectedParams]);
 
-    // Only fetch if we have at least one filter selected
-    if (selectedLocations.length > 0 || 
-        selectedTechnologies.length > 0 || 
-        selectedDurations.length > 0 || 
-        selectedPowers.length > 0) {
-      fetchDecisionSpace();
-    } else {
-      // No filters selected, show instruction message
-      setLoading(false);
-      setDecisionSpaceData(null);
-    }
-  }, [selectedLocations, selectedTechnologies, selectedDurations, selectedPowers]);
+  // Handle location change from SideMenu
+  const handleLocationChange = (locations: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      location: locations,
+    });
+  };
+
+  // Handle technology change from SideMenu
+  const handleTechnologyChange = (technologies: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      technology: technologies,
+    });
+  };
+
+  // Handle duration change from SideMenu
+  const handleDurationChange = (durations: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      duration: durations,
+    });
+  };
 
   return (
-    <Box sx={{ height: '100%', p: 1 }}>
-      <Typography variant="h6" align="center" gutterBottom>
-        Decision Space Distribution
-      </Typography>
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Paper elevation={3} sx={{ p: 2, bgcolor: '#ffebee', color: '#d32f2f' }}>
-          <Typography variant="body1">Error loading decision space: {error}</Typography>
-        </Paper>
-      ) : !decisionSpaceData ? (
-        <Paper elevation={3} sx={{ p: 2 }}>
-          <Typography variant="body1">
-            {selectedLocations.length === 0 && 
-             selectedTechnologies.length === 0 && 
-             selectedDurations.length === 0 &&
-             selectedPowers.length === 0 
-              ? "Please select filters from the side menu to view decision space data."
-              : "No decision space data available for your current selection."}
-          </Typography>
-        </Paper>
-      ) : (
+    <Box sx={{ flexGrow: 1 }}>
+      {decisionPlotData && (
         <Plot
-          data={decisionSpaceData.data}
+          data={decisionPlotData.data}
           layout={{
-            ...decisionSpaceData.layout,
+            ...decisionPlotData.layout,
+            width: window.innerWidth * 0.40,
+            height: window.innerWidth * 0.20,
             autosize: true,
-            height: 400,
-            margin: { ...decisionSpaceData.layout.margin, t: 30 }
           }}
-          config={{ 
-            responsive: true,
-            displayModeBar: true,
-            displaylogo: false,
-            modeBarButtonsToRemove: ['lasso2d', 'select2d']
-          }}
-          style={{ width: '100%', height: '100%' }}
+          config={decisionPlotData.config}
+          style={{ width: '100%' }}
         />
       )}
     </Box>
