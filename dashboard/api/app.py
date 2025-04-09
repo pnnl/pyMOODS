@@ -21,7 +21,6 @@ from dashlib.offshore_windfarm.vis import Visualizer
 from dashlib.components import blank_figure
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from the React app
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
 
 MOCODO_JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
