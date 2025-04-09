@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Box from '@mui/material/Box';
+import { Typography } from '@mui/material';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -123,28 +124,48 @@ const ObjectivePlot: React.FC<ObjectivePlotProps> = ({
         justifyContent: 'center', 
         alignItems: 'center'
       }}>
-        {loading ? (
+        {/* {loading ? (
           <div>Loading objective data...</div>
         ) : !objectiveData ? (
           <div>No objective data available</div>
         ) : (
           <Plot
-            data={plotData()}
-            layout={{
-              width: width,
-              height: height,
-              paper_bgcolor: 'rgba(0,0,0,0)',
-              plot_bgcolor: 'rgba(0,0,0,0)',
-              margin: { l: 20, r: 40, t: 30, b: 10 },
-              font: {
-                family: 'Helvetica',
-                color: 'black',
-                size: 10
-              }
-            }}
-            config={objectiveData.config}
+          data={[
+            {
+              type: 'indicator',
+              mode: 'number',
+              value: 42,
+              title: {
+                text: `Standard Deviation: 5.00 & <br> Mean:`,
+                font: { size: 15 }
+              },
+              number: {
+                font: { size: 50 },
+                valueformat: '.2f'
+              },
+              domain: { x: [0, 1], y: [0, 1] }
+            }
+          ]}
+          layout={{
+            width: width,
+            height: height,
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: {
+              family: 'Helvetica',
+              color: 'black',
+              size: 10
+            },
+            margin: { t: 0, b: 0, l: 0, r: 0 }
+          }}
+          config={{ responsive: true }}
           />
-        )}
+        )} */}
+        <Typography>
+          Mean: {objectiveData?.mean}
+          <br />
+          Standard Deviation: {objectiveData?.std}
+        </Typography>
       </Box>
     </Box>
   );

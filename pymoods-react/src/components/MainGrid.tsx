@@ -57,7 +57,7 @@ export default function MainGrid() {
                 <OffshoreWindfarmClusterScatterPlot />
               </Grid>
               <Grid xs={12} md={6}>
-                <LMPPlot />
+                <ObjectivePlot />
               </Grid>
               
               {/* Bottom row with 2 LMPPlot components */}
