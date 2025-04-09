@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 
@@ -23,13 +24,19 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS to allow requests from the React app
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
 
+MOCODO_JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
+with open(MOCODO_JSON_PATH, 'r') as json_file:
+    mocodo_data = json.load(json_file)
+
+objective_functions = mocodo_data["objective_functions"]
+decision_variables = mocodo_data["decision_variables"]
+ovars = [list(objective_functions.keys())[0]]
+dvars = list(decision_variables.keys())
+
 # Load data for the visualizations
 CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")
 csv_data = pd.read_csv(CSV_FILE_PATH)
 
-# Initialize visualization tools
-ovars = ['objective']
-dvars = ['size', 'cable']
 vis_obj = Visualizer(data=csv_data, data_ovars=ovars, data_dvars=dvars)
 points = vis_obj.joint_xy
 
@@ -127,22 +134,34 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     return fig
 
 def generate_objective_graph_data(data):
-    objective_col = 'objective'  # Use the standard column name from the data
+    objective_col = list(objective_functions.keys())[0]
     if not data.empty:
-        objective_mean = float(data[objective_col].mean())
-        objective_std = float(data[objective_col].std())
+        objective_mean = data[objective_col].mean()
+        objective_std = data[objective_col].std()
         # Print debug info to server console
         print(f"Calculated objective data - mean: {objective_mean}, std: {objective_std}")
     else:
         objective_mean = 0
         objective_std = 0
-        print("Warning: No data available for objective calculation")
     
-    return {
-        "mean": objective_mean,
-        "std": objective_std,
-        "title": "objective"
-    }
+    fig = go.Figure(go.Indicator(
+        mode = "number",
+        value=objective_mean,
+        title={"text": f"Standard Deviation: {objective_std:.2f} & <br> Mean:",
+               "font":{"size": 15}},
+        number ={"font": {"size": 50}, "valueformat":".2f"},
+        domain={"x":[0,1], "y":[0,1]}
+    ))
+
+    fig.update_layout(
+        width=250,
+        height=200,
+        font=dict(color="black", size=10),
+        font_family="Helvetica",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=40, t=30, b=10))
+    return fig
 
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
@@ -200,13 +219,16 @@ def get_objective_data():
     if power:
         filtered_data = filtered_data[filtered_data['power'].isin(power)]
     
-    # Generate objective data
-    objective_data = generate_objective_graph_data(filtered_data)
+    fig = generate_objective_graph_data(filtered_data)
     
-    # Print the response for debugging
-    print(f"Sending objective data response: {objective_data}")
-    
-    return jsonify(objective_data)
+    # Return the full figure data as JSON
+    return jsonify({
+        "scatterplot": fig.to_json(),
+        "config": {
+            "displayModeBar": False,
+            "responsive": True
+        }
+    })
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
