@@ -13,7 +13,7 @@ interface ParameterOptions {
   power: string[];
 }
 
-interface ObjectiveData {
+interface ObjectivePlotData {
   data: Plotly.Data[];
   layout: Partial<Plotly.Layout>;
   config?: Partial<Plotly.Config>;
@@ -22,17 +22,8 @@ interface ObjectiveData {
   title: string;
 }
 
-interface ObjectivePlotProps {
-  width?: number;
-  height?: number;
-}
-
-const ObjectivePlot: React.FC<ObjectivePlotProps> = ({ 
-  width = 450,
-  height = 325
-}) => {
-  const [objectiveData, setObjectiveData] = useState<ObjectiveData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+const ObjectivePlot = () => {
+  const [objectiveData, setObjectiveData] = useState<ObjectivePlotData | null>(null);
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
     technology: [],
@@ -50,6 +41,7 @@ const ObjectivePlot: React.FC<ObjectivePlotProps> = ({
     duration: [],
     power: []
   });
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Fetch available parameter options
   useEffect(() => {
@@ -118,8 +110,6 @@ const ObjectivePlot: React.FC<ObjectivePlotProps> = ({
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box sx={{ 
-        width: width, 
-        height: height, 
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center'
