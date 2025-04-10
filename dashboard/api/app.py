@@ -189,6 +189,42 @@ def generate_stacked_histogram(data):
 
     return fig
 
+def generate_decision_space_graph(data):
+    objective_col = list(objective_functions.keys())[0]
+    data_with_ovar = data.copy()
+    data_with_ovar["ovar"] = objective_col
+
+    dvars = list(decision_variables.keys())
+    fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=False, vertical_spacing=0.13)
+
+    for i, dvar in enumerate(dvars):
+        data_subset = data_with_ovar[[dvar, "ovar"]].dropna()
+        fig.add_trace(
+            go.Histogram(
+                x=data_subset[dvar],
+                name=dvar,
+                marker=dict(color='#2874b4'),
+                nbinsx=100,
+                hovertemplate=f'{dvar}: %{{x}}<extra></extra>'
+            ),
+            row=i + 1,
+            col=1
+        )
+
+    fig.update_layout(
+        grid=dict(rows=len(dvars), columns=1, pattern='independent'),
+        height=400 * len(dvars),
+        width=800,
+        title="Decision Space Graph",
+        xaxis=dict(title="Decision Variables"),
+        yaxis=dict(title="Frequency"),
+        margin=dict(l=20, r=20, t=50, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+
+    return fig
+
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
     # Get query parameters dynamically based on hyperparameters
@@ -251,6 +287,30 @@ def get_decision_plot():
 
     # Generate the stacked histogram
     fig = generate_stacked_histogram(filtered_data)
+
+    # Return the full figure data as JSON
+    return jsonify({
+        "plot": fig.to_json(),
+        "config": {
+            "displayModeBar": False,
+            "responsive": True
+        }
+    })
+
+@app.route('/api/decision_space', methods=['GET'])
+def get_decision_space_graph():
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
+
+    # Filter data based on parameters if provided
+    filtered_data = csv_data.copy()
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
+
+    # Generate the decision space graph
+    fig = generate_decision_space_graph(filtered_data)
 
     # Return the full figure data as JSON
     return jsonify({

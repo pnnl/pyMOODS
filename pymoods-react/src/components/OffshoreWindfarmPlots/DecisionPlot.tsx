@@ -15,10 +15,10 @@ const DecisionPlot = () => {
   const [decisionPlotData, setDecisionPlotData] = useState<DecisionPlotData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch stacked histogram data from the API
+  // Fetch decision space graph data from the API
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:80/api/decision')
+    fetch('http://localhost:80/api/decision_space')
       .then((response) => response.json())
       .then((data) => {
         const plotData = JSON.parse(data.plot); // Parse the JSON string
@@ -26,7 +26,7 @@ const DecisionPlot = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Error fetching decision plot:', error);
+        console.error('Error fetching decision space graph:', error);
         setLoading(false);
       });
   }, []);
