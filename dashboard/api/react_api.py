@@ -180,7 +180,7 @@ def generate_stacked_histogram(data):
         grid=dict(rows=2, columns=1, pattern='independent'),
         height=600,
         width=800,
-        title='Decision Space: Size & Cable',
+        title='Decision Space',
         xaxis=dict(title='Size', dtick=20),
         yaxis=dict(title='Size', dtick=5, range=[0, 25]),
         xaxis2=dict(title='Cable', dtick=200),
