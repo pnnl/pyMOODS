@@ -170,7 +170,7 @@ def generate_stacked_histogram(data):
     fig.add_trace(
         go.Histogram(
             x=cable_data,
-            marker=dict(color='salmon'),
+            marker=dict(color='skyblue'),
             name='Cable'
         ),
         row=2, col=1
@@ -180,30 +180,30 @@ def generate_stacked_histogram(data):
         grid=dict(rows=2, columns=1, pattern='independent'),
         height=600,
         width=800,
-        title='Stacked Histograms: Size & Cable',
+        title='Decision Space: Size & Cable',
         xaxis=dict(title='Size', dtick=20),
-        yaxis=dict(title='Frequency', dtick=5, range=[0, 25]),
+        yaxis=dict(title='Size', dtick=5, range=[0, 25]),
         xaxis2=dict(title='Cable', dtick=200),
-        yaxis2=dict(title='Frequency', tickmode='linear', dtick=10, range=[0, 40]),
+        yaxis2=dict(title='Cable', tickmode='linear', dtick=10, range=[0, 40]),
     )
 
     return fig
 
-def generate_decision_space_graph(data):
-    objective_col = list(objective_functions.keys())[0]
-    data_with_ovar = data.copy()
-    data_with_ovar["ovar"] = objective_col
+def distplot_new(data, dvars):
+    df_with_clusters = pd.melt(data, id_vars=['ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+        .reset_index()\
+        .rename(columns={'index': 'orig_index'}).sort_values(['ovar', 'dvar'])
+    colors = px.colors.qualitative.D3
 
-    dvars = list(decision_variables.keys())
     fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=False, vertical_spacing=0.13)
 
     for i, dvar in enumerate(dvars):
-        data_subset = data_with_ovar[[dvar, "ovar"]].dropna()
+        data_subset = df_with_clusters[df_with_clusters.dvar == dvar]
         fig.add_trace(
             go.Histogram(
-                x=data_subset[dvar],
+                x=data_subset['value'],
                 name=dvar,
-                marker=dict(color='#2874b4'),
+                marker=dict(color=colors[i % len(colors)]),
                 nbinsx=100,
                 hovertemplate=f'{dvar}: %{{x}}<extra></extra>'
             ),
@@ -275,25 +275,22 @@ def get_objective_data():
 
 @app.route('/api/decision', methods=['GET'])
 def get_decision_plot():
-    # Get query parameters dynamically based on hyperparameters
     hyperparameter_keys = list(hyperparameters.keys())
     query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
 
-    # Filter data based on parameters if provided
     filtered_data = csv_data.copy()
     for key, values in query_params.items():
         if values:
             filtered_data = filtered_data[filtered_data[key].isin(values)]
 
-    # Generate the stacked histogram
     fig = generate_stacked_histogram(filtered_data)
 
-    # Return the full figure data as JSON
     return jsonify({
         "plot": fig.to_json(),
         "config": {
             "displayModeBar": False,
-            "responsive": True
+            "responsive": True,
+            "showlegend": False
         }
     })
 
@@ -309,8 +306,13 @@ def get_decision_space_graph():
         if values:
             filtered_data = filtered_data[filtered_data[key].isin(values)]
 
+    # Prepare data for the decision space graph
+    objective_col = list(objective_functions.keys())[0]
+    filtered_data["ovar"] = objective_col
+    dvars = list(decision_variables.keys())
+
     # Generate the decision space graph
-    fig = generate_decision_space_graph(filtered_data)
+    fig = distplot_new(filtered_data, dvars)
 
     # Return the full figure data as JSON
     return jsonify({
