@@ -101,21 +101,65 @@ const DecisionPlot = () => {
     });
   };
 
+  // dummy data
+  const sizeData = [
+    10, 20, 22, 25, 30, 30, 35, 38, 40, 42, 45, 48, 50, 52, 55, 58, 60, 62, 65, 68, 70, 72, 75, 78, 80, 85, 90, 92, 95
+  ];
+
+  const cableData = [
+    1400, 1450, 1500, 1500, 1550, 1600, 1650, 1700, 1750, 1800, 1850, 1900, 2000,
+    2100, 2200, 2300, 2400, 2500, 2600, 2700, 2750, 2780
+  ];
+
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {decisionPlotData && (
-        <Plot
-          data={decisionPlotData.data}
-          layout={{
-            ...decisionPlotData.layout,
-            width: window.innerWidth * 0.40,
-            height: window.innerWidth * 0.20,
-            autosize: true,
-          }}
-          config={decisionPlotData.config}
-          style={{ width: '100%' }}
-        />
-      )}
+      <Plot
+        data={[
+          {
+            type: 'histogram',
+            x: sizeData,
+            xaxis: 'x1',
+            yaxis: 'y1',
+            marker: { color: 'skyblue' },
+            name: 'Size',
+          },
+          {
+            type: 'histogram',
+            x: cableData,
+            xaxis: 'x2',
+            yaxis: 'y2',
+            marker: { color: 'salmon' },
+            name: 'Cable',
+          },
+        ]}
+        layout={{
+          grid: { rows: 2, columns: 1, pattern: 'independent' },
+          height: 600,
+          width: 800,
+          title: 'Stacked Histograms: Size & Cable',
+          xaxis: {
+            anchor: 'y',
+            title: 'Size',
+            dtick: 20,
+          },
+          yaxis: {
+            title: 'Frequency',
+            dtick: 5,
+            range: [0, 25],
+          },
+          xaxis2: {
+            anchor: 'y2',
+            title: 'Cable',
+            dtick: 200,
+          },
+          yaxis2: {
+            title: 'Frequency',
+            tickmode: 'linear',
+            dtick: 10,
+            range: [0, 40],
+          },
+        }}
+      />
     </Box>
   );
 };
