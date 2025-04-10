@@ -15,6 +15,7 @@ import plotly.colors as pc
 from scipy.spatial import ConvexHull
 from scipy.spatial.qhull import QhullError
 from sklearn.cluster import HDBSCAN
+from plotly.subplots import make_subplots
 
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
@@ -151,6 +152,43 @@ def generate_objective_graph_data(data):
         }
     }
 
+def generate_stacked_histogram(data):
+    size_data = data['size']
+    cable_data = data['cable']
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15)
+
+    fig.add_trace(
+        go.Histogram(
+            x=size_data,
+            marker=dict(color='skyblue'),
+            name='Size'
+        ),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Histogram(
+            x=cable_data,
+            marker=dict(color='salmon'),
+            name='Cable'
+        ),
+        row=2, col=1
+    )
+
+    fig.update_layout(
+        grid=dict(rows=2, columns=1, pattern='independent'),
+        height=600,
+        width=800,
+        title='Stacked Histograms: Size & Cable',
+        xaxis=dict(title='Size', dtick=20),
+        yaxis=dict(title='Frequency', dtick=5, range=[0, 25]),
+        xaxis2=dict(title='Cable', dtick=200),
+        yaxis2=dict(title='Frequency', tickmode='linear', dtick=10, range=[0, 40]),
+    )
+
+    return fig
+
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
     # Get query parameters dynamically based on hyperparameters
@@ -198,6 +236,30 @@ def get_objective_data():
     
     # Return the data as JSON
     return jsonify(graph_data)
+
+@app.route('/api/decision', methods=['GET'])
+def get_decision_plot():
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
+
+    # Filter data based on parameters if provided
+    filtered_data = csv_data.copy()
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
+
+    # Generate the stacked histogram
+    fig = generate_stacked_histogram(filtered_data)
+
+    # Return the full figure data as JSON
+    return jsonify({
+        "plot": fig.to_json(),
+        "config": {
+            "displayModeBar": False,
+            "responsive": True
+        }
+    })
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
