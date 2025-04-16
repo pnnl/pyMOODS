@@ -42,7 +42,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:5000/api/parameters')
+    fetch('http://localhost:8080/api/parameters')
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
@@ -63,7 +63,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     selectedParams.power.forEach(pow => queryParams.append('power', pow));
     
     const queryString = queryParams.toString();
-    const url = `http://localhost:5000/api/scatterplot${queryString ? '?' + queryString : ''}`;
+    const url = `http://localhost:8080/api/scatterplot${queryString ? '?' + queryString : ''}`;
     
     fetch(url)
       .then((response) => response.json())

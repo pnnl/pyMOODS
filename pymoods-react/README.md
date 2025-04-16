@@ -34,4 +34,4 @@ yarn install
 yarn dev
 ```
 
-The API should be running on `http://localhost:5000` and the React app should be running on `http://localhost:8080`. You can access the app in your web browser by navigating to `http://localhost:8080`.
+The API should be running on `http://localhost:8080` and the React app should be running on `http://localhost:80`. You can access the app in your web browser by navigating to `http://localhost:8080`.

@@ -91,7 +91,7 @@ export default function SideMenu({
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:5000/api/parameters')
+    fetch('http://localhost:8080/api/parameters')
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
