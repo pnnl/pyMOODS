@@ -18,7 +18,7 @@ const DecisionPlot = () => {
   // Fetch decision space graph data from the API
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:80/api/decision')
+    fetch('http://localhost:8080/api/decision')
       .then((response) => response.json())
       .then((data) => {
         const plotData = JSON.parse(data.plot); // Parse the JSON string
