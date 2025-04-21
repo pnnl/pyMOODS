@@ -60,7 +60,7 @@ export default function MainGrid() {
                 <ObjectivePlot />
               </Grid>
               <Grid item xs={12} md={4}>
-                <DecisionPlot />
+                <LMPPlot />
               </Grid>
 
               {/* Bottom row with 2 LMPPlot components */}
