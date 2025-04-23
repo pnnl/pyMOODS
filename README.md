@@ -4,10 +4,10 @@
   </div>
 
   <div style="margin-bottom: 20px;">
-    [![Python Versions](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
-    [![Latest Release](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/badges/release.svg)](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/releases)
-    [![pipeline status](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/badges/main/pipeline.svg)](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/commits/main)
-    [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+    ![Python Versions](https://img.shields.io/badge/python-3.13%2B-blue)
+    ![Latest Release](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/badges/release.svg)
+    ![pipeline status](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/badges/main/pipeline.svg)
+    ![License](https://img.shields.io/badge/license-MIT-blue)
   </div>
 </div>
 
