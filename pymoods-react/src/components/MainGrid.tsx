@@ -5,6 +5,7 @@ import * as Plotly from 'plotly.js-basic-dist';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import OffshoreWindfarmClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
 import ObjectivePlot from './OffshoreWindfarmPlots/ObjectivePlot';
+import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -41,37 +42,39 @@ export default function MainGrid() {
           }
         }}
       >
-        <Tab label="Use Cases" />
-        {/* <Tab label="Exploratory Analysis" /> */}
+        <Tab label="Decision Making" />
+        <Tab label="Scenario Comparison" />
       </Tabs>
 
       {/* Tab Content */}
-      <Box sx={{ mt: 2 }}>
-        {/* Use Case Tab */}
+      <Box sx={{ mt: 2, ml: 2 }}>
+        {/* Decision Making Tab */}
         {tabIndex === 0 && (
           <Box>
-            
             <Grid container spacing={2}>
-              {/* Top row with 2 LMPPlot components */}
-              <Grid xs={12} md={6}>
+              {/* Top row with Offshore, Objective, and Decision plots */}
+              <Grid item xs={12} md={4}>
                 <OffshoreWindfarmClusterScatterPlot />
               </Grid>
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={4}>
+                <ObjectivePlot />
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <LMPPlot />
               </Grid>
-              
+
               {/* Bottom row with 2 LMPPlot components */}
-              {/* <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <LMPPlot />
               </Grid>
-              <Grid xs={12} md={6}>
+              <Grid item xs={12} md={6}>
                 <LMPPlot />
-              </Grid> */}
+              </Grid>
             </Grid>
           </Box>
         )}
 
-        {/* Exploratory Analysis Tab */}
+        {/* Scenario Comparison Tab */}
         {tabIndex === 1 && (
           <Box>
             <Typography variant="h6">Explore</Typography>

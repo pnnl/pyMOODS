@@ -1,3 +1,4 @@
+import json
 import sys
 import os
 
@@ -14,22 +15,30 @@ import plotly.colors as pc
 from scipy.spatial import ConvexHull
 from scipy.spatial.qhull import QhullError
 from sklearn.cluster import HDBSCAN
+from plotly.subplots import make_subplots
 
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
 from dashlib.components import blank_figure
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from the React app
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
+
+MOCODO_JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mocodo24_v2_test.json")
+with open(MOCODO_JSON_PATH, 'r') as json_file:
+    mocodo_data = json.load(json_file)
+
+hyperparameters = mocodo_data["hyperparameters"]
+input_parameters = mocodo_data["input_parameters"]
+objective_functions = mocodo_data["objective_functions"]
+decision_variables = mocodo_data["decision_variables"]
+ovars = [list(objective_functions.keys())[0]]
+dvars = list(decision_variables.keys())
 
 # Load data for the visualizations
 CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")
 csv_data = pd.read_csv(CSV_FILE_PATH)
 
-# Initialize visualization tools
-ovars = ['objective']
-dvars = ['size', 'cable']
 vis_obj = Visualizer(data=csv_data, data_ovars=ovars, data_dvars=dvars)
 points = vis_obj.joint_xy
 
@@ -127,42 +136,107 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
     return fig
 
 def generate_objective_graph_data(data):
-    objective_col = 'objective'  # Use the standard column name from the data
+    objective_col = list(objective_functions.keys())[0]
     if not data.empty:
-        objective_mean = float(data[objective_col].mean())
-        objective_std = float(data[objective_col].std())
-        # Print debug info to server console
-        print(f"Calculated objective data - mean: {objective_mean}, std: {objective_std}")
+        objective_mean = data[objective_col].mean()
+        objective_std = data[objective_col].std()
     else:
         objective_mean = 0
         objective_std = 0
-        print("Warning: No data available for objective calculation")
-    
+
     return {
         "mean": objective_mean,
         "std": objective_std,
-        "title": "objective"
+        "config": {
+            "responsive": True
+        }
     }
+
+def generate_stacked_histogram(data):
+    size_data = data['size']
+    cable_data = data['cable']
+
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=False, vertical_spacing=0.15)
+
+    fig.add_trace(
+        go.Histogram(
+            x=size_data,
+            marker=dict(color='skyblue'),
+            name='Size'
+        ),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Histogram(
+            x=cable_data,
+            marker=dict(color='skyblue'),
+            name='Cable'
+        ),
+        row=2, col=1
+    )
+
+    fig.update_layout(
+        grid=dict(rows=2, columns=1, pattern='independent'),
+        height=600,
+        width=800,
+        title='Decision Space',
+        xaxis=dict(title='Size', dtick=20),
+        yaxis=dict(title='Size', dtick=5, range=[0, 25]),
+        xaxis2=dict(title='Cable', dtick=200),
+        yaxis2=dict(title='Cable', tickmode='linear', dtick=10, range=[0, 40]),
+    )
+
+    return fig
+
+def distplot_new(data, dvars):
+    df_with_clusters = pd.melt(data, id_vars=['ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+        .reset_index()\
+        .rename(columns={'index': 'orig_index'}).sort_values(['ovar', 'dvar'])
+    colors = px.colors.qualitative.D3
+
+    fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=False, vertical_spacing=0.13)
+
+    for i, dvar in enumerate(dvars):
+        data_subset = df_with_clusters[df_with_clusters.dvar == dvar]
+        fig.add_trace(
+            go.Histogram(
+                x=data_subset['value'],
+                name=dvar,
+                marker=dict(color=colors[i % len(colors)]),
+                nbinsx=100,
+                hovertemplate=f'{dvar}: %{{x}}<extra></extra>'
+            ),
+            row=i + 1,
+            col=1
+        )
+
+    fig.update_layout(
+        grid=dict(rows=len(dvars), columns=1, pattern='independent'),
+        height=400 * len(dvars),
+        width=800,
+        title="Decision Space Graph",
+        xaxis=dict(title="Decision Variables"),
+        yaxis=dict(title="Frequency"),
+        margin=dict(l=20, r=20, t=50, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+
+    return fig
 
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
-    # Get query parameters (optional)
-    location = request.args.getlist('location')
-    technology = request.args.getlist('technology')
-    duration = request.args.getlist('duration')
-    power = request.args.getlist('power')
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
     
     # Filter data based on parameters if provided
     filtered_data = csv_data.copy()
     
-    if location:
-        filtered_data = filtered_data[filtered_data['location'].isin(location)]
-    if technology:
-        filtered_data = filtered_data[filtered_data['technology'].isin(technology)]
-    if duration:
-        filtered_data = filtered_data[filtered_data['duration'].isin(duration)]
-    if power:
-        filtered_data = filtered_data[filtered_data['power'].isin(power)]
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
     
     # Update clusters and points based on filtered data
     updated_clusters = filtered_data[['location']]
@@ -182,31 +256,72 @@ def get_scatterplot():
 
 @app.route('/api/objective', methods=['GET'])
 def get_objective_data():
-    # Get query parameters (optional)
-    location = request.args.getlist('location')
-    technology = request.args.getlist('technology')
-    duration = request.args.getlist('duration')
-    power = request.args.getlist('power')
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
     
     # Filter data based on parameters if provided
     filtered_data = csv_data.copy()
     
-    if location:
-        filtered_data = filtered_data[filtered_data['location'].isin(location)]
-    if technology:
-        filtered_data = filtered_data[filtered_data['technology'].isin(technology)]
-    if duration:
-        filtered_data = filtered_data[filtered_data['duration'].isin(duration)]
-    if power:
-        filtered_data = filtered_data[filtered_data['power'].isin(power)]
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
     
-    # Generate objective data
-    objective_data = generate_objective_graph_data(filtered_data)
+    # Generate mean and std data
+    graph_data = generate_objective_graph_data(filtered_data)
     
-    # Print the response for debugging
-    print(f"Sending objective data response: {objective_data}")
-    
-    return jsonify(objective_data)
+    # Return the data as JSON
+    return jsonify(graph_data)
+
+@app.route('/api/decision', methods=['GET'])
+def get_decision_plot():
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
+
+    filtered_data = csv_data.copy()
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
+
+    fig = generate_stacked_histogram(filtered_data)
+
+    return jsonify({
+        "plot": fig.to_json(),
+        "config": {
+            "displayModeBar": False,
+            "responsive": True,
+            "showlegend": False
+        }
+    })
+
+@app.route('/api/decision_space', methods=['GET'])
+def get_decision_space_graph():
+    # Get query parameters dynamically based on hyperparameters
+    hyperparameter_keys = list(hyperparameters.keys())
+    query_params = {key: request.args.getlist(key) for key in hyperparameter_keys}
+
+    # Filter data based on parameters if provided
+    filtered_data = csv_data.copy()
+    for key, values in query_params.items():
+        if values:
+            filtered_data = filtered_data[filtered_data[key].isin(values)]
+
+    # Prepare data for the decision space graph
+    objective_col = list(objective_functions.keys())[0]
+    filtered_data["ovar"] = objective_col
+    dvars = list(decision_variables.keys())
+
+    # Generate the decision space graph
+    fig = distplot_new(filtered_data, dvars)
+
+    # Return the full figure data as JSON
+    return jsonify({
+        "plot": fig.to_json(),
+        "config": {
+            "displayModeBar": False,
+            "responsive": True
+        }
+    })
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
