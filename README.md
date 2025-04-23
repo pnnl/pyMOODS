@@ -1,13 +1,9 @@
-<!-- # pyMOODS: Multi-Objective Optimization and Decision Support -->
 [![Python Versions](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
 [![Latest Release](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/badges/release.svg)](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/releases)
 [![pipeline status](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/badges/main/pipeline.svg)](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/commits/main)
 
-<!-- <div align="center">
-  <img src="./assets/logo.png" width="400">
-</div> -->
 <p align="center" style="margin: -60px 0 -65px 0;">
-  <img src="./docs/logo.png" alt="Logo" width="400">
+  <img src="./assets/logo.png" alt="Logo" width="400">
 </p>
 An AI-enabled visualization capability for power systems planning that integrates co-design principles. The goal is to create a platform that combines cutting-edge artificial intelligence with interactive visualizations and theory of multi-criteria decision-making (MCDM) to address key challenges in large-scale infrastructure planning and operations. This tool will help stakeholders collaborate more effectively, enabling better decision-making by exploring complex scenarios in real time.
 
