@@ -94,6 +94,14 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     });
   };
 
+  // Handle technology change from SideMenu
+  const handlePowerChange = (powers: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      power: powers,
+    });
+  };
+
   // Handle duration change from SideMenu
   const handleDurationChange = (durations: string[]) => {
     setSelectedParams({
@@ -109,23 +117,16 @@ const OffshoreWindfarmClusterScatterPlot = () => {
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {/* Duration Filter has been moved to SideMenu */}
-        {/* Power Filter has been moved to SideMenu */}
       </Box>
       <SideMenu 
         onLocationChange={handleLocationChange} 
         selectedLocations={selectedParams.location}
         onTechnologyChange={handleTechnologyChange}
         selectedTechnologies={selectedParams.technology}
+        onPowerChange={handlePowerChange}
+        selectedPowers={selectedParams.power}
         onDurationChange={handleDurationChange}
         selectedDurations={selectedParams.duration}
-        onPowerChange={(powers: string[]) => {
-          setSelectedParams({
-            ...selectedParams,
-            power: powers,
-          });
-        }}
-        selectedPowers={selectedParams.power}
       />
 
       <Box sx={{ flexGrow: 1 }}>
