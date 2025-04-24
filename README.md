@@ -1,6 +1,6 @@
 <div align="center">
   <div style="margin: -40px 0 -50px 0;">
-    <img src="./assets/logo.png" alt="PyMOODS Logo" width="400">
+    <img src="./assets/logo.png" alt="PyMOODS Logo" width="200">
   </div>
 
   <div style="margin-bottom: 20px;">
