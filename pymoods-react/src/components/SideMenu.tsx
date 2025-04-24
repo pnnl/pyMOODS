@@ -171,20 +171,14 @@ export default function SideMenu({
             Filters
           </Typography>
           {/* Location Filter (moved from OffshoreWindfarmClusterScatterPlot) */}
-          <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
+          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Location</SidebarInputLabel>
             <SidebarSelect
               multiple
               value={selectedLocations}
               onChange={handleLocationChange}
               input={<OutlinedInput label="Location" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {(selected as string[]).map((value: string) => (
-                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-                  ))}
-                </Box>
-              )}
+              renderValue={() => null} // Prevent chips from rendering inside the dropdown
             >
               {paramOptions.location.map((name) => (
                 <MenuItem key={name} value={name}>
@@ -193,6 +187,11 @@ export default function SideMenu({
               ))}
             </SidebarSelect>
           </FormControl>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+            {(selectedLocations as string[]).map((value: string) => (
+              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+            ))}
+          </Box>
           
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Technology</SidebarInputLabel>
@@ -201,13 +200,7 @@ export default function SideMenu({
               value={selectedTechnologies}
               onChange={handleTechnologyChange}
               input={<OutlinedInput label="Technology" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {(selected as string[]).map((value: string) => (
-                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-                  ))}
-                </Box>
-              )}
+              renderValue={() => null}
             >
               {paramOptions.technology.map((name) => (
                 <MenuItem key={name} value={name}>
@@ -216,6 +209,11 @@ export default function SideMenu({
               ))}
             </SidebarSelect>
           </FormControl>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+            {(selectedTechnologies as string[]).map((value: string) => (
+              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+            ))}
+          </Box>
 
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Power Rating (MW)</SidebarInputLabel>
@@ -224,13 +222,7 @@ export default function SideMenu({
               value={selectedPowers}
               onChange={handlePowerChange}
               input={<OutlinedInput label="Power" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {(selected as string[]).map((value: string) => (
-                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-                  ))}
-                </Box>
-              )}
+              renderValue={() => null}
             >
               {paramOptions.power.map((name) => (
                 <MenuItem key={name} value={name}>
@@ -239,6 +231,11 @@ export default function SideMenu({
               ))}
             </SidebarSelect>
           </FormControl>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+            {(selectedPowers as string[]).map((value: string) => (
+              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+            ))}
+          </Box>
           <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
             <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Duration (Hours)</SidebarInputLabel>
             <SidebarSelect
@@ -246,13 +243,7 @@ export default function SideMenu({
               value={selectedDurations}
               onChange={handleDurationChange}
               input={<OutlinedInput label="Duration" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {(selected as string[]).map((value: string) => (
-                    <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-                  ))}
-                </Box>
-              )}
+              renderValue={() => null}
             >
               {paramOptions.duration.map((name) => (
                 <MenuItem key={name} value={name}>
@@ -261,6 +252,11 @@ export default function SideMenu({
               ))}
             </SidebarSelect>
           </FormControl>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+            {(selectedDurations as string[]).map((value: string) => (
+              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+            ))}
+          </Box>
         </Box>
 
         <Box sx={{ p: 2 }}>
