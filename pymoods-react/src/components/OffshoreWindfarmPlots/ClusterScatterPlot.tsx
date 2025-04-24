@@ -13,13 +13,13 @@ interface ParameterOptions {
   power: string[];
 }
 
-const OffshoreWindfarmClusterScatterPlot = () => {
-  interface ScatterplotData {
-    data: Plotly.Data[];
-    layout: Partial<Plotly.Layout>;
-    config?: Partial<Plotly.Config>;
-  }
+interface ScatterplotData {
+  data: Plotly.Data[];
+  layout: Partial<Plotly.Layout>;
+  config?: Partial<Plotly.Config>;
+}
 
+const OffshoreWindfarmClusterScatterPlot = () => {
   const [scatterplotData, setScatterplotData] = useState<ScatterplotData | null>(null);
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
