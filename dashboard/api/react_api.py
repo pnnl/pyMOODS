@@ -19,7 +19,6 @@ from plotly.subplots import make_subplots
 
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
-from dashlib.components import blank_figure
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
@@ -54,6 +53,7 @@ kwargs = dict(
 clusters = vis_obj.get_overlapping_clusters(**kwargs)
 initial_clusters = csv_data[['location']]
 
+# from dashlib.offshore_windfarm.screen3 import get_convex_hull
 def get_convex_hull(points):
     # Drop duplicate points to avoid errors
     unique_points = points.drop_duplicates()

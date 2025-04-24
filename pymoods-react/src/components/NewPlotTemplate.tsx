@@ -18,7 +18,7 @@ const NewPlotTemplate = () => {
   // Fetch decision space graph data from the API
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:80/api/YOUR_EDNPOINT_HERE')
+    fetch('http://localhost:8080/api/YOUR_EDNPOINT_HERE')
       .then((response) => response.json())
       .then((data) => {
         const plotData = JSON.parse(data.plot); // Parse the JSON string
@@ -31,19 +31,26 @@ const NewPlotTemplate = () => {
       });
   }, []);
 
+  if (loading && !plotData) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
+  }
+
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        plotData && (
+      {plotData && (
           <Plot
             data={plotData.data}
-            layout={plotData.layout}
+            layout={{
+              ...plotData.layout,
+              width: window.innerWidth * 0.33,
+              height: window.innerWidth * 0.25,
+              autosize: true,
+            }}
             config={plotData.config}
+            style={{ width: '100%' }}
           />
         )
-      )}
+      }
     </Box>
   );
 };
