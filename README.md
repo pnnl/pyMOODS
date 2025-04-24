@@ -9,9 +9,8 @@
     ![pipeline status](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/badges/main/pipeline.svg)
     ![License](https://img.shields.io/badge/license-MIT-blue)
   </div>
-  <hr>
   <p align="center">
-    Visualization Framework for Multi-Criteria Decision Making
+    A Visualization Framework for Multi-Criteria Decision Making
   </p>
 </div>
 
