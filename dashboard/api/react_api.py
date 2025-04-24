@@ -178,6 +178,7 @@ def generate_stacked_histogram(data):
     )
 
     fig.update_layout(
+        margin=dict(l=5, r=0),
         grid=dict(rows=2, columns=1, pattern='independent'),
         title='Decision Space',
         xaxis=dict(dtick=20),

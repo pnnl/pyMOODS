@@ -91,7 +91,7 @@ const ObjectivePlot = () => {
   }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Box display="flex" flexDirection="column">
       <Box sx={{ 
         display: 'flex', 
       }}>
