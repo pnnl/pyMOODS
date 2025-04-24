@@ -117,17 +117,18 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
             fig.add_trace(go.Scatter(x=multi_cluster_df[0], y=multi_cluster_df[1], mode='markers', marker=dict(color='black', size=5), name='multiple_cluster', showlegend=False if i > 0 else True))
 
     fig.update_layout(
-        margin=dict(t=20, b=20),
+        margin=dict(t=20, b=20, l=0, r=0),
         legend=dict(
-            x=1.03,
+            x=0.8,
+            y=0.95,
             bordercolor='#d3d3d3',
             borderwidth=1,
             bgcolor='white',
             font=dict(
-                size=14  # Set the font size of the legend items
+                size=12
             ),
             traceorder='normal',
-            title=dict(text=' cluster', font=dict(size=14))
+            title=dict(text=' cluster', font=dict(size=12))
         ),
         template="plotly_white",
         xaxis=dict(showticklabels=False, showgrid=False),
@@ -178,12 +179,10 @@ def generate_stacked_histogram(data):
 
     fig.update_layout(
         grid=dict(rows=2, columns=1, pattern='independent'),
-        height=600,
-        width=800,
         title='Decision Space',
-        xaxis=dict(title='Size', dtick=20),
+        xaxis=dict(dtick=20),
         yaxis=dict(title='Size', dtick=5, range=[0, 25]),
-        xaxis2=dict(title='Cable', dtick=200),
+        xaxis2=dict(dtick=200),
         yaxis2=dict(title='Cable', tickmode='linear', dtick=10, range=[0, 40]),
     )
 
@@ -294,6 +293,7 @@ def get_decision_plot():
         }
     })
 
+# potential delete
 @app.route('/api/decision_space', methods=['GET'])
 def get_decision_space_graph():
     # Get query parameters dynamically based on hyperparameters

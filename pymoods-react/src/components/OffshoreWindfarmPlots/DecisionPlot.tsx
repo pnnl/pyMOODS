@@ -40,7 +40,6 @@ const DecisionPlot = () => {
       {decisionPlotData && (
           <Plot
             data={decisionPlotData.data}
-            // layout={decisionPlotData.layout}
             layout={{
               ...decisionPlotData.layout,
               width: window.innerWidth * 0.34,

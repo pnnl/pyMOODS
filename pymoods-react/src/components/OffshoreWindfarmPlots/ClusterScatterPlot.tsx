@@ -115,9 +115,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-      </Box>
+    <Box sx={{ width: '100%', mt: 1 }}>
       <SideMenu 
         onLocationChange={handleLocationChange} 
         selectedLocations={selectedParams.location}
@@ -133,7 +131,6 @@ const OffshoreWindfarmClusterScatterPlot = () => {
         {scatterplotData && (
           <Plot
             data={scatterplotData.data}
-            // layout={scatterplotData.layout}
             layout={{
               ...scatterplotData.layout,
               width: window.innerWidth * 0.33,
