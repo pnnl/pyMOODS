@@ -133,10 +133,11 @@ const OffshoreWindfarmClusterScatterPlot = () => {
         {scatterplotData && (
           <Plot
             data={scatterplotData.data}
+            // layout={scatterplotData.layout}
             layout={{
               ...scatterplotData.layout,
-              width: window.innerWidth * 0.40,
-              height: window.innerWidth * 0.20,
+              width: window.innerWidth * 0.33,
+              height: window.innerWidth * 0.25,
               autosize: true,
             }}
             config={scatterplotData.config}

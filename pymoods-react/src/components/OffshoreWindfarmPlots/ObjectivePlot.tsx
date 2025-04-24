@@ -94,13 +94,16 @@ const ObjectivePlot = () => {
     <Box display="flex" flexDirection="column" alignItems="center">
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center'
       }}>
-        <Typography>
-          Mean: {objectiveData?.mean}
+        <Typography align="center">
+          Mean:
           <br />
-          Standard Deviation: {objectiveData?.std}
+          {objectiveData?.mean}
+          <br />
+          <br />
+          Standard Deviation:
+          <br />
+          {objectiveData?.std}
         </Typography>
       </Box>
     </Box>

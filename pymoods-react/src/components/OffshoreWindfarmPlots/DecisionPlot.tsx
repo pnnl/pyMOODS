@@ -31,19 +31,26 @@ const DecisionPlot = () => {
       });
   }, []);
 
+  if (loading && !decisionPlotData) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
+  }
+
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        decisionPlotData && (
+      {decisionPlotData && (
           <Plot
             data={decisionPlotData.data}
-            layout={decisionPlotData.layout}
+            // layout={decisionPlotData.layout}
+            layout={{
+              ...decisionPlotData.layout,
+              width: window.innerWidth * 0.34,
+              height: window.innerWidth * 0.30,
+              autosize: true,
+            }}
             config={decisionPlotData.config}
           />
         )
-      )}
+      }
     </Box>
   );
 };
