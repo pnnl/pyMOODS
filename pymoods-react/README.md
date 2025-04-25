@@ -2,36 +2,41 @@
 
 ## Running Locally
 
-To view pyMOODS in React, run the following commands:
+### Starting the API Server
 
-1. In the `dashboard` directory, create or activate a venv and install the dependencies:
+1. In the `dashboard` directory, create or activate a virtual environment. If you are using `venv`, run the following command:
+
+```bash
+source ./venv/Scripts/activate
+```
+
+2. Install the dependencies for your venv:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Activate the virtual environment. If you are using `venv`, run the following command:
+3. Run the following command to start the API server:
 
 ```bash
-source venv/Scripts/activate
+cd api
+python react_api.py
 ```
 
-3. In the `dashboard/api/` directory, run the following command to start the API server:
+The API should be running on `http://localhost:8080`
 
-```bash
-python app.py
-```
+#### Starting the React App (Client)
 
-4. In the `pymoods-react` directory, run the following command to install the dependencies:
+1. In the `pymoods-react` directory, run the following to install the dependencies:
 
 ```bash
 yarn install
 ```
 
-5. After the dependencies are installed, run the following command to start the development server:
+2. Run the following to start the development server:
 
 ```bash
 yarn dev
 ```
 
-The API should be running on `http://localhost:8080` and the React app should be running on `http://localhost:80`. You can access the app in your web browser by navigating to `http://localhost:8080`.
+You can now access the React app on `http://localhost:443`.
