@@ -39,7 +39,7 @@ yarn install
 yarn dev
 ```
 
-You can now access the React app on `http://localhost:80`.
+You can now access the React app on `http://localhost:8080`.
 
 ## App Workflow
 
