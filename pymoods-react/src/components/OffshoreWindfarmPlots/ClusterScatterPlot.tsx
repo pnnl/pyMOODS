@@ -4,6 +4,9 @@ import createPlotlyComponent from "react-plotly.js/factory";
 import { Box } from '@mui/material';
 import SideMenu from '../SideMenu';
 
+const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
+// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+
 const Plot = createPlotlyComponent(Plotly);
 
 interface ParameterOptions {
@@ -42,7 +45,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:8080/api/parameters')
+    fetch(`${apiBaseUrl}/api/parameters`)
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
@@ -63,7 +66,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     selectedParams.power.forEach(pow => queryParams.append('power', pow));
     
     const queryString = queryParams.toString();
-    const url = `http://localhost:8080/api/scatterplot${queryString ? '?' + queryString : ''}`;
+    const url = `${apiBaseUrl}/api/scatterplot${queryString ? '?' + queryString : ''}`;
     
     fetch(url)
       .then((response) => response.json())

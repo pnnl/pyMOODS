@@ -4,6 +4,9 @@ import createPlotlyComponent from "react-plotly.js/factory";
 import Box from '@mui/material/Box';
 import { Typography } from '@mui/material';
 
+const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
+// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+
 // const Plot = createPlotlyComponent(Plotly);
 
 interface ParameterOptions {
@@ -45,7 +48,7 @@ const ObjectivePlot = () => {
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:8080/api/parameters')
+    fetch(`${apiBaseUrl}/api/parameters`)
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
@@ -65,7 +68,7 @@ const ObjectivePlot = () => {
     selectedParams.power.forEach(pow => queryParams.append('power', pow));
     
     const queryString = queryParams.toString();
-    const url = `http://localhost:8080/api/objective${queryString ? '?' + queryString : ''}`;
+    const url = `${apiBaseUrl}/api/objective${queryString ? '?' + queryString : ''}`;
     
     fetch(url)
       .then((response) => response.json())

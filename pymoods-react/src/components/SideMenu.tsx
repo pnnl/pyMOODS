@@ -4,6 +4,9 @@ import Box from '@mui/material/Box';
 import { Typography, Select, MenuItem, FormControl, InputLabel, Chip, OutlinedInput, SelectChangeEvent } from '@mui/material';
 import { useState, useEffect} from 'react';
 
+const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
+// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+
 const drawerWidth = 200;
 
 const Drawer = styled(MuiDrawer)({
@@ -91,7 +94,7 @@ export default function SideMenu({
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:8080/api/parameters')
+    fetch(`${apiBaseUrl}/api/parameters`)
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
