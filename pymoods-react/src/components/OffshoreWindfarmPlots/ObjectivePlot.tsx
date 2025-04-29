@@ -4,7 +4,10 @@ import createPlotlyComponent from "react-plotly.js/factory";
 import Box from '@mui/material/Box';
 import { Typography } from '@mui/material';
 
-const Plot = createPlotlyComponent(Plotly);
+const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
+// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+
+// const Plot = createPlotlyComponent(Plotly);
 
 interface ParameterOptions {
   location: string[];
@@ -45,7 +48,7 @@ const ObjectivePlot = () => {
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:80/api/parameters')
+    fetch(`${apiBaseUrl}/api/parameters`)
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
@@ -65,7 +68,7 @@ const ObjectivePlot = () => {
     selectedParams.power.forEach(pow => queryParams.append('power', pow));
     
     const queryString = queryParams.toString();
-    const url = `http://localhost:8080/api/objective${queryString ? '?' + queryString : ''}`;
+    const url = `${apiBaseUrl}/api/objective${queryString ? '?' + queryString : ''}`;
     
     fetch(url)
       .then((response) => response.json())
@@ -86,75 +89,24 @@ const ObjectivePlot = () => {
       });
   }, [selectedParams]);
 
-  const plotData = (): Partial<Plotly.Data>[] => {
-    if (!objectiveData) return [];
-
-    console.log("Objective Data:", objectiveData.mean, objectiveData.std);
-    
-    return [{
-      type: 'indicator',
-      mode: 'number',
-      value: objectiveData.mean,
-      title: {
-        text: `Standard Deviation: ${objectiveData.std.toFixed(2)} & <br> Mean:`,
-        font: { size: 15 }
-      },
-      number: {
-        font: { size: 50 },
-        valueformat: '.2f'
-      },
-      domain: { x: [0, 1], y: [0, 1] }
-    }];
-  };
+  if (loading && !objectiveData) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
+  }
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center">
+    <Box display="flex" flexDirection="column">
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center'
       }}>
-        {/* {loading ? (
-          <div>Loading objective data...</div>
-        ) : !objectiveData ? (
-          <div>No objective data available</div>
-        ) : (
-          <Plot
-          data={[
-            {
-              type: 'indicator',
-              mode: 'number',
-              value: 42,
-              title: {
-                text: `Standard Deviation: 5.00 & <br> Mean:`,
-                font: { size: 15 }
-              },
-              number: {
-                font: { size: 50 },
-                valueformat: '.2f'
-              },
-              domain: { x: [0, 1], y: [0, 1] }
-            }
-          ]}
-          layout={{
-            width: width,
-            height: height,
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: {
-              family: 'Helvetica',
-              color: 'black',
-              size: 10
-            },
-            margin: { t: 0, b: 0, l: 0, r: 0 }
-          }}
-          config={{ responsive: true }}
-          />
-        )} */}
-        <Typography>
-          Mean: {objectiveData?.mean}
+        <Typography align="center">
+          Mean:
           <br />
-          Standard Deviation: {objectiveData?.std}
+          {objectiveData?.mean}
+          <br />
+          <br />
+          Standard Deviation:
+          <br />
+          {objectiveData?.std}
         </Typography>
       </Box>
     </Box>

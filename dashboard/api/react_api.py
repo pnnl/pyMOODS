@@ -19,7 +19,6 @@ from plotly.subplots import make_subplots
 
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
-from dashlib.components import blank_figure
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
@@ -54,6 +53,7 @@ kwargs = dict(
 clusters = vis_obj.get_overlapping_clusters(**kwargs)
 initial_clusters = csv_data[['location']]
 
+# from dashlib.offshore_windfarm.screen3 import get_convex_hull
 def get_convex_hull(points):
     # Drop duplicate points to avoid errors
     unique_points = points.drop_duplicates()
@@ -117,17 +117,18 @@ def draw_clusters_scatterplot(clusters, points, selected_indices=None):
             fig.add_trace(go.Scatter(x=multi_cluster_df[0], y=multi_cluster_df[1], mode='markers', marker=dict(color='black', size=5), name='multiple_cluster', showlegend=False if i > 0 else True))
 
     fig.update_layout(
-        margin=dict(t=20, b=20),
+        margin=dict(t=20, b=20, l=0, r=0),
         legend=dict(
-            x=1.03,
+            x=0.8,
+            y=0.95,
             bordercolor='#d3d3d3',
             borderwidth=1,
             bgcolor='white',
             font=dict(
-                size=14  # Set the font size of the legend items
+                size=12
             ),
             traceorder='normal',
-            title=dict(text=' cluster', font=dict(size=14))
+            title=dict(text=' cluster', font=dict(size=12))
         ),
         template="plotly_white",
         xaxis=dict(showticklabels=False, showgrid=False),
@@ -177,50 +178,194 @@ def generate_stacked_histogram(data):
     )
 
     fig.update_layout(
+        margin=dict(l=5, r=0),
         grid=dict(rows=2, columns=1, pattern='independent'),
-        height=600,
-        width=800,
         title='Decision Space',
-        xaxis=dict(title='Size', dtick=20),
+        xaxis=dict(dtick=20),
         yaxis=dict(title='Size', dtick=5, range=[0, 25]),
-        xaxis2=dict(title='Cable', dtick=200),
+        xaxis2=dict(dtick=200),
         yaxis2=dict(title='Cable', tickmode='linear', dtick=10, range=[0, 40]),
     )
 
     return fig
 
-def distplot_new(data, dvars):
-    df_with_clusters = pd.melt(data, id_vars=['ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+def generate_decision_space_sliders(data):
+    objective_col = list(objective_functions.keys())[0]
+    data_with_ovar = data.copy()
+    data_with_ovar["ovar"] = objective_col
+    
+    dvars = list(decision_variables.keys())
+    fig = distplot_new(data_with_ovar, dvars)
+    fig.update_layout(
+        # showlegend = False,
+        width = 400, height =400,
+        margin=dict(l=0,r=190,t=50,b=150),
+        autosize= False, font_family='Helvetica',
+        font = dict(color='black', size=10), paper_bgcolor='rgba(0,0,0,0)', 
+    )
+    return fig
+
+def distplot_new(with_clusters, dvars, selected_info=[]):
+    y = with_clusters['ovar'].values[0]
+    df_with_clusters = pd.melt(with_clusters, id_vars=[y, 'ovar'], value_vars=dvars, var_name='dvar', ignore_index=False)\
         .reset_index()\
-        .rename(columns={'index': 'orig_index'}).sort_values(['ovar', 'dvar'])
+        .rename(columns={'index': 'orig_index'}).sort_values([y, 'dvar', 'ovar'])
+    ovar = 'objective'
     colors = px.colors.qualitative.D3
 
     fig = make_subplots(rows=len(dvars), cols=1, shared_xaxes=False, vertical_spacing=0.13)
 
     for i, dvar in enumerate(dvars):
-        data_subset = df_with_clusters[df_with_clusters.dvar == dvar]
-        fig.add_trace(
-            go.Histogram(
-                x=data_subset['value'],
-                name=dvar,
-                marker=dict(color=colors[i % len(colors)]),
-                nbinsx=100,
-                hovertemplate=f'{dvar}: %{{x}}<extra></extra>'
-            ),
-            row=i + 1,
-            col=1
+        row_mask = (df_with_clusters.dvar == dvar)
+        if len(selected_info) == 0:
+            data = df_with_clusters[row_mask]
+
+            plot = go.Figure()
+            plot.add_trace(
+                go.Histogram(
+                    x=data.value,
+                    name=f"{ovar}",
+                    marker=dict(color='#2874b4'),
+                    nbinsx=100,showlegend=False,
+                    hovertemplate='Objective: %{x}<extra></extra>'
+                )
+            )
+
+            for trace in plot.data:
+                trace.showlegend = (i==0)
+                fig.add_trace(trace, row=i+1, col=1)
+        else:
+            if dvar in [d['row'] for d in selected_info]:
+                selection = [d for d in selected_info if d['row'] == dvar]
+                bounds = [selection[0]['bounds']['x0'], selection[0]['bounds']['x1']]
+                data = df_with_clusters[row_mask]
+                current = data.sort_values('value').reset_index(drop=True)
+
+                selected_indices = current[current.value.between(bounds[0], bounds[1])].index
+
+                plot = go.Figure()
+                plot.add_trace(
+                    go.Histogram(
+                        x=current.value,
+                        name='objective',
+                        nbinsx=100,
+                        marker=dict(color=colors[0]),
+                        selectedpoints=selected_indices,
+                        selected=dict(marker=dict(color='#2874b4')),
+                        unselected=dict(marker=dict(color='lightgray')),
+                        hovertemplate='Objective: %{x}<extra></extra>'
+                    )
+                )
+                for trace in plot.data:
+                    trace.showlegend = (i==0)
+                    fig.add_trace(trace, row=i+1, col=1)
+
+
+            # in the other rows
+            else:
+                filter_query = ''
+                for idx in range(len(selected_info)):
+                    row = selected_info[idx]['row']
+                    curr_bounds = selected_info[idx]['bounds']
+
+                    if idx == 0:
+                        filter_query = f"({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
+                    else:
+                        filter_query += f"and ({row} >= {curr_bounds['x0']}) and ({row} <= {curr_bounds['x1']})"
+
+                filtered = with_clusters.query(filter_query)
+                with_clusters['active'] = with_clusters.index.isin(filtered.index)
+
+                df_with_clusters = pd.melt(with_clusters, id_vars=[y, 'ovar', 'active'], value_vars=dvars, var_name='dvar', ignore_index=False)\
+                    .reset_index()\
+                    .rename(columns={'index': 'orig_index'}).sort_values([y, 'dvar', 'ovar'])
+
+                data = df_with_clusters[row_mask]
+
+                current = data.sort_values('value').reset_index(drop=True)
+                plot = go.Figure()
+                plot.add_trace(
+                    go.Histogram(
+                        x=current.value,
+                        name='objective',
+                        nbinsx=100,
+                        marker=dict(color=colors[0]),
+                        selectedpoints=current[current.active == True].index, showlegend=False,
+                        unselected=dict(marker=dict(color='lightgray'))
+                    )
+                )
+
+                for trace in plot.data:
+                    trace.showlegend = (i==0)
+                    fig.add_trace(trace, row=i+1, col=1)
+
+
+    if len(selected_info) > 0:
+        for j in range(len(selected_info)):
+            row = selected_info[j]['row']
+            bounds = selected_info[j]['bounds']
+
+            fig.add_shape(
+                dict(
+                    {"type": "rect", "line": {"width": 1, "dash": "dot", "color": "darkgrey"}, 'xref': f'x{dvars.index(row)+1}', 'yref': f'y{dvars.index(row)+1}'},
+                    **bounds
+                )
+            )
+
+
+    # Add titles as annotations on the left of each subplot
+    annotations = [
+        dict(
+            text=dvar,  # Y-axis title text
+            x=10,  # Position relative to the figure (left side)
+            y=0.5,  # Centered vertically
+            xref="paper",  # Refer to the figure coordinates
+            yref="paper",
+            showarrow=False,
+            textangle=-90,  # Rotate text vertically
+            font=dict(size=16)  # Customize font size
         )
+    ]
+
+    for i, dvar in enumerate(dvars, start=1):
+        annotations.append(
+            dict(
+                x=1.09,  # Position to the right of the plot area
+                y=1.0-(i-0.5)*(1/len(dvars)),  # Center annotation for each subplot
+                xref="paper",
+                yref="paper",
+                text=f"{dvar}",  # Bold text for titles
+                showarrow=False,
+                xanchor="right",
+                yanchor="middle",
+                font=dict(size=14),
+                textangle=90
+            ))
+        fig.update_layout({
+            f'xaxis{i}': dict(tickfont=dict(size=14)),
+            f'yaxis{i}': dict(tickfont=dict(size=14))
+        })
+
 
     fig.update_layout(
-        grid=dict(rows=len(dvars), columns=1, pattern='independent'),
-        height=400 * len(dvars),
-        width=800,
-        title="Decision Space Graph",
-        xaxis=dict(title="Decision Variables"),
-        yaxis=dict(title="Frequency"),
-        margin=dict(l=20, r=20, t=50, b=20),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(t=20, b=20, l=20, r=10),
+        yaxis=dict(tickfont=dict(size=20)),
+        legend=dict(
+            x=1.09,
+            bordercolor='#d3d3d3',
+            borderwidth=1,
+            bgcolor='white',
+            font=dict(
+                size=14
+            ),
+
+            traceorder='normal',
+            title=dict(text=' ovar', font=dict(size=14))
+        ),
+        barmode="stack",
+        annotations=annotations, 
+        showlegend =True,
+        selectdirection='h', dragmode='select'
     )
 
     return fig
@@ -284,6 +429,7 @@ def get_decision_plot():
             filtered_data = filtered_data[filtered_data[key].isin(values)]
 
     fig = generate_stacked_histogram(filtered_data)
+    # fig = generate_decision_space_sliders(filtered_data)
 
     return jsonify({
         "plot": fig.to_json(),
@@ -294,6 +440,7 @@ def get_decision_plot():
         }
     })
 
+# potential delete
 @app.route('/api/decision_space', methods=['GET'])
 def get_decision_space_graph():
     # Get query parameters dynamically based on hyperparameters
@@ -334,4 +481,4 @@ def get_parameters():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, host="0.0.0.0", port=8080)
