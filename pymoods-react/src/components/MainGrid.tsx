@@ -26,7 +26,7 @@ export default function MainGrid() {
         mt: `56px`,
         flex: 1,
         flexDirection: 'column',
-        overflow: 'hidden',
+        overflow: 'auto',
       }}
     >
       {/* Tabs Navigation */}
@@ -36,8 +36,8 @@ export default function MainGrid() {
         variant="standard" 
         sx={{
           '.MuiTab-root': { 
-        // outline: 'none',
-        fontSize: '12px', // Smaller font size
+        outline: 'none',
+        fontSize: '12px',
         '&.Mui-selected': { borderBottom: '3px solid'},
           }
         }}
@@ -47,20 +47,20 @@ export default function MainGrid() {
       </Tabs>
 
       {/* Tab Content */}
-      <Box sx={{ mt: 2, ml: 2 }}>
+      <Box sx={{ mt: 1 }}>
         {/* Decision Making Tab */}
         {tabIndex === 0 && (
           <Box>
-            <Grid container spacing={2}>
+            <Grid container>
               {/* Top row with Offshore, Objective, and Decision plots */}
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={5}>
                 <OffshoreWindfarmClusterScatterPlot />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={2}>
                 <ObjectivePlot />
               </Grid>
-              <Grid item xs={12} md={4}>
-                <LMPPlot />
+              <Grid item xs={12} md={5}>
+                <DecisionPlot />
               </Grid>
 
               {/* Bottom row with 2 LMPPlot components */}

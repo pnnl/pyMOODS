@@ -4,6 +4,9 @@ import createPlotlyComponent from "react-plotly.js/factory";
 import { Box } from '@mui/material';
 import SideMenu from '../SideMenu';
 
+const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
+// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+
 const Plot = createPlotlyComponent(Plotly);
 
 interface ParameterOptions {
@@ -13,13 +16,13 @@ interface ParameterOptions {
   power: string[];
 }
 
-const OffshoreWindfarmClusterScatterPlot = () => {
-  interface ScatterplotData {
-    data: Plotly.Data[];
-    layout: Partial<Plotly.Layout>;
-    config?: Partial<Plotly.Config>;
-  }
+interface ScatterplotData {
+  data: Plotly.Data[];
+  layout: Partial<Plotly.Layout>;
+  config?: Partial<Plotly.Config>;
+}
 
+const OffshoreWindfarmClusterScatterPlot = () => {
   const [scatterplotData, setScatterplotData] = useState<ScatterplotData | null>(null);
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
@@ -42,7 +45,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
 
   // Fetch available parameter options
   useEffect(() => {
-    fetch('http://localhost:8080/api/parameters')
+    fetch(`${apiBaseUrl}/api/parameters`)
       .then((response) => response.json())
       .then((data) => {
         setParamOptions(data);
@@ -63,7 +66,7 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     selectedParams.power.forEach(pow => queryParams.append('power', pow));
     
     const queryString = queryParams.toString();
-    const url = `http://localhost:8080/api/scatterplot${queryString ? '?' + queryString : ''}`;
+    const url = `${apiBaseUrl}/api/scatterplot${queryString ? '?' + queryString : ''}`;
     
     fetch(url)
       .then((response) => response.json())
@@ -94,6 +97,14 @@ const OffshoreWindfarmClusterScatterPlot = () => {
     });
   };
 
+  // Handle technology change from SideMenu
+  const handlePowerChange = (powers: string[]) => {
+    setSelectedParams({
+      ...selectedParams,
+      power: powers,
+    });
+  };
+
   // Handle duration change from SideMenu
   const handleDurationChange = (durations: string[]) => {
     setSelectedParams({
@@ -107,25 +118,16 @@ const OffshoreWindfarmClusterScatterPlot = () => {
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {/* Duration Filter has been moved to SideMenu */}
-        {/* Power Filter has been moved to SideMenu */}
-      </Box>
+    <Box sx={{ width: '100%', mt: 1 }}>
       <SideMenu 
         onLocationChange={handleLocationChange} 
         selectedLocations={selectedParams.location}
         onTechnologyChange={handleTechnologyChange}
         selectedTechnologies={selectedParams.technology}
+        onPowerChange={handlePowerChange}
+        selectedPowers={selectedParams.power}
         onDurationChange={handleDurationChange}
         selectedDurations={selectedParams.duration}
-        onPowerChange={(powers: string[]) => {
-          setSelectedParams({
-            ...selectedParams,
-            power: powers,
-          });
-        }}
-        selectedPowers={selectedParams.power}
       />
 
       <Box sx={{ flexGrow: 1 }}>
@@ -134,8 +136,8 @@ const OffshoreWindfarmClusterScatterPlot = () => {
             data={scatterplotData.data}
             layout={{
               ...scatterplotData.layout,
-              width: window.innerWidth * 0.40,
-              height: window.innerWidth * 0.20,
+              width: window.innerWidth * 0.33,
+              height: window.innerWidth * 0.25,
               autosize: true,
             }}
             config={scatterplotData.config}
