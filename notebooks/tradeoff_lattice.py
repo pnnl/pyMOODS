@@ -58,8 +58,26 @@ def get_tradeoff_lattice(X, xy, cluster):
 
     return G
 
+def get_tradeoff_lattice_direct(X, xy):
+    G = nx.relabel_nodes(
+        get_triangulation(xy),
+        dict(enumerate(X.index))
+    )
+    
+    for u, v, d in G.edges(data=True):
+        diff = X.loc[u] - X.loc[v]
+        
+        d['test'] = pd.DataFrame(dict(
+            magnitude=diff,
+            direction=np.sign(diff),
+            pvalue=0
+        ))
 
-def draw_tradeoff_lattice(G, cluster, colors, points=None, coef=None, coef_threshold=1, with_labels=True, show_positive=False, by=None, alpha=.05, edge_labels_kwargs=dict(), ax=None):
+    coef = (X - X.mean())/X.std()
+    
+    return G, coef
+
+def draw_tradeoff_lattice(G, cluster=None, colors=None, points=None, coef=None, coef_threshold=1, with_labels=True, show_positive=False, by=None, alpha=.05, node_size=1000, node_labels_kwargs=dict(), edge_labels_kwargs=dict(), ax=None):
     if by is not None:
         G = reorient_lattice(
             G, by=by
@@ -87,13 +105,14 @@ def draw_tradeoff_lattice(G, cluster, colors, points=None, coef=None, coef_thres
         draw_cluster_labels(
             pos,
             coef=coef,
-            threshold=coef_threshold
+            threshold=coef_threshold,
+            **node_labels_kwargs
         )
 
     # nx.draw_networkx_nodes(G, pos, edgecolors='lightgray', node_color='none')
     nx.draw_networkx_edges(
         G, pos,
-        node_size=1000,
+        node_size=node_size,
         edge_color=[
             'black' if by is None or d['test'].loc[by, 'pvalue'] < alpha else 'lightgray'
             for u, v, d in G.edges(data=True)
@@ -139,7 +158,7 @@ def reorient_lattice(G, by, alpha=.01):
 
     return D
 
-def draw_cluster_labels(pos, coef, threshold=1.0, ax=None):
+def draw_cluster_labels(pos, coef, threshold=1.0, ax=None, **kwargs):
     ax = ax or plt.gca()
 
     def get_label(ser):
@@ -161,5 +180,6 @@ def draw_cluster_labels(pos, coef, threshold=1.0, ax=None):
                 ha='center',
                 # xytext=(7, 0),
                 # textcoords='offset points'
-                backgroundcolor=(1, 1, 1, .5)
+                backgroundcolor=(1, 1, 1, .5),
+                **kwargs
             )
