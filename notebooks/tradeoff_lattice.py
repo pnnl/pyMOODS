@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.spatial import Delaunay
+from scipy.spatial.distance import pdist, squareform
 import networkx as nx
 from scipy.stats import mannwhitneyu
 
@@ -77,7 +78,7 @@ def get_tradeoff_lattice_direct(X, xy):
     
     return G, coef
 
-def draw_tradeoff_lattice(G, cluster=None, colors=None, points=None, coef=None, coef_threshold=1, with_labels=True, show_positive=False, by=None, alpha=.05, node_size=1000, node_labels_kwargs=dict(), edge_labels_kwargs=dict(), ax=None):
+def draw_tradeoff_lattice(G, cluster=None, colors=None, points=None, coef=None, coef_threshold=1, with_edge_labels=True, show_positive=False, by=None, alpha=.05, node_size=1000, node_labels_kwargs=dict(), edge_labels_kwargs=dict(), ax=None):
     if by is not None:
         G = reorient_lattice(
             G, by=by
@@ -124,10 +125,10 @@ def draw_tradeoff_lattice(G, cluster=None, colors=None, points=None, coef=None, 
         return '\n'.join([
             f'{"+" if ser.direction > 0 else "- "}{k}'
             for k, ser in test[test.pvalue < alpha].iterrows()
-            if (with_labels is True or k in with_labels) and (show_positive is True or ser.direction < 0)
+            if (with_edge_labels is True or k in with_edge_labels) and (show_positive is True or ser.direction < 0)
         ])
 
-    if with_labels is not False:
+    if with_edge_labels is not False:
         nx.draw_networkx_edge_labels(
             G, pos,
             edge_labels={
@@ -182,4 +183,130 @@ def draw_cluster_labels(pos, coef, threshold=1.0, ax=None, **kwargs):
                 # textcoords='offset points'
                 backgroundcolor=(1, 1, 1, .5),
                 **kwargs
+            )
+
+class TradeoffLattice:
+    def __init__(self, df, ovars, dvars, n_specializers=1, n_generalizers=None, ascending=True, umap_kwargs={}):
+        self.df = df
+        self.ovars = ovars
+        self.dvars = dvars
+
+        self.n_specializers = n_specializers or len(ovars)
+        self.n_generalizers = n_generalizers or len(ovars)
+
+        self.rank = self.df[ovars].rank(ascending=ascending)
+        
+        self.generalizers = self.rank.max(axis=1)\
+            .sort_values()\
+            .index[:self.n_generalizers]
+
+        def get_specialization(R):
+            return {
+                c: R[c].sort_values().index[:self.n_specializers]
+                for c in R
+            }
+            
+        self.specializers = get_specialization(self.rank)
+        self.anti_specializers = get_specialization(-self.rank)
+
+def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
+
+    D = squareform(pdist(X, **kwargs))
+    
+    rank = D.argsort().argsort()
+    mask = np.logical_and(rank <= n_neighbors, D <= max_distance)
+    A = D.copy()
+    A[~mask] = 0
+    
+    G = nx.from_numpy_array(A)
+    
+    # connect the graph via minimum spanning tree
+    if connected:
+        T = nx.minimum_spanning_tree(nx.from_numpy_array(D))
+        for u, v, d in T.edges(data=True):
+            if not G.has_edge(u, v):
+                G.add_edge(u, v, spanning=True, **d)
+
+    return G
+
+class DirectTradeoffLattice(TradeoffLattice):
+    def __init__(self, *args, whiten=True, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        X = self.df.values
+        if whiten:
+            X = (X - X.mean())/X.std()
+
+        self.G = nx.relabel_nodes(
+            knn_graph(X, connected=True),
+            dict(enumerate(self.df.index))
+        )
+
+        for u, v, d in self.G.edges(data=True):
+            diff = self.df.loc[u] - self.df.loc[v]
+            
+            d['test'] = pd.DataFrame(dict(
+                magnitude=diff,
+                direction=np.sign(diff),
+                pvalue=0
+            ))
+            
+    def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_positive=False, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
+        G = self.G
+        ax = ax or plt.gca()
+        
+        if by is not None:
+            G = reorient_lattice(G, by=by)
+    
+        pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        try:
+            pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        except:
+            print('Graphviz not available. Using Kamada Kawai Layout')
+            pos = nx.kamada_kawai_layout(G)
+
+        def get_node_label(v):
+            yield f'# {v}'
+            if v in self.generalizers:
+                yield '(generalizer)'
+
+            for k, li in self.specializers.items():
+                if v in li:
+                    yield f'+{k}'
+
+            for k, li in self.anti_specializers.items():
+                if v in li:
+                    yield f'-{k}'
+            
+        # node labels
+        if with_node_labels is True:
+            for v, xy in pos.items():
+                s = '\n'.join(get_node_label(v))
+                ax.annotate(s, xy, va='center', ha='center', **node_labels_kwargs)
+    
+        nx.draw_networkx_edges(
+            G, pos,
+            node_size=node_size,
+            edge_color=[
+                'black' if by is None or d['test'].loc[by, 'pvalue'] <= alpha else 'lightgray'
+                for u, v, d in G.edges(data=True)
+            ]
+        )
+    
+        def create_edge_label(d):
+            test = d['test']
+            return '\n'.join([
+                f'{"+" if ser.direction > 0 else "- "}{k}'
+                for k, ser in test[test.pvalue <= alpha].iterrows()
+                if (with_edge_labels is True or k in with_edge_labels) and (show_positive is True or ser.direction < 0)
+            ])
+    
+        if with_edge_labels is not False:
+            nx.draw_networkx_edge_labels(
+                G, pos,
+                edge_labels={
+                    (u, v): create_edge_label(d)
+                    for u, v, d in G.edges(data=True)
+                },
+                **edge_labels_kwargs
             )
