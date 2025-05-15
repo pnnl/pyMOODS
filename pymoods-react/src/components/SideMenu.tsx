@@ -1,11 +1,22 @@
 import { styled } from '@mui/material/styles';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import { Typography, Select, MenuItem, FormControl, InputLabel, Chip, OutlinedInput, SelectChangeEvent } from '@mui/material';
-import { useState, useEffect} from 'react';
+import {
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  OutlinedInput,
+  SelectChangeEvent,
+  CircularProgress,
+} from '@mui/material';
+import { useState, useEffect } from 'react';
+import React from 'react';
 
-const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
-// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+// const apiBaseUrl = 'http://moods-dev.pnl.gov:8080';
+const apiBaseUrl = 'http://127.0.0.1:8080'; // Use this if running locally
 
 const drawerWidth = 200;
 
@@ -57,80 +68,71 @@ const SidebarInputLabel = styled(InputLabel)({
   }
 });
 
-interface ParameterOptions {
-  location: string[];
-  technology: string[];
-  duration: string[];
-  power: string[];
-}
-
 interface SideMenuProps {
-  onLocationChange?: (locations: string[]) => void;
-  selectedLocations?: string[];
-  onTechnologyChange?: (technologies: string[]) => void;
-  selectedTechnologies?: string[];
-  onDurationChange?: (durations: string[]) => void;
-  selectedDurations?: string[];
-  onPowerChange?: (powers: string[]) => void;
-  selectedPowers?: string[];
+  onFiltersChange?: (filters: Record<string, string[]>) => void;
 }
 
-export default function SideMenu({ 
-  onLocationChange, 
-  selectedLocations = [],
-  onTechnologyChange,
-  selectedTechnologies = [],
-  onDurationChange,
-  selectedDurations = [],
-  onPowerChange,
-  selectedPowers = []
-}: SideMenuProps) {
-  const [paramOptions, setParamOptions] = useState<ParameterOptions>({
-    location: [],
-    technology: [],
-    duration: [],
-    power: []
-  });
+export default function SideMenu({ onFiltersChange }: SideMenuProps) {
+  const [caseStudies, setCaseStudies] = useState<string[]>([]);
+  const [selectedCaseStudy, setSelectedCaseStudy] = useState<string>('');
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch available parameter options
+  // Load list of case studies
   useEffect(() => {
-    fetch(`${apiBaseUrl}/api/parameters`)
-      .then((response) => response.json())
-      .then((data) => {
-        setParamOptions(data);
+    fetch(`${apiBaseUrl}/api/case-studies`)
+      .then(res => res.json())
+      .then(data => {
+        setCaseStudies(data.files || []);
       })
-      .catch((error) => console.error('Error fetching parameters:', error));
+      .catch(err => {
+        console.error('Error fetching case studies:', err);
+        setError('Failed to load case studies.');
+      });
   }, []);
 
-  const handleLocationChange = (event: SelectChangeEvent<unknown>) => {
-      const value = event.target.value as string | string[];
-      const locations = typeof value === 'string' ? value.split(',') : value;
-      if (onLocationChange) {
-        onLocationChange(locations);
-      }
+  // Load parameters when case study changes
+  useEffect(() => {
+    if (!selectedCaseStudy) return;
+
+    setLoading(true);
+    setError(null);
+
+    fetch(`${apiBaseUrl}/api/files/${selectedCaseStudy}`)
+      .then(res => res.json())
+      .then(data => {
+        // Extract all array fields as filters
+        const dynamicFilters: Record<string, string[]> = {};
+        Object.keys(data).forEach(key => {
+          if (Array.isArray(data[key])) {
+            dynamicFilters[key] = data[key];
+          }
+        });
+
+        setFilterOptions(dynamicFilters);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading file:', err);
+        setError('Failed to load data for selected case study.');
+        setLoading(false);
+      });
+  }, [selectedCaseStudy]);
+
+  const handleFilterChange = (filterKey: string, newValue: string | string[]) => {
+    const valueArray = typeof newValue === 'string' ? newValue.split(',') : newValue;
+
+    const newFilters = {
+      ...selectedFilters,
+      [filterKey]: valueArray,
     };
 
-  const handleTechnologyChange = (event: SelectChangeEvent<unknown>) => {
-      const value = event.target.value as string | string[];
-      const technologies = typeof value === 'string' ? value.split(',') : value;
-      if (onTechnologyChange) {
-        onTechnologyChange(technologies);
-      }
-    };
+    setSelectedFilters(newFilters);
 
-  const handleDurationChange = (event: SelectChangeEvent<unknown>) => {
-    const value = event.target.value as string | string[];
-    const durations = typeof value === 'string' ? value.split(',') : value;
-    if (onDurationChange) {
-      onDurationChange(durations);
-    }
-  };
-
-  const handlePowerChange = (event: SelectChangeEvent<unknown>) => {
-    const value = event.target.value as string | string[];
-    const powers = typeof value === 'string' ? value.split(',') : value;
-    if (onPowerChange) {
-      onPowerChange(powers);
+    if (onFiltersChange) {
+      onFiltersChange(newFilters);
     }
   };
 
@@ -138,10 +140,10 @@ export default function SideMenu({
     <Drawer
       variant="permanent"
       sx={{
-      display: { xs: 'none', md: 'block' },
-      [`& .${drawerClasses.paper}`]: {
-        backgroundColor: '#1B293B',
-      },
+        display: { xs: 'none', md: 'block' },
+        [`& .${drawerClasses.paper}`]: {
+          backgroundColor: '#1B293B',
+        },
       }}
     >
       <Box
@@ -152,121 +154,71 @@ export default function SideMenu({
           flexDirection: 'column',
         }}
       >
-        {/* <Button variant="contained">Upload Data</Button> */}
         <Box sx={{ p: 2 }}>
-            <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
+          <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Use Cases
-            </Typography>
-          <FormControl fullWidth sx={{ mt: 1, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ fontSize: '12px' }}>
-              Select Use Case
-            </SidebarInputLabel>
-            <SidebarSelect>
-              <MenuItem value={10}>Use Case 1</MenuItem>
-              <MenuItem value={20}>Use Case 2</MenuItem>
-              <MenuItem value={30}>Use Case 3</MenuItem>
-            </SidebarSelect >
+          </Typography>
+          <FormControl fullWidth sx={{ mt: 1 }} size="small">
+            <SidebarInputLabel sx={{ fontSize: '12px' }}>Select Use Case</SidebarInputLabel>
+            <SidebarSelect
+              value={selectedCaseStudy}
+              onChange={(e) => setSelectedCaseStudy(e.target.value as string)}
+              displayEmpty
+              disabled={loading}
+            >
+              <MenuItem value="" disabled>
+                Select a file
+              </MenuItem>
+              {caseStudies.map((fileName) => (
+                <MenuItem key={fileName} value={fileName}>
+                  {fileName}
+                </MenuItem>
+              ))}
+            </SidebarSelect>
           </FormControl>
+          {loading && <CircularProgress size={20} sx={{ mt: 1, color: 'white' }} />}
+          {error && <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>}
         </Box>
 
         <Box sx={{ p: 2 }}>
           <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Filters
           </Typography>
-          {/* Location Filter (moved from OffshoreWindfarmClusterScatterPlot) */}
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Location</SidebarInputLabel>
-            <SidebarSelect
-              multiple
-              value={selectedLocations}
-              onChange={handleLocationChange}
-              input={<OutlinedInput label="Location" />}
-              renderValue={() => null} // Prevent chips from rendering inside the dropdown
-            >
-              {paramOptions.location.map((name) => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </SidebarSelect>
-          </FormControl>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-            {(selectedLocations as string[]).map((value: string) => (
-              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-            ))}
-          </Box>
-          
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Technology</SidebarInputLabel>
-            <SidebarSelect
-              multiple
-              value={selectedTechnologies}
-              onChange={handleTechnologyChange}
-              input={<OutlinedInput label="Technology" />}
-              renderValue={() => null}
-            >
-              {paramOptions.technology.map((name) => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </SidebarSelect>
-          </FormControl>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-            {(selectedTechnologies as string[]).map((value: string) => (
-              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-            ))}
-          </Box>
 
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Power Rating (MW)</SidebarInputLabel>
-            <SidebarSelect
-              multiple
-              value={selectedPowers}
-              onChange={handlePowerChange}
-              input={<OutlinedInput label="Power" />}
-              renderValue={() => null}
-            >
-              {paramOptions.power.map((name) => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </SidebarSelect>
-          </FormControl>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-            {(selectedPowers as string[]).map((value: string) => (
-              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-            ))}
-          </Box>
-          <FormControl fullWidth sx={{ mt: 2, minWidth: 120 }} size="small">
-            <SidebarInputLabel sx={{ color: 'white', fontSize: '12px' }}>Battery Duration (Hours)</SidebarInputLabel>
-            <SidebarSelect
-              multiple
-              value={selectedDurations}
-              onChange={handleDurationChange}
-              input={<OutlinedInput label="Duration" />}
-              renderValue={() => null}
-            >
-              {paramOptions.duration.map((name) => (
-                <MenuItem key={name} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </SidebarSelect>
-          </FormControl>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-            {(selectedDurations as string[]).map((value: string) => (
-              <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
-            ))}
-          </Box>
+          {/* Render filters dynamically */}
+          {Object.keys(filterOptions).map((key) => (
+            <React.Fragment key={key}>
+              <FormControl fullWidth sx={{ mt: 2 }} size="small">
+                <SidebarInputLabel sx={{ fontSize: '12px' }}>{key}</SidebarInputLabel>
+                <SidebarSelect
+                  multiple
+                  value={selectedFilters[key] || []}
+                  onChange={(e) => handleFilterChange(key, e.target.value)}
+                  input={<OutlinedInput label={key} />}
+                  renderValue={() => null}
+                  disabled={!selectedCaseStudy || loading}
+                >
+                  {filterOptions[key].map((value) => (
+                    <MenuItem key={value} value={value}>
+                      {value}
+                    </MenuItem>
+                  ))}
+                </SidebarSelect>
+              </FormControl>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                {(selectedFilters[key] || []).map((value) => (
+                  <Chip key={value} label={value} size="small" sx={{ color: 'black', backgroundColor: 'white' }} />
+                ))}
+              </Box>
+            </React.Fragment>
+          ))}
         </Box>
 
         <Box sx={{ p: 2 }}>
           <Typography variant="body1" sx={{ color: 'white', textAlign: 'left', fontSize: '16px' }}>
             Summary
           </Typography>
-          {/* Add summary content here */}
+          {/* Optional: Add summary logic based on selected filters */}
         </Box>
       </Box>
     </Drawer>
