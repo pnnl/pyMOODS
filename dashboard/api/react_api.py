@@ -381,7 +381,7 @@ def get_case_studies():
 @app.route('/api/files/<filename>', methods=['GET'])
 def get_file_data(filename):
     file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_data", filename)
-    
+
     if not os.path.exists(file_path):
         return jsonify({"error": "File not found"}), 404
 
@@ -389,13 +389,18 @@ def get_file_data(filename):
         with open(file_path, 'r') as f:
             data = json.load(f)
 
-        # Return only the 'hyperparameters' section
         hyperparams = data.get("hyperparameters", {})
-        result = {
-            key: info["values"]
+
+        # Get keys in the original order
+        result = [
+            {
+                "key": key,
+                "name": info.get("name", key),
+                "values": info["values"]
+            }
             for key, info in hyperparams.items()
             if isinstance(info, dict) and "values" in info and isinstance(info["values"], list)
-        }
+        ]
 
         return jsonify(result)
 
