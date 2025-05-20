@@ -370,6 +370,43 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
 
     return fig
 
+@app.route('/api/case-studies', methods=['GET'])
+def get_case_studies():
+    case_study_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_data")
+    print(case_study_dir)
+    # Get all .json in the directory
+    files = [f for f in os.listdir(case_study_dir) if f.endswith('.json')]
+    return jsonify({"files": files})
+
+@app.route('/api/files/<filename>', methods=['GET'])
+def get_file_data(filename):
+    file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_data", filename)
+
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"}), 404
+
+    try:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+
+        hyperparams = data.get("hyperparameters", {})
+
+        # Get keys in the original order
+        result = [
+            {
+                "key": key,
+                "name": info.get("name", key),
+                "values": info["values"]
+            }
+            for key, info in hyperparams.items()
+            if isinstance(info, dict) and "values" in info and isinstance(info["values"], list)
+        ]
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
     # Get query parameters dynamically based on hyperparameters
@@ -472,13 +509,16 @@ def get_decision_space_graph():
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
-    # Return available parameter options for filtering
-    return jsonify({
-        "location": sorted(csv_data.location.unique().tolist()),
-        "technology": sorted(csv_data.technology.unique().tolist()),
-        "duration": sorted(csv_data.duration.unique().tolist()),
-        "power": sorted(csv_data.power.unique().tolist())
-    })
+    """
+    Returns a dictionary of available filters where keys are hyperparameter names,
+    and values are lists of possible options for each hyperparameter.
+    """
+    parameters = {
+        key: info["values"]
+        for key, info in hyperparameters.items()
+        if "values" in info and isinstance(info["values"], list)
+    }
+    return jsonify(parameters)
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8080)

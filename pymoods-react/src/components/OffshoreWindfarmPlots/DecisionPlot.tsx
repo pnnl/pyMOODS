@@ -3,8 +3,8 @@ import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Box } from '@mui/material';
 
-const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
-// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+// const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
+const apiBaseUrl = 'http://127.0.0.1:8080'; // Uncomment this line if you are running the API locally
 
 const Plot = createPlotlyComponent(Plotly);
 

@@ -1,0 +1,32 @@
+{
+  "decision_variables": {
+    "Cable Capacity(MW)": { "name": "Cable Capacity(MW)", "description": "" },
+    "Battery Rated Power(MW)": {
+      "name": "Battery Rated Power(MW)",
+      "description": ""
+    }
+  },
+  "objective_functions": {
+    "Cable Material Cost($M)": {
+      "name": "Cable Material Cost($M)",
+      "description": ""
+    },
+    "Battery Cost($M)": { "name": "Battery Cost($M)", "description": "" },
+    "Day-Ahead Revenue ($k)": {
+      "name": "Day-Ahead Revenue ($k)",
+      "description": ""
+    },
+    "Real-Time Revenue ($k)": {
+      "name": "Real-Time Revenue ($k)",
+      "description": ""
+    },
+    "Reserve Revenue ($k)": {
+      "name": "Reserve Revenue ($k)",
+      "description": ""
+    }
+  },
+  "hyperparameters": {
+    "use_case": {"name": "Use Case", "values": ["CCD18","CCD22"]},
+    "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]}
+}
+}
