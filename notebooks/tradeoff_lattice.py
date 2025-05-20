@@ -210,7 +210,7 @@ class TradeoffLattice:
                 
             self.specializers = get_specialization(self.rank)
             self.anti_specializers = get_specialization(-self.rank)
-            
+
         elif method == 'better-than-generalizer':
             def get_specializers(rank):
                 generalizers = rank.max(axis=1)\
@@ -225,7 +225,32 @@ class TradeoffLattice:
             self.generalizers, self.specializers = get_specializers(self.rank)
             self.anti_generalizers, self.anti_specializers = get_specializers(-self.rank)
 
-
+    def ovars_formatted(self):
+        def get_index_label(i):
+            suffix = ''
+            if i in self.generalizers:
+                suffix = ' (~)'
+            if i in self.anti_generalizers:
+                suffix = ' (!)'
+            if i in self.specializers.index:
+                suffix = ' (*)'
+        
+            return str(i) + suffix
+        
+        def get_order(df):    
+            C = df.corr()
+            C[C < .5] = 0
+            G = nx.from_pandas_adjacency(C)
+            return nx.spectral_ordering(G)
+        
+            
+        row_order = self.rank.max(axis=1).sort_values().index
+        col_order = get_order(self.rank)
+        
+        return self.df.loc[row_order, col_order].style\
+            .format(precision=2)\
+            .format_index(get_index_label)\
+            .background_gradient(axis=0, cmap='viridis')
 
 def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
 
