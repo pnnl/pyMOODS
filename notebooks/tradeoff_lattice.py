@@ -186,28 +186,46 @@ def draw_cluster_labels(pos, coef, threshold=1.0, ax=None, **kwargs):
             )
 
 class TradeoffLattice:
-    def __init__(self, df, ovars, dvars, n_specializers=1, n_generalizers=None, ascending=True, umap_kwargs={}):
+    def __init__(self, df, ovars, dvars, method='topk', n_specializers=1, n_generalizers=None, ascending=True, umap_kwargs={}):
         self.df = df
         self.ovars = ovars
         self.dvars = dvars
 
-        self.n_specializers = n_specializers or len(ovars)
+        self.rank = self.df[ovars].rank(ascending=ascending)
+
         self.n_generalizers = n_generalizers or len(ovars)
 
-        self.rank = self.df[ovars].rank(ascending=ascending)
-        
         self.generalizers = self.rank.max(axis=1)\
             .sort_values()\
             .index[:self.n_generalizers]
 
-        def get_specialization(R):
-            return {
-                c: R[c].sort_values().index[:self.n_specializers]
-                for c in R
-            }
+        if method == 'topk':
+            self.n_specializers = n_specializers or len(ovars)
             
-        self.specializers = get_specialization(self.rank)
-        self.anti_specializers = get_specialization(-self.rank)
+            def get_specialization(R):
+                return {
+                    c: R[c].sort_values().index[:self.n_specializers]
+                    for c in R
+                }
+                
+            self.specializers = get_specialization(self.rank)
+            self.anti_specializers = get_specialization(-self.rank)
+            
+        elif method == 'better-than-generalizer':
+            def get_specializers(rank):
+                generalizers = rank.max(axis=1)\
+                    .sort_values()\
+                    .index[:self.n_generalizers]
+                
+                mask = rank < rank.loc[generalizers].min(axis=0)
+                specializers = mask[mask.any(axis=1)]
+
+                return generalizers, specializers
+            
+            self.generalizers, self.specializers = get_specializers(self.rank)
+            self.anti_generalizers, self.anti_specializers = get_specializers(-self.rank)
+
+
 
 def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
 
@@ -251,7 +269,7 @@ class DirectTradeoffLattice(TradeoffLattice):
                 pvalue=0
             ))
             
-    def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_positive=False, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
+    def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_negative=False, show_positive=True, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
         G = self.G
         ax = ax or plt.gca()
         
@@ -270,13 +288,16 @@ class DirectTradeoffLattice(TradeoffLattice):
             if v in self.generalizers:
                 yield '(generalizer)'
 
-            for k, li in self.specializers.items():
-                if v in li:
-                    yield f'+{k}'
+            if v in self.anti_generalizers:
+                yield '(anti-generalizer)'
 
-            for k, li in self.anti_specializers.items():
-                if v in li:
-                    yield f'-{k}'
+            if v in self.specializers.index:
+                for c in self.specializers.columns[self.specializers.loc[v]]:
+                    yield f'+{c}'
+
+            if v in self.anti_specializers.index:
+                for c in self.anti_specializers.columns[self.anti_specializers.loc[v]]:
+                    yield f'-{c}'
             
         # node labels
         if with_node_labels is True:
@@ -298,7 +319,10 @@ class DirectTradeoffLattice(TradeoffLattice):
             return '\n'.join([
                 f'{"+" if ser.direction > 0 else "- "}{k}'
                 for k, ser in test[test.pvalue <= alpha].iterrows()
-                if (with_edge_labels is True or k in with_edge_labels) and (show_positive is True or ser.direction < 0)
+                if (with_edge_labels is True or k in with_edge_labels) and (
+                    (show_positive is True and ser.direction > 0) or\
+                    (show_negative is True and ser.direction < 0)
+                )
             ])
     
         if with_edge_labels is not False:
