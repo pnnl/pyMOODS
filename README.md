@@ -52,7 +52,7 @@ Work in progress.
 ## Quick Start
 
 ```python
-# To be filled
+npm run 
 ```
 
 ## Contributing

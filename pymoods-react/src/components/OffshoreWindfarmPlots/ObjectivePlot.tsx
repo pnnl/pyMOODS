@@ -4,10 +4,11 @@ import createPlotlyComponent from "react-plotly.js/factory";
 import Box from '@mui/material/Box';
 import { Typography } from '@mui/material';
 
-// const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
-const apiBaseUrl = 'http://127.0.0.1:8080'; // Uncomment this line if you are running the API locally
+// Import centralized config
+import config from '../../config';
+const { API_BASE_URL } = config;
 
-// const Plot = createPlotlyComponent(Plotly);
+const Plot = createPlotlyComponent(Plotly);
 
 interface ParameterOptions {
   location: string[];
@@ -25,7 +26,12 @@ interface ObjectivePlotData {
   title: string;
 }
 
-const ObjectivePlot = () => {
+interface ObjectivePlotProps {
+  useCase: string;
+  filters: Record<string, string[]>;
+}
+
+const ObjectivePlot: React.FC<ObjectivePlotProps> = ({ useCase, filters }) => {
   const [objectiveData, setObjectiveData] = useState<ObjectivePlotData | null>(null);
   const [paramOptions, setParamOptions] = useState<ParameterOptions>({
     location: [],
@@ -33,45 +39,46 @@ const ObjectivePlot = () => {
     duration: [],
     power: []
   });
-  const [selectedParams, setSelectedParams] = useState<{
-    location: string[];
-    technology: string[];
-    duration: string[];
-    power: string[];
-  }>({
-    location: [],
-    technology: [],
-    duration: [],
-    power: []
-  });
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch available parameter options
+  // Fetch parameter options dynamically for the selected use case
   useEffect(() => {
-    fetch(`${apiBaseUrl}/api/parameters`)
-      .then((response) => response.json())
+    if (!useCase) return;
+
+    fetch(`${API_BASE_URL}/api/parameters?use_case=${useCase}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch parameters");
+        return response.json();
+      })
       .then((data) => {
         setParamOptions(data);
       })
-      .catch((error) => console.error('Error fetching parameters:', error));
-  }, []);
+      .catch((error) => {
+        console.error('Error fetching parameter options:', error);
+      });
+  }, [useCase]);
 
+  // Fetch objective data based on selected filters and use case
   useEffect(() => {
+    if (!useCase || !filters) return;
+
     setLoading(true);
-    
-    // Build query string for selected parameters
+
     const queryParams = new URLSearchParams();
-    
-    selectedParams.location.forEach(loc => queryParams.append('location', loc));
-    selectedParams.technology.forEach(tech => queryParams.append('technology', tech));
-    selectedParams.duration.forEach(dur => queryParams.append('duration', dur));
-    selectedParams.power.forEach(pow => queryParams.append('power', pow));
-    
-    const queryString = queryParams.toString();
-    const url = `${apiBaseUrl}/api/objective${queryString ? '?' + queryString : ''}`;
-    
+
+    Object.entries(filters).forEach(([key, values]) => {
+      if (Array.isArray(values)) {
+        values.forEach(value => queryParams.append(key, value));
+      }
+    });
+
+    const url = `${API_BASE_URL}/api/objective?${queryParams.toString()}&use_case=${useCase}`;
+
     fetch(url)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch objective data");
+        return response.json();
+      })
       .then((data) => {
         setObjectiveData({
           data: [],
@@ -87,27 +94,30 @@ const ObjectivePlot = () => {
         console.error('Error fetching objective data:', error);
         setLoading(false);
       });
-  }, [selectedParams]);
+
+  }, [useCase, filters]);
 
   if (loading && !objectiveData) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <Typography variant="body1">Loading...</Typography>
+      </Box>
+    );
   }
 
   return (
-    <Box display="flex" flexDirection="column">
-      <Box sx={{ 
-        display: 'flex', 
-      }}>
-        <Typography align="center">
-          Mean:
+    <Box display="flex" flexDirection="column" sx={{ p: 2 }}>
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography variant="subtitle1">Objective Metrics</Typography>
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="body2">
+            <strong>Mean:</strong> {objectiveData?.mean.toFixed(2)}
+          </Typography>
           <br />
-          {objectiveData?.mean}
-          <br />
-          <br />
-          Standard Deviation:
-          <br />
-          {objectiveData?.std}
-        </Typography>
+          <Typography variant="body2">
+            <strong>Standard Deviation:</strong> {objectiveData?.std.toFixed(2)}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

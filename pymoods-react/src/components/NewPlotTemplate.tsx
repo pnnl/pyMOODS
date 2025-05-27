@@ -3,8 +3,9 @@ import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Box from '@mui/material/Box';
 
-const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
-// const apiBaseUrl = 'http://localhost:8080'; // Uncomment this line if you are running the API locally
+import config from '../config';
+const { API_BASE_URL } = config;
+
 const Plot = createPlotlyComponent(Plotly);
 
 interface PlotData {
@@ -20,7 +21,7 @@ const NewPlotTemplate = () => {
   // Fetch decision space graph data from the API
   useEffect(() => {
     setLoading(true);
-    fetch(`${apiBaseUrl}/api/YOUR_EDNPOINT_HERE`)
+    fetch(`${API_BASE_URL}/api/YOUR_EDNPOINT_HERE`)
       .then((response) => response.json())
       .then((data) => {
         const plotData = JSON.parse(data.plot); // Parse the JSON string

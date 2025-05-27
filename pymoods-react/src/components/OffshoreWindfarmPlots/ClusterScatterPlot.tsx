@@ -1,20 +1,13 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import { Box } from '@mui/material';
-import SideMenu from '../SideMenu';
+import { Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 
-// const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
-const apiBaseUrl = 'http://127.0.0.1:8080'; // Uncomment this line if you are running the API locally
+// Import centralized config
+import config from '../../config';
+const { API_BASE_URL } = config;
 
 const Plot = createPlotlyComponent(Plotly);
-
-interface ParameterOptions {
-  location: string[];
-  technology: string[];
-  duration: string[];
-  power: string[];
-}
 
 interface ScatterplotData {
   data: Plotly.Data[];
@@ -22,131 +15,118 @@ interface ScatterplotData {
   config?: Partial<Plotly.Config>;
 }
 
-const OffshoreWindfarmClusterScatterPlot = () => {
+interface ClusterScatterPlotProps {
+  useCase: string;
+  filters: Record<string, string[]>;
+}
+
+const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({ useCase, filters }) => {
   const [scatterplotData, setScatterplotData] = useState<ScatterplotData | null>(null);
-  const [paramOptions, setParamOptions] = useState<ParameterOptions>({
-    location: [],
-    technology: [],
-    duration: [],
-    power: []
-  });
-  const [selectedParams, setSelectedParams] = useState<{
-    location: string[];
-    technology: string[];
-    duration: string[];
-    power: string[];
-  }>({
-    location: [],
-    technology: [],
-    duration: [],
-    power: []
-  });
   const [loading, setLoading] = useState<boolean>(true);
+  const [clusterBy, setClusterBy] = useState<string>('location'); // Default value
 
-  // Fetch available parameter options
-  useEffect(() => {
-    fetch(`${apiBaseUrl}/api/parameters`)
-      .then((response) => response.json())
-      .then((data) => {
-        setParamOptions(data);
-      })
-      .catch((error) => console.error('Error fetching parameters:', error));
-  }, []);
+  // Extract available filter keys for cluster options
+  const clusterOptions = Object.keys(filters);
 
-  // Fetch scatterplot data with selected filters
+  // Fetch scatterplot data
   useEffect(() => {
+    if (!useCase) return;
+
     setLoading(true);
-    
-    // Build query string for selected parameters
+
     const queryParams = new URLSearchParams();
-    
-    selectedParams.location.forEach(loc => queryParams.append('location', loc));
-    selectedParams.technology.forEach(tech => queryParams.append('technology', tech));
-    selectedParams.duration.forEach(dur => queryParams.append('duration', dur));
-    selectedParams.power.forEach(pow => queryParams.append('power', pow));
-    
-    const queryString = queryParams.toString();
-    const url = `${apiBaseUrl}/api/scatterplot${queryString ? '?' + queryString : ''}`;
-    
+
+    // Add selected cluster field
+    queryParams.append('cluster_by', clusterBy);
+
+    // Add other filters
+    Object.entries(filters).forEach(([key, values]) => {
+      if (Array.isArray(values) && values.length > 0) {
+        values.forEach(value => queryParams.append(key, value));
+      }
+    });
+
+    const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(useCase)}`;
+
     fetch(url)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+      })
       .then((data) => {
-        const plotData = JSON.parse(data.scatterplot); // Parse the JSON string
-        setScatterplotData(plotData);
-        setLoading(false);
+        try {
+          const plotData = JSON.parse(data.scatterplot);
+          setScatterplotData(plotData);
+        } catch (parseError) {
+          console.error("Failed to parse Plotly JSON:", parseError);
+        }
       })
       .catch((error) => {
-        console.error('Error fetching scatterplot:', error);
+        console.error('Error fetching or parsing scatterplot:', error);
+      })
+      .finally(() => {
         setLoading(false);
       });
-  }, [selectedParams]);
+  }, [useCase, filters, clusterBy]); // Refetch when clusterBy changes
 
-  // Handle location change from SideMenu
-  const handleLocationChange = (locations: string[]) => {
-    setSelectedParams({
-      ...selectedParams,
-      location: locations,
-    });
-  };
-
-  // Handle technology change from SideMenu
-  const handleTechnologyChange = (technologies: string[]) => {
-    setSelectedParams({
-      ...selectedParams,
-      technology: technologies,
-    });
-  };
-
-  // Handle technology change from SideMenu
-  const handlePowerChange = (powers: string[]) => {
-    setSelectedParams({
-      ...selectedParams,
-      power: powers,
-    });
-  };
-
-  // Handle duration change from SideMenu
-  const handleDurationChange = (durations: string[]) => {
-    setSelectedParams({
-      ...selectedParams,
-      duration: durations,
-    });
-  };
-
-  if (loading && !scatterplotData) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
+  if (loading || !scatterplotData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <Typography variant="body1">Loading Scatterplot...</Typography>
+      </Box>
+    );
   }
 
-  return (
-    <Box sx={{ width: '100%', mt: 1 }}>
-      <SideMenu 
-        onLocationChange={handleLocationChange} 
-        selectedLocations={selectedParams.location}
-        onTechnologyChange={handleTechnologyChange}
-        selectedTechnologies={selectedParams.technology}
-        onPowerChange={handlePowerChange}
-        selectedPowers={selectedParams.power}
-        onDurationChange={handleDurationChange}
-        selectedDurations={selectedParams.duration}
-      />
+  const improvedLayout = {
+    ...scatterplotData.layout
+  };
 
-      <Box sx={{ flexGrow: 1 }}>
-        {scatterplotData && (
-          <Plot
-            data={scatterplotData.data}
-            layout={{
-              ...scatterplotData.layout,
-              width: window.innerWidth * 0.33,
-              height: window.innerWidth * 0.25,
-              autosize: true,
-            }}
-            config={scatterplotData.config}
-            style={{ width: '100%' }}
-          />
-        )}
+  return (
+    <Box sx={{ width: '100%',
+      mt: 1,
+      mb: 1, 
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center', 
+      gap: 1, 
+      flexGrow: 1 
+    }}>
+      {/* Clustering Dropdown */}
+      <FormControl fullWidth sx={{ minWidth: 150, maxWidth: 250, width: '100%' }}>
+        <InputLabel id="cluster-by-select-label">Cluster By</InputLabel>
+        <Select
+          labelId="cluster-by-select-label"
+          value={clusterBy}
+          label="Cluster By"
+          onChange={(e) => setClusterBy(e.target.value)}
+          sx={{
+            height: 40
+          }}
+        >
+          {clusterOptions.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Plot */}
+      <Box sx={{ width: '100%' }}>
+      <Plot
+        data={scatterplotData.data}
+        layout={improvedLayout}
+        config={{
+          responsive: true,
+          scrollZoom: true,
+          modeBarButtonsToRemove: ['toggleSpikelines']
+        }}
+        style={{ width: '100%' }}
+        useResizeHandler
+      />
       </Box>
     </Box>
   );
 };
 
-export default OffshoreWindfarmClusterScatterPlot;
+export default ClusterScatterPlot;

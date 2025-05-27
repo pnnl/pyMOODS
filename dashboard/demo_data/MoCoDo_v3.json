@@ -1,4 +1,11 @@
 {
+  "datafile": "v2_test_summary.csv",
+  "input_parameters": {
+  },  
+  "hyperparameters": {
+      "use_case": {"name": "Use Case", "values": ["CCD18","CCD22"]},
+      "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]}
+  },
   "decision_variables": {
     "Cable Capacity(MW)": { "name": "Cable Capacity(MW)", "description": "" },
     "Battery Rated Power(MW)": {
@@ -24,9 +31,5 @@
       "name": "Reserve Revenue ($k)",
       "description": ""
     }
-  },
-  "hyperparameters": {
-    "use_case": {"name": "Use Case", "values": ["CCD18","CCD22"]},
-    "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]}
-}
+  }
 }
