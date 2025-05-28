@@ -9,53 +9,47 @@ import ECompLogo from '../assets/e-comp-logo.png';
 import PNNLLogo from '../assets/pnnl-logo.svg';
 
 const Toolbar = styled(MuiToolbar)({
-  width: '100%',
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '12px',
-  flexShrink: 0,
+  paddingLeft: 0,
+  paddingRight: 0,
+  gap: '8px',
+  minHeight: 48,
   [`& ${tabsClasses.flexContainer}`]: {
     gap: '8px',
-    p: '8px',
-    pb: 0,
   },
 });
-
-const drawerWidth = 200;
-const navbarHeight= 64;
 
 export default function AppNavbar() {
   return (
     <AppBar
-        position="fixed"
-        sx={{ 
-          width: `calc(100% - ${drawerWidth}px)`, 
-          height: `${navbarHeight}px`,
-          ml: `${drawerWidth}px`,
-          boxShadow: 0,
-          bgcolor: 'background.paper',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          top: 'var(--template-frame-height, 0px)',
+      position="static"
+      elevation={0}
+      sx={{
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid',
+        borderColor: 'divider'
+      }}
+    >
+      <Toolbar variant="dense" disableGutters sx={{ px: 1, pb: 1, pt: 1 }}>
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 700,
+          color: 'text.primary',
+          letterSpacing: 0.5,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}
       >
-      <Toolbar variant="regular">
-        <Typography variant="h5" sx={{ color: 'text.primary' }}>
-          pyMOODS Decision Support System
-        </Typography>
-        <Stack direction="row" spacing={2} sx={{ ml: 'auto', alignItems: 'center', pr: 4.5 }}>
-          <img 
-            src={PNNLLogo} 
-            alt="Logo 1" 
-            style={{ height: '48px', width: 'auto' }} 
-          />
-          <img 
-            src={ECompLogo} 
-            alt="Logo 2" 
-            style={{ height: '48px', width: 'auto' }} 
-          />
+        pyMOODS Decision Support System
+      </Typography>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <img src={PNNLLogo} alt="PNNL Logo" style={{ height: '56px' }} />
+          <img src={ECompLogo} alt="e-Comp Logo" style={{ height: '56px' }} />
         </Stack>
       </Toolbar>
     </AppBar>

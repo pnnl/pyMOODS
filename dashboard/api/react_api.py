@@ -1,6 +1,9 @@
 import json
 import sys
 import os
+os.environ['NUMBA_THREADING_LAYER'] = 'omp'
+os.environ['NUMBA_NUM_THREADS'] = '1'
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
@@ -209,12 +212,12 @@ def draw_clusters_scatterplot(clusters, points, objective_funcs, selected_indice
     # Improved layout
     fig.update_layout(
         title="",
-        margin=dict(t=0, b=0, l=10, r=10),  # t=20 keeps top tight
+        margin=dict(t=0, b=10, l=10, r=10),  # t=20 keeps top tight
         legend=dict(
             # title=dict(text='Clusters', font=dict(size=11)),
             orientation="h",
-            yanchor="bottom",
-            y=-.2,
+            yanchor="top",
+            y=0,
             xanchor="center",
             x=0.5,
             bgcolor='white',
@@ -422,9 +425,24 @@ def get_scatterplot():
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
 
-        # Get cluster_by parameter
-        cluster_by = request.args.get('cluster_by', default='location')  # ← New line
+        # Safely determine cluster_by
+        cluster_by = request.args.get('cluster_by')
+        if not cluster_by or cluster_by not in csv_data.columns:
+            # Try categorical columns first
+            cat_columns = csv_data.select_dtypes(include=['object']).columns.tolist()
+            if cat_columns:
+                cluster_by = cat_columns[0]
+            else:
+                # Try numeric columns
+                num_columns = csv_data.select_dtypes(include=[np.number]).columns.tolist()
+                if num_columns:
+                    cluster_by = num_columns[0]
+                else:
+                    # Last resort: use first column
+                    cluster_by = csv_data.columns[0]
 
+        print(f"Clustering by: {cluster_by}")
+        
         vis_obj = Visualizer(
             data=csv_data,
             data_ovars=list(data["objective_functions"].keys()),
@@ -434,31 +452,36 @@ def get_scatterplot():
 
         kwargs = dict(
             threshold=0.5,
-            clu=HDBSCAN(min_cluster_size=10, cluster_selection_epsilon=1.),
+            clu=HDBSCAN(
+                min_cluster_size=2, 
+                cluster_selection_epsilon=1., 
+                n_jobs=1
+            ),
             drop_intermediate=False
         )
 
         clusters = vis_obj.get_overlapping_clusters(**kwargs)
 
         # Use cluster_by to determine clustering column
-        initial_clusters = csv_data[[cluster_by]]  # ← Dynamic column selection
+        initial_clusters = csv_data[[cluster_by]]
 
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
         filtered_data = csv_data.copy()
-
+        
         for key, values in query_params.items():
             if values:
                 filtered_data = filtered_data[filtered_data[key].isin(values)]
 
         updated_clusters = filtered_data[[cluster_by]]
         updated_points = points.loc[filtered_data.index]
-
         objective_funcs = filtered_data[data["objective_functions"].keys()]
 
         fig = draw_clusters_scatterplot(updated_clusters, updated_points, objective_funcs)
+
         return jsonify({
             "scatterplot": fig.to_json(),
-            "config": {"displayModeBar": False, "responsive": True}
+            "config": {"displayModeBar": False, "responsive": True},
+            "cluster_by": cluster_by
         })
 
     except Exception as e:
@@ -470,30 +493,124 @@ def get_objective_data():
     case_study = request.args.get('use_case')
     if not case_study:
         return jsonify({"error": "Missing query param: use_case"}), 400
+    try:
+        data = load_case_study_data(case_study)
+        hyperparameters = data["hyperparameters"]
+        csv_data = data["csv_data"]
+        
+        # Get all objective columns
+        objective_cols = list(data["objective_functions"].keys())
+        
+        # Parse filters
+        query_params = {key: request.args.getlist(key) for key in hyperparameters}
+        filtered_data = csv_data.copy()
+        for key, values in query_params.items():
+            if values:
+                filtered_data = filtered_data[filtered_data[key].isin(values)]
 
+        # Parse weights
+        weights_input = request.args.get('weights')
+        print(weights_input)
+        if weights_input:
+            weights = json.loads(weights_input)
+        else:
+            # Default equal weights
+            weights = {col: 1 / len(objective_cols) for col in objective_cols}
+
+        # Calculate weighted average
+        weighted_score = sum(filtered_data[col] * weights[col] for col in objective_cols).mean()
+
+        return jsonify({
+            "mean_weighted_score": weighted_score,
+            "weights_used": weights,
+            "config": {"responsive": True}
+        })
+    except Exception as e:
+        app.logger.error(f"Error generating objective data: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/solutions', methods=['GET'])
+def get_weighted_solutions():
+    case_study = request.args.get('use_case')
+    if not case_study:
+        return jsonify({"error": "Missing query param: use_case"}), 400
     try:
         data = load_case_study_data(case_study)
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
 
+        # Parse filters
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
-        # print("Hellooooo: ", query_params)
         filtered_data = csv_data.copy()
-
         for key, values in query_params.items():
             if values:
                 filtered_data = filtered_data[filtered_data[key].isin(values)]
 
-        graph_data = generate_objective_graph_data(
-            list(data["objective_functions"].keys())[0], 
-            filtered_data
+        # Get objective columns
+        objective_cols = list(data["objective_functions"].keys())
+
+        # Parse weights
+        # Parse weights from individual query parameters
+        weights = {}
+        for key in request.args:
+            if key.startswith("weight_"):
+                obj_name = key[len("weight_"):]  # Remove "weight_" prefix
+                try:
+                    weights[obj_name] = float(request.args[key])
+                except ValueError:
+                    weights[obj_name] = 1.0  # Default to 1.0 on invalid input
+
+        # Use default weights only for missing objectives
+        objective_cols = list(data["objective_functions"].keys())
+        for obj in objective_cols:
+            if obj not in weights:
+                weights[obj] = 1.0
+
+        # Compute weighted score
+        filtered_data['weighted_score'] = sum(filtered_data[col] * weights[col] for col in objective_cols)
+
+        # Cluster by parameter passed from frontend
+        # Get cluster_by parameter
+        cluster_by = request.args.get('cluster_by')
+
+        # Validate that cluster_by exists in the data
+        if not cluster_by or cluster_by not in csv_data.columns:
+            # Fall back to first categorical column
+            cat_columns = csv_data.select_dtypes(include=['object']).columns.tolist()
+            if cat_columns:
+                cluster_by = cat_columns[0]
+            else:
+                # Fall back to first numeric column as string category
+                num_columns = csv_data.select_dtypes(include=[np.number]).columns.tolist()
+                if num_columns:
+                    cluster_by = num_columns[0]
+                else:
+                    cluster_by = csv_data.columns[0]  # Just pick the first one
+
+        # Now safely use cluster_by
+        initial_clusters = csv_data[[cluster_by]]
+
+        # Group by cluster and compute stats
+        cluster_summary = (
+            filtered_data.groupby(cluster_by)
+            .agg(
+                count=('weighted_score', 'size'),
+                avg_weighted_score=('weighted_score', 'mean')
+            )
+            .reset_index()
+            .rename(columns={cluster_by: 'cluster'})
+            .sort_values(by='avg_weighted_score', ascending=False)
         )
-        return jsonify(graph_data)
 
+        return jsonify({
+            "clusters": cluster_summary.to_dict(orient='records'),
+            "weights_used": weights,
+            "cluster_by": cluster_by
+        })
     except Exception as e:
-        app.logger.error(f"Error generating objective data: {str(e)}")
+        app.logger.error(f"Error fetching weighted solutions: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
+    
 @app.route('/api/decision', methods=['GET'])
 def get_decision_plot():
     case_study = request.args.get('use_case')
@@ -554,30 +671,23 @@ def get_decision_space_graph():
 
 @app.route('/api/parameters', methods=['GET'])
 def get_parameters():
-    """
-    Returns a list of filter options where each item has 'key', 'name', and 'values'.
-    """
     case_study = request.args.get('use_case')
     if not case_study:
         return jsonify({"error": "Missing query param: use_case"}), 400
-
     try:
         data = load_case_study_data(case_study)
         hyperparams = data["hyperparameters"]
-
-        # Convert the hyperparameters object into an array format
         result = [
             {
                 "key": key,
                 "name": info.get("name", key),
-                "values": info["values"]
+                "values": info["values"],
+                "is_clusterable": True  # You can add logic here if needed
             }
             for key, info in hyperparams.items()
             if isinstance(info, dict) and "values" in info and isinstance(info["values"], list)
         ]
-
         return jsonify(result)
-
     except Exception as e:
         app.logger.error(f"Error fetching parameters: {str(e)}")
         return jsonify({"error": str(e)}), 500
@@ -607,4 +717,4 @@ def get_lmp_data():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    app.run(debug=True, threaded=False, host="0.0.0.0", port=8080)

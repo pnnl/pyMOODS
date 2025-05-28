@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
 // Import centralized config
 import config from '../../config';
@@ -18,17 +18,17 @@ interface DecisionPlotData {
 interface DecisionPlotProps {
   useCase: string;
   filters: Record<string, string[]>;
+  weights?: Record<string, number>;
+  clusterBy?: string;
 }
 
-const DecisionPlot: React.FC<DecisionPlotProps> = ({ useCase, filters }) => {
+const DecisionPlot: React.FC<DecisionPlotProps> = ({ useCase, filters, weights = {}, clusterBy }) => {
   const [decisionPlotData, setDecisionPlotData] = useState<DecisionPlotData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingPlot, setLoadingPlot] = useState<boolean>(true);
 
-  // Fetch decision space graph data from the API
+  // Fetch decision space graph data
   useEffect(() => {
     if (!useCase || !filters) return;
-
-    setLoading(true);
 
     const queryParams = new URLSearchParams();
 
@@ -48,25 +48,18 @@ const DecisionPlot: React.FC<DecisionPlotProps> = ({ useCase, filters }) => {
       .then((data) => {
         const plotData = JSON.parse(data.plot); // Parse the JSON string
         setDecisionPlotData(plotData);
-        setLoading(false);
+        setLoadingPlot(false);
       })
       .catch((error) => {
         console.error('Error fetching decision space graph:', error);
-        setLoading(false);
+        setLoadingPlot(false);
       });
   }, [useCase, filters]);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <Typography variant="body1">Loading Decision Plot...</Typography>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {decisionPlotData && (
+      {/* Plot */}
+      {!loadingPlot && decisionPlotData && (
         <Plot
           data={decisionPlotData.data}
           layout={{

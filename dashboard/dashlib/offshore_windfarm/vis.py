@@ -420,7 +420,7 @@ class Visualizer(Loader):
 
         self.y_joint =  pd.Series(pipe.fit_predict(self.X_joint), index=self.df.index)
         self.joint_xy = pd.DataFrame(pipe['proj'].embedding_, index=self.df.index)
-
+        
         # calculate specialization & clusters
 
         top_k = 20
@@ -437,8 +437,9 @@ class Visualizer(Loader):
         df = pd.DataFrame(self.right_xy.values, columns=['x', 'y'], index=self.df.index)\
             .assign(label=label.values, is_solution=self.solution_mask)
 
-        clu = HDBSCAN()
-
+        clu = HDBSCAN(min_cluster_size=2, 
+                n_jobs=1)
+        
         def apply_clustering_to_solutions(df):
             X = df.loc[df.is_solution, ['x', 'y']]
             y = pd.Series(clu.fit_predict(X), index=X.index)\
@@ -505,7 +506,8 @@ class Visualizer(Loader):
                         threshold=t,
                         clu = HDBSCAN(
                             cluster_selection_epsilon=e,
-                            min_cluster_size=10
+                            min_cluster_size=2, 
+                            n_jobs=1
                         ),
                         drop_intermediate=False
                     )
