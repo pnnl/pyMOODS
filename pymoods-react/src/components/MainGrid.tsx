@@ -3,9 +3,10 @@ import { Box, Tabs, Tab, Grid } from '@mui/material';
 
 // Import Plot Components
 import ClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
-import ObjectivePlot from './OffshoreWindfarmPlots/ObjectivePlot';
+import DualRadarChart from './OffshoreWindfarmPlots/DualRadarChart';
 import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
+import Summary from './OffshoreWindfarmPlots/Summary';
 
 import config from '../config';
 const { API_BASE_URL } = config;
@@ -54,14 +55,9 @@ const MainGrid: React.FC<MainGridProps> = ({
   }, [selectedUseCase, weights]);
 
   const handleWeightChange = (newWeights: Record<string, number>) => {
-    console.log('MainGrid - Received weights from child:', newWeights);
     if (onWeightsChange) {
       onWeightsChange(newWeights);
     }
-  };
-
-  const handleClusterByChange = (newClusterBy: string) => {
-    setClusterBy(newClusterBy);
   };
 
   // Automatically select the first filter key as clusterBy when filters change
@@ -73,10 +69,15 @@ const MainGrid: React.FC<MainGridProps> = ({
   }, [filters]);
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '78vw', px: { xs: 1, sm: 2 }, py: 2 }}>
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2, pt: 0 }}>
-        <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} aria-label="navigation tabs">
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs
+          value={tabIndex}
+          onChange={(_, v) => setTabIndex(v)}
+          aria-label="navigation tabs"
+          variant="fullWidth"
+        >
           <Tab label="Decision Making" />
           <Tab label="Scenario Comparison" />
         </Tabs>
@@ -84,35 +85,48 @@ const MainGrid: React.FC<MainGridProps> = ({
 
       {/* Tab Content */}
       {tabIndex === 0 && (
-        <Box>
-          <Grid container spacing={2}>
+        <Box sx={{ width: '100%' }}>
+          {/* First Row - Charts */}
+          <Grid container spacing={2} sx={{ width: '100%' }}>
             <Grid item xs={12} md={4}>
               <ClusterScatterPlot
                 useCase={selectedUseCase}
                 filters={filters}
                 weights={weights}
                 onWeightsChange={handleWeightChange}
-                onClusterByChange={handleClusterByChange}
+                onClusterByChange={setClusterBy}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <ObjectivePlot
-                useCase={selectedUseCase}
-                filters={filters}
-                onWeightsChange={handleWeightChange}
-              />
+            <Grid item xs={12} md={2}></Grid>
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={2} sx={{ width: '100%' }}>
+                <Grid item xs={12} md={12}>
+                  <DualRadarChart
+                    useCase={selectedUseCase}
+                    filters={filters}
+                  />
+                </Grid>
+                <Grid item xs={12} md={12}>
+                  <DecisionPlot
+                    useCase={selectedUseCase}
+                    filters={filters}
+                    weights={weights}
+                    clusterBy={clusterBy}
+                  />
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={5}>
-              <DecisionPlot
+          </Grid>
+
+          {/* Second Row - Summary & LMP */}
+          <Grid container spacing={2} sx={{ mt: 2, width: '100%' }}>
+            <Grid item xs={12} md={6}>
+              <Summary
                 useCase={selectedUseCase}
                 filters={filters}
                 weights={weights}
                 clusterBy={clusterBy}
               />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <LMPPlot useCase={selectedUseCase} filters={filters} />
             </Grid>
             <Grid item xs={12} md={6}>
               <LMPPlot useCase={selectedUseCase} filters={filters} />

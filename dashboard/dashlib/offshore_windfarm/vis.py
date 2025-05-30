@@ -453,7 +453,7 @@ class Visualizer(Loader):
             .apply(apply_clustering_to_solutions, include_groups=False)\
             .reset_index('label')\
             .sort_index()
-
+        
         # update the name of the cluster and 
         mask = (df_clustered.cluster == -1) | (rank > top_k)
         letters = ['i','ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
@@ -465,6 +465,9 @@ class Visualizer(Loader):
         df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.map(get_letters) + ')'
         df_clustered.loc[mask, 'cluster'] = None
         self.df_clustered = df_clustered
+
+        print(df_clustered)
+        print(df_clustered.columns)
 
 
     def get_overlapping_clusters(self, clu, threshold=1.0, drop_intermediate=False, use_joint_embedding=True):

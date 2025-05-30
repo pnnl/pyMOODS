@@ -79,9 +79,6 @@ def rgba_with_opacity(rgb_hex, opacity=1.0):
 
 
 def draw_clusters_scatterplot(clusters, points, objective_funcs, selected_indices=None):
-    print("Drawing clusters scatterplot...")
-    print(points)
-    print(objective_funcs)
     fig = go.Figure()
 
     # Unassigned points
@@ -430,7 +427,9 @@ def get_scatterplot():
         if not cluster_by or cluster_by not in csv_data.columns:
             # Try categorical columns first
             cat_columns = csv_data.select_dtypes(include=['object']).columns.tolist()
-            if cat_columns:
+            if cluster_by == "AI-Generated":
+                cluster_by = "AI-Generated"
+            elif cat_columns:
                 cluster_by = cat_columns[0]
             else:
                 # Try numeric columns
@@ -460,10 +459,10 @@ def get_scatterplot():
             drop_intermediate=False
         )
 
-        clusters = vis_obj.get_overlapping_clusters(**kwargs)
-
-        # Use cluster_by to determine clustering column
-        initial_clusters = csv_data[[cluster_by]]
+        # clusters = vis_obj.get_overlapping_clusters(**kwargs)
+        print("Getting AI Clusters:", csv_data)
+        print(csv_data.columns)
+        # print(clusters)
 
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
         filtered_data = csv_data.copy()
@@ -472,11 +471,16 @@ def get_scatterplot():
             if values:
                 filtered_data = filtered_data[filtered_data[key].isin(values)]
 
-        updated_clusters = filtered_data[[cluster_by]]
+        if cluster_by == "AI-Generated":
+            clusters = vis_obj.df_clustered[["label"]]
+        else:
+            clusters = filtered_data[[cluster_by]]
+        print("Clusters:", clusters)
+        
         updated_points = points.loc[filtered_data.index]
         objective_funcs = filtered_data[data["objective_functions"].keys()]
 
-        fig = draw_clusters_scatterplot(updated_clusters, updated_points, objective_funcs)
+        fig = draw_clusters_scatterplot(clusters, updated_points, objective_funcs)
 
         return jsonify({
             "scatterplot": fig.to_json(),
@@ -510,7 +514,6 @@ def get_objective_data():
 
         # Parse weights
         weights_input = request.args.get('weights')
-        print(weights_input)
         if weights_input:
             weights = json.loads(weights_input)
         else:
@@ -577,7 +580,9 @@ def get_weighted_solutions():
         if not cluster_by or cluster_by not in csv_data.columns:
             # Fall back to first categorical column
             cat_columns = csv_data.select_dtypes(include=['object']).columns.tolist()
-            if cat_columns:
+            if cluster_by == "AI-Generated":
+                cluster_by = "AI-Generated"
+            elif cat_columns:
                 cluster_by = cat_columns[0]
             else:
                 # Fall back to first numeric column as string category
@@ -588,15 +593,30 @@ def get_weighted_solutions():
                     cluster_by = csv_data.columns[0]  # Just pick the first one
 
         # Now safely use cluster_by
-        initial_clusters = csv_data[[cluster_by]]
+        # initial_clusters = csv_data[[cluster_by]]
+        vis_obj = Visualizer(
+            data=csv_data,
+            data_ovars=list(data["objective_functions"].keys()),
+            data_dvars=list(data["decision_variables"].keys())
+        )
+        
+        if cluster_by == "AI-Generated":
+            filtered_data[cluster_by] = vis_obj.df_clustered["label"]
 
+        best_solution_df = filtered_data.loc[
+                                filtered_data.groupby(cluster_by)['weighted_score'].idxmax()
+                            ].set_index(cluster_by)
+        print("Best Solution::::::", best_solution_df)
         # Group by cluster and compute stats
         cluster_summary = (
             filtered_data.groupby(cluster_by)
             .agg(
                 count=('weighted_score', 'size'),
-                avg_weighted_score=('weighted_score', 'mean')
+                avg_weighted_score=('weighted_score', 'mean'),
+                best_solution=('weighted_score', 'max'),
+                best_solution_id=('weighted_score', 'idxmax')
             )
+            # .join(best_solution_df.add_prefix('best_'))
             .reset_index()
             .rename(columns={cluster_by: 'cluster'})
             .sort_values(by='avg_weighted_score', ascending=False)
@@ -609,6 +629,69 @@ def get_weighted_solutions():
         })
     except Exception as e:
         app.logger.error(f"Error fetching weighted solutions: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/objective-plot-data', methods=['GET'])
+def get_objective_plot_data():
+    case_study = request.args.get('use_case')
+    if not case_study:
+        return jsonify({"error": "Missing query param: use_case"}), 400
+
+    try:
+        data = load_case_study_data(case_study)
+        hyperparameters = data["hyperparameters"]
+        csv_data = data["csv_data"]
+
+        # Parse filters from query params
+        query_params = {key: request.args.getlist(key) for key in hyperparameters}
+
+        # Apply filters
+        filtered_data = csv_data.copy()
+        if any(query_params[key] for key in query_params):
+            for key, values in query_params.items():
+                if values:
+                    filtered_data = filtered_data[filtered_data[key].isin(values)]
+        else:
+            print("No filters applied, returning full dataset")
+
+        # Objective Functions
+        objective_cols = list(data["objective_functions"].keys())
+        
+        objectives = []
+        for col in objective_cols:
+            distribution = filtered_data[col].tolist()
+            selected_value = sum(distribution) / len(distribution) if distribution else 0
+            max_value = max(distribution) if distribution else 1
+            objectives.append({
+                "variable": col,
+                "distribution": distribution,
+                "selected": selected_value,
+                "max": max_value
+            })
+        
+        # Decision Variables (assumed to be in hyperparameters or as columns in CSV)
+        decision_cols = list(data["decision_variables"].keys())  # Or define a separate list
+        
+        decisions = []
+        for col in decision_cols:
+            distribution = filtered_data[col].tolist()
+            selected_value = sum(distribution) / len(distribution) if distribution else 0
+            max_value = max(distribution) if distribution else 1
+            decisions.append({
+                "variable": col,
+                "distribution": distribution,
+                "selected": selected_value,
+                "max": max_value
+            })
+
+        # Return both objectives and decisions
+        return jsonify({
+            "objectives": objectives,
+            "decisions": decisions
+        })
+
+    except Exception as e:
+        app.logger.error(f"Error fetching objective plot data: {str(e)}")
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/decision', methods=['GET'])
