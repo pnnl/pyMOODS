@@ -1,15 +1,15 @@
 import React, { useState, useRef } from "react";
 import * as d3 from "d3";
 
-const getAcronym = (text) => {
-    // Remove everything inside and including parentheses
-    const cleaned = text.replace(/$.*?$/g, '').trim();
-  
-    return cleaned
-      .split(/[\s\-_]+/)
-      .map((word) => word.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperCase())
-      .join("");
-  };
+const getAcronym = (text: string): string => {
+  // Remove all parenthetical expressions, like ($k)
+  const cleaned = text.replace(/\([^)]*\)/g, '').trim();
+
+  return cleaned
+    .split(/[\s\-_]+/) // Split on space or hyphen
+    .map((word) => word[0]?.toUpperCase())
+    .join('');
+};
 
 // Label position helper by quadrant
 const getLabelPosition = (angleRad, baseX, baseY, radius) => {
@@ -216,6 +216,26 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
           const valueText = (selectedValues[i] * d.max).toFixed(1);
           const tooltipX = x + 10;
           const tooltipY = y - 15;
+          const tooltipWidth = 220;
+          const tooltipHeight = 60;
+          const padding = 10;
+
+          let adjustedX = tooltipX;
+          let adjustedY = tooltipY;
+
+          // Clamp horizontally
+          if (tooltipX + tooltipWidth > size) {
+            adjustedX = size - tooltipWidth - padding;
+          } else if (tooltipX < 0) {
+            adjustedX = padding;
+}
+
+          // Clamp vertically
+          if (tooltipY + tooltipHeight > size) {
+            adjustedY = size - tooltipHeight - padding;
+          } else if (tooltipY < 0) {
+            adjustedY = padding;
+}
           
           return (
             <g
@@ -236,10 +256,10 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
               {/* Tooltip Box */}
               {hoveredIndex === i && (
                 <foreignObject
-                  x={tooltipX}
-                  y={tooltipY}
-                  width={200}
-                  height={60}
+                  x={adjustedX}
+                  y={adjustedY}
+                  width={tooltipWidth}
+                  height={tooltipHeight}
                   pointerEvents="none"
                 >
                   <div
@@ -249,12 +269,12 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
                       borderRadius: "6px",
                       padding: "8px 12px",
                       boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                      fontSize: "20px",
+                      fontSize: "18px",
                       fontFamily: "sans-serif",
                       whiteSpace: "normal",
                       wordWrap: "break-word",
                       overflowWrap: "break-word",
-                      maxWidth: "200px",
+                      maxWidth: "250px",
                       maxHeight: "80px",
                       overflowY: "auto",
                       boxSizing: "border-box",
