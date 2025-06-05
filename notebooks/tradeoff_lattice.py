@@ -316,7 +316,7 @@ class TradeoffLattice:
             .format_index(get_index_label)\
             .background_gradient(axis=None, cmap=cmap)
 
-    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None):
+    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None, include_all_generalizers=False):
         
         data = self.rank
 
@@ -341,15 +341,23 @@ class TradeoffLattice:
         
         # groupby facet for non-generalizers
         n = self.n_generalizers
-        grouped = data.iloc[self.n_generalizers:]\
-            .groupby(['All']*len(data - n) if facets is None else facets[n:])
+
+        if include_all_generalizers:        
+            grouped = data.iloc[self.n_generalizers:]\
+                .groupby(['All']*len(data - n) if facets is None else facets[n:])
+        else:
+            grouped = data.groupby(['All']*len(data) if facets is None else facets)
 
         for i, (k, data_k) in enumerate(grouped):
             # add generalizers back in so they appear in each plot
-            data_k = pd.concat((data.iloc[:n], data_k))
+            if include_all_generalizers:
+                data_k = pd.concat((data.iloc[:n], data_k))
 
             ax = plt.subplot(len(grouped), 1, i + 1)
             ax.set_title(k)
+
+            if use_rank:
+                ax.invert_yaxis()
 
             for name, y in data_k.iterrows():
                 s = None
