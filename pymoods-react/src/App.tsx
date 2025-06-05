@@ -12,7 +12,6 @@ function App() {
   const [weights, setWeights] = useState<Record<string, number>>({});
 
   const handleWeightsChange = (newWeights: Record<string, number>) => {
-    console.log("Weights received in App:", newWeights);
     setWeights(newWeights);
   };
 

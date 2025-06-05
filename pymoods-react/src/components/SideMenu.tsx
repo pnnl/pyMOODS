@@ -128,64 +128,42 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
       });
   }, []);
 
-  // Load parameters when case study changes
+  // Unified call to fetch parameters and weights
   useEffect(() => {
     if (!selectedCaseStudy) return;
 
     setLoading(true);
     setError(null);
 
-    fetch(`${API_BASE_URL}/api/parameters?use_case=${encodeURIComponent(selectedCaseStudy)}`)
+    fetch(`${API_BASE_URL}/api/init?use_case=${encodeURIComponent(selectedCaseStudy)}`)
       .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch file data');
-        return res.json();
-      })
-      .then((data: FilterOption[]) => {
-        setFilterOptions(data);
-
-        const newSelectedFilters = data.reduce((acc, item) => {
-          acc[item.key] = [];
-          return acc;
-        }, {} as Record<string, string[]>);
-
-        setSelectedFilters(newSelectedFilters);
-
-        if (onFiltersChange) {
-          onFiltersChange(newSelectedFilters);
-        }
-
-        if (onSelectUseCase) {
-          onSelectUseCase(selectedCaseStudy);
-        }
-
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error loading file:', err);
-        setError("Failed to load data for selected use case.");
-        setLoading(false);
-      });
-  }, [selectedCaseStudy]);
-
-  // Fetch objective names and default weights
-  useEffect(() => {
-    if (!selectedCaseStudy) return;
-
-    fetch(`${API_BASE_URL}/api/objective?use_case=${selectedCaseStudy}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch objectives');
+        if (!res.ok) throw new Error('Failed to initialize use case data');
         return res.json();
       })
       .then(data => {
-        const objNames = Object.keys(data.weights_used || {});
-        const weights = objNames.map(name => ({
+        // Set filter options
+        setFilterOptions(data.filters || []);
+        const newSelectedFilters = (data.filters || []).reduce((acc: Record<string, string[]>, item: any) => {
+          acc[item.key] = [];
+          return acc;
+        }, {});
+        setSelectedFilters(newSelectedFilters);
+        if (onFiltersChange) onFiltersChange(newSelectedFilters);
+
+        // Set objective weights
+        const weightsData = data.objectives || {};
+        const weights = Object.keys(weightsData).map((name) => ({
           name,
-          weight: 1,
+          weight: weightsData[name]
         }));
         setObjectiveWeights(weights);
       })
       .catch(err => {
-        console.error('Error fetching objectives:', err);
+        console.error('Error loading data:', err);
+        setError("Failed to load data for selected use case.");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [selectedCaseStudy]);
 
@@ -245,7 +223,14 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
               <SidebarInputLabel>Select Use Case</SidebarInputLabel>
               <SidebarSelect
                 value={selectedCaseStudy}
-                onChange={(e) => setSelectedCaseStudy(e.target.value as string)}
+                onChange={(e) => {
+                  const newValue = e.target.value as string;
+                  setSelectedCaseStudy(newValue);
+                  if (onSelectUseCase && newValue) {
+                    onSelectUseCase(newValue);
+                    console.log("SideMenu: Sent new use case:", newValue);
+                  }
+                }}
                 displayEmpty
                 disabled={loading}
               >

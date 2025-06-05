@@ -24,46 +24,42 @@ interface ScatterplotData {
 interface ClusterScatterPlotProps {
   useCase: string;
   filters: Record<string, string[]>;
-  weights: Record<string, number>; // ✅ Required prop
+  weights: Record<string, number>; 
   onWeightsChange?: (weights: Record<string, number>) => void;
-  onClusterByChange?: (clusterBy: string) => void;
+  onColorByChange?: (colorBy: string) => void;
 }
 
 const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
   useCase,
   filters,
   weights,
-  onClusterByChange
+  onColorByChange
 }) => {
   const [scatterplotData, setScatterplotData] = useState<ScatterplotData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [clusterBy, setClusterBy] = useState<string>(() => {
-    const availableOptions = Object.keys(filters);
-    return availableOptions.length > 0 ? availableOptions[0] : 'unknown';
-  });
-
-  // Update clusterBy if filters change and value is invalid
-  useEffect(() => {
-    const availableOptions = Object.keys(filters);
-    if (availableOptions.length > 0 && !availableOptions.includes(clusterBy)) {
-      const newClusterBy = availableOptions[0];
-      setClusterBy(newClusterBy);
-      if (onClusterByChange) {
-        onClusterByChange(newClusterBy);
-      }
-    }
-  }, [filters]);
+  const [colorBy, setColorBy] = useState<string>("AI-Generated");
 
   // Fetch scatterplot data
   useEffect(() => {
-    if (!useCase) return;
+    if (!useCase || Object.keys(weights).length === 0) return;
 
     setLoading(true);
 
+    // const availableOptions = Object.keys(filters);
+    // const valid = availableOptions.includes(colorBy);
+  
+    // if (!valid || useCase) {
+    //   const newColorBy = "AI-Generated";
+    //   setColorBy(newColorBy);
+    //   if (onColorByChange) {
+    //     onColorByChange(newColorBy);
+    //   }
+    // }
+
     const queryParams = new URLSearchParams();
 
-    // Add selected cluster field
-    queryParams.append('cluster_by', clusterBy);
+    // Add selected color field
+    queryParams.append('color_by', colorBy);
 
     // Add other filters
     Object.entries(filters).forEach(([key, values]) => {
@@ -72,7 +68,11 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
       }
     });
 
+    console.log("Weights:", weights);
+    queryParams.append("weights", JSON.stringify(weights)); // send weights
+
     const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(useCase)}`;
+    console.log("URL:", url);
 
     fetch(url)
       .then((response) => {
@@ -93,7 +93,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
       .finally(() => {
         setLoading(false);
       });
-  }, [useCase, filters, clusterBy]);
+  }, [useCase, filters, weights, colorBy]);
 
   if (loading || !scatterplotData) {
     return (
@@ -121,20 +121,20 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
         }}
       >
         <InputLabel 
-          id="cluster-by-select-label" 
+          id="color-by-select-label" 
           sx={{ fontSize: '0.875rem' }}
         >
-          Cluster By
+          Color By
         </InputLabel>
         <Select
-          labelId="cluster-by-select-label"
-          value={clusterBy}
-          label="Cluster By"
+          labelId="color-by-select-label"
+          value={colorBy}
+          label="Color By"
           onChange={(e) => {
-            const newClusterBy = e.target.value as string;
-            setClusterBy(newClusterBy);
-            if (onClusterByChange) {
-              onClusterByChange(newClusterBy);
+            const newColorBy = e.target.value as string;
+            setColorBy(newColorBy);
+            if (onColorByChange) {
+              onColorByChange(newColorBy);
             }
           }}
           sx={{ 
@@ -143,6 +143,13 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
             textAlign: 'center'
           }}
         >
+          <MenuItem 
+            key="AI-Generated" 
+            value="AI-Generated"
+            sx={{ fontSize: '0.875rem' }}
+          >
+            AI-Generated
+          </MenuItem>
           {Object.keys(filters).map((option) => (
             <MenuItem 
               key={option} 
@@ -152,13 +159,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
               {option}
             </MenuItem>
           ))}
-          <MenuItem 
-            key="AI-Generated" 
-            value="AI-Generated"
-            sx={{ fontSize: '0.875rem' }}
-          >
-            AI-Generated
-          </MenuItem>
+          
         </Select>
       </FormControl>
 

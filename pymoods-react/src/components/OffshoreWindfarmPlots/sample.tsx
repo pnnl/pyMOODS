@@ -6,16 +6,18 @@ import * as d3 from "d3";
 import config from '../../config';
 const { API_BASE_URL } = config;
 
-const DualRadarChart = ({ useCase, filters, weights }) => {
+const DualRadarChart = ({ useCase, filters, topSolution }) => {
   const [loading, setLoading] = useState(true);
   const [objectives, setObjectives] = useState([]);
   const [decisions, setDecisions] = useState([]);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const params = new URLSearchParams();
         params.set("use_case", useCase);
+
+        // Append filters
         Object.entries(filters).forEach(([key, value]) => {
           if (value && value.length > 0) {
             if (Array.isArray(value)) {
@@ -26,14 +28,11 @@ const DualRadarChart = ({ useCase, filters, weights }) => {
           }
         });
 
-        Object.entries(weights).forEach(([key, value]) => {
-            params.append(`weight_${key}`, value.toString());
-        });
-
         const response = await fetch(`${API_BASE_URL}/api/objective-plot-data?${params.toString()}`);
         if (!response.ok) throw new Error("Network response was not ok");
         const result = await response.json();
-        
+
+        // Normalize data for radar chart
         const normalize = (arr) =>
           arr.map((d) => {
             const max = d3.max(d.distribution || []);
@@ -65,36 +64,59 @@ const DualRadarChart = ({ useCase, filters, weights }) => {
       display: 'flex',
       gap: '20px',
       flexWrap: 'wrap',
-      width: '100%'
+      width: '100%',
+      justifyContent: 'center'
     }}>
-      {/* Left Chart */}
-      <div style={{
-        flex: '1 1 45%',
-        // minWidth: '150px', // Reduced min width for responsiveness
-        aspectRatio: '1/1'
-      }}>
-        <RadarChart
-          key="objectives"
-          data={objectives}
-          title="Objective Functions"
-          useCase={useCase}
-          filters={filters}
-        />
+      {/* Left Chart - Objective Functions */}
+      <div style={{ flex: '1 1 45%', minWidth: '250px' }}>
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          paddingTop: '100%', // 1:1 aspect ratio
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}>
+            <RadarChart
+              key="objectives"
+              data={objectives}
+              title="Objective Functions"
+              useCase={useCase}
+              filters={filters}
+              solution={topSolution?.objectives} // Pass top solution values
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Right Chart */}
-      <div style={{
-        flex: '1 1 45%',
-        // minWidth: '150px',
-        aspectRatio: '1/1'
-      }}>
-        <RadarChart
-          key="decisions"
-          data={decisions}
-          title="Decision Variables"
-          useCase={useCase}
-          filters={filters}
-        />
+      {/* Right Chart - Decision Variables */}
+      <div style={{ flex: '1 1 45%', minWidth: '250px' }}>
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          paddingTop: '100%', // 1:1 aspect ratio
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}>
+            <RadarChart
+              key="decisions"
+              data={decisions}
+              title="Decision Variables"
+              useCase={useCase}
+              filters={filters}
+              solution={topSolution?.decisions} // Pass top solution values
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

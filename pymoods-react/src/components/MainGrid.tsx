@@ -30,6 +30,10 @@ const MainGrid: React.FC<MainGridProps> = ({
     Object.keys(filters).length > 0 ? Object.keys(filters)[0] : ''
   );
 
+  useEffect(() => {
+    console.log("MainGrid received selectedUseCase:", selectedUseCase);
+  }, [selectedUseCase]);
+
   // Fetch objectives and set default weights if necessary
   useEffect(() => {
     const fetchObjectives = async () => {
@@ -88,30 +92,42 @@ const MainGrid: React.FC<MainGridProps> = ({
         <Box sx={{ width: '100%' }}>
           {/* First Row - Charts */}
           <Grid container spacing={2} sx={{ width: '100%' }}>
-            <Grid item xs={12} md={4}>
-              <ClusterScatterPlot
-                useCase={selectedUseCase}
-                filters={filters}
-                weights={weights}
-                onWeightsChange={handleWeightChange}
-                onClusterByChange={setClusterBy}
-              />
+            <Grid item xs={12} md={5}>
+              <Grid container spacing={2} sx={{ width: '100%' }}>
+                <Grid item xs={12} md={12}>
+                  <Box  sx={{ position: 'relative', zIndex: 10 }}>
+                    <ClusterScatterPlot
+                      useCase={selectedUseCase}
+                      filters={filters}
+                      weights={weights}
+                      onWeightsChange={handleWeightChange}
+                      onClusterByChange={setClusterBy}
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={12}>
+                  <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+                    <LMPPlot useCase={selectedUseCase} filters={filters} />
+                  </Box>
+                </Grid>
+               </Grid> 
             </Grid>
-            <Grid item xs={12} md={2}></Grid>
+            <Grid item xs={12} md={1}></Grid>
             <Grid item xs={12} md={6}>
               <Grid container spacing={2} sx={{ width: '100%' }}>
                 <Grid item xs={12} md={12}>
-                  <DualRadarChart
-                    useCase={selectedUseCase}
-                    filters={filters}
-                  />
-                </Grid>
-                <Grid item xs={12} md={12}>
-                  <DecisionPlot
+                  <Summary
                     useCase={selectedUseCase}
                     filters={filters}
                     weights={weights}
                     clusterBy={clusterBy}
+                  />
+                </Grid>
+                <Grid item xs={12} md={12}>
+                  <DualRadarChart
+                    useCase={selectedUseCase}
+                    filters={filters}
+                    weights={weights}
                   />
                 </Grid>
               </Grid>
@@ -120,16 +136,20 @@ const MainGrid: React.FC<MainGridProps> = ({
 
           {/* Second Row - Summary & LMP */}
           <Grid container spacing={2} sx={{ mt: 2, width: '100%' }}>
-            <Grid item xs={12} md={6}>
-              <Summary
+            
+            
+            
+          </Grid>
+
+          {/* Third Row - Charts */}
+          <Grid container spacing={2} sx={{ width: '100%' }}>
+            <Grid item xs={12} md={12}>
+              <DecisionPlot
                 useCase={selectedUseCase}
                 filters={filters}
                 weights={weights}
                 clusterBy={clusterBy}
               />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <LMPPlot useCase={selectedUseCase} filters={filters} />
             </Grid>
           </Grid>
         </Box>

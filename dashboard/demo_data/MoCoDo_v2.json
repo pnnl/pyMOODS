@@ -5,16 +5,16 @@
         "market_price": {"name":"Day Ahead Market Prices", "description": "", "filepaths": []},
         "other_cols": {
             "capacity": {"name": "Wind Farm Rate Capacity", "description": ""}
+        },
+        "other_cols_2": {
+            "cost": {"name":"Battery Installation Cost ($/kWH)", "description": ""}
         }
     },
     "hyperparameters": {
         "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]},
         "technology": {"name":"Battery Technology", "description": "", "values": ["LFP", "LAB", "NMC", "VRF"]},
         "power": {"name":"Battery Power Rating (MW)", "description": "", "values": [100, 1000]},
-        "duration": {"name":"Battery Duration (Hours)", "description": "", "values": [2, 4, 6, 8]},
-        "other_cols": {
-            "cost": {"name":"Battery Installation Cost ($/kWH)", "description": ""}
-        }
+        "duration": {"name":"Battery Duration (Hours)", "description": "", "values": [2, 4, 6, 8]}
     },
     "decision_variables": {
         "size": {"name":"Battery Size (MW)", "description": ""},

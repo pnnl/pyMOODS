@@ -1,4 +1,3 @@
-// Summary.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -16,115 +15,161 @@ import {
 import config from '../../config';
 const { API_BASE_URL } = config;
 
-interface ClusterSummary {
-  cluster: string | number;
-  count: number;
-  avg_weighted_score: number;
-  best_solution: number;
-  best_solution_id: number;
+interface Solution {
+  [key: string]: any;
 }
 
 interface SummaryProps {
   useCase: string;
   filters: Record<string, string[]>;
   weights: Record<string, number>;
-  clusterBy: string; // ✅ New required prop
+  clusterBy: string;
 }
 
 const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy }) => {
-  const [clusterSummaries, setClusterSummaries] = useState<ClusterSummary[]>([]);
+  const [solutions, setSolutions] = useState<Solution[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
-  // Define consistent colors for each cluster
-  const clusterColors = [
-    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-  ];
 
   useEffect(() => {
     if (!useCase || !filters || !weights || !clusterBy) return;
 
-    const fetchSummaryData = async () => {
+    const fetchTopSolutions = async () => {
       setLoading(true);
       const queryParams = new URLSearchParams();
 
-      // Add filters
       Object.entries(filters).forEach(([key, values]) => {
-        if (Array.isArray(values)) {
-          values.forEach(value => queryParams.append(key, value));
-        }
+        values.forEach(value => queryParams.append(key, value));
       });
 
-      // Add objective weights
       Object.entries(weights).forEach(([key, value]) => {
         queryParams.append(`weight_${key}`, value.toString());
       });
 
-      // Use passed-in clusterBy instead of defaulting
       queryParams.append('use_case', useCase);
-      queryParams.append('cluster_by', clusterBy); // ✅ Use dynamic clusterBy
+      queryParams.append('cluster_by', clusterBy);
 
       try {
         const response = await fetch(`${API_BASE_URL}/api/solutions?${queryParams.toString()}`);
-        if (!response.ok) throw new Error("Failed to fetch cluster summaries");
+        if (!response.ok) throw new Error("Failed to fetch solutions");
 
         const data = await response.json();
-        const sorted = [...data.clusters].sort((a: ClusterSummary, b: ClusterSummary) =>
-          b.avg_weighted_score - a.avg_weighted_score
-        );
-        setClusterSummaries(sorted);
+        setSolutions(data.solutions || []);
       } catch (error) {
-        console.error('Error fetching cluster summaries:', error);
-        setClusterSummaries([]);
+        console.error('Error fetching solutions:', error);
+        setSolutions([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSummaryData();
-  }, [useCase, filters, weights, clusterBy]); // ✅ Added clusterBy to dependency array
+    fetchTopSolutions();
+  }, [useCase, filters, weights, clusterBy]);
+
+  if (loading) return <LinearProgress />;
+  if (solutions.length === 0) return <Typography>No solutions found.</Typography>;
+
+  const allKeys = Array.from(new Set(solutions.flatMap(Object.keys)));
+
+  // Gradient: dark green (best) to light red (worst)
+  const getRowColor = (index: number, total: number) => {
+    const ratio = index / Math.max(1, total - 1);
+    // Color interpolation from dark green (0,100,0) to light red (255,200,200)
+    const r = Math.round(0 + ratio * (255 - 0));
+    const g = Math.round(100 + ratio * (200 - 100));
+    const b = Math.round(0 + ratio * (200 - 0));
+    return `rgba(${r}, ${g}, ${b}, 0.3)`; // Increased alpha for visibility
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
-      {loading ? (
-        <LinearProgress />
-      ) : clusterSummaries.length === 0 ? (
-        <Typography variant="body2" color="textSecondary">
-          No clusters found.
-        </Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table size="small">
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table
+          size="small"
+          sx={{
+            tableLayout: 'fixed',
+            minWidth: 300,
+            maxWidth: '95%',
+            margin: '0 auto', // This centers the table
+            width: 'max-content',
+          }}
+        >
           <TableHead>
             <TableRow>
-                <TableCell align="left" sx={{ fontWeight: 'bold', width: '100px' }}>Cluster</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '90px' }}>#Solutions</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', width: '110px' }}>Cost</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', width: '150px' }}>Best Solution (ID)</TableCell>
-            </TableRow>
-            </TableHead>
-            <TableBody>
-              {clusterSummaries.map((row, index) => (
-                <TableRow
-                  key={`cluster-${index}`}
+              {allKeys.map((key) => (
+                <TableCell
+                  key={`col-${key}`}
+                  align={key === 'Weighted Sum' ? 'right' : 'left'}
                   sx={{
-                    backgroundColor: clusterColors[index % clusterColors.length],
-                    color: 'white',
-                    '& .MuiTableCell-root': {
-                      color: 'white'
-                    }
+                    fontWeight: 'bold',
+                    whiteSpace: 'normal',
+                    wordWrap: 'break-word',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: 150,
+                    px: 1,
+                    fontSize: '0.8rem',
+                    verticalAlign: 'top'
                   }}
                 >
-                  <TableCell>{row.cluster}</TableCell>
-                  <TableCell align="center">{row.count}</TableCell>
-                  <TableCell align="right">{row.avg_weighted_score.toFixed(2)}</TableCell>
-                  <TableCell align="right">{row.best_solution.toFixed(2)} ({row.best_solution_id})</TableCell>
-                </TableRow>
+                  {key === 'weighted_score' ? 'Weighted Sum' : key}
+                </TableCell>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {solutions.map((solution, index) => (
+              <TableRow
+                key={`solution-${index}`}
+                sx={{
+                  backgroundColor: getRowColor(index, solutions.length),
+                  transition: 'transform 0.4s ease-in-out, box-shadow 0.3s ease',
+                  ...(index === 0 && {
+                    transform: 'scale3d(1.05, 1.05, 1)',
+                    zIndex: 2,
+                    boxShadow: 4,
+                    '&:hover': {
+                      transform: 'scale3d(1.08, 1.08, 1)',
+                      boxShadow: 6,
+                    },
+                    // Optional bounce on mount using keyframes
+                    animation: 'bounceIn 0.6s ease',
+                    '@keyframes bounceIn': {
+                      '0%': {
+                        transform: 'scale3d(0.9, 0.9, 1)',
+                        opacity: 0,
+                      },
+                      '60%': {
+                        transform: 'scale3d(1.08, 1.08, 1)',
+                        opacity: 1,
+                      },
+                      '100%': {
+                        transform: 'scale3d(1.05, 1.05, 1)',
+                      },
+                    },
+                  }),
+                }}
+              >
+                {allKeys.map((key) => (
+                  <TableCell
+                    key={`sol-${index}-cell-${key}`}
+                    align={key === 'Weighted Sum' ? 'right' : 'left'}
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      px: 1,
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    {typeof solution[key] === 'number' ? solution[key].toFixed(2) : solution[key]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };
