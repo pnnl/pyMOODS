@@ -261,6 +261,12 @@ class TradeoffLattice:
         self.specializers = self.get_specializers(self.n_generalizers)
         self.anti_specializers = self.get_anti_specializers(self.n_generalizers)
 
+        # assign exactly one ovar to each specializer
+        self.specialization = self.specializers.apply(
+            lambda row: self.rank.loc[row.name, row].idxmin(),
+            axis=1
+        )
+
         # determine set of non-dominated solutions (useful later on)
         self.D = self.get_distance()
         self.non_dominated = self.D.index[self.D.sum(axis=0) == 0]
