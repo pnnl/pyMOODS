@@ -392,12 +392,14 @@ class Visualizer(Loader):
         self, 
         left=None,
         right=None,
-        Projection=UMAP(random_state=123456789, n_jobs=1),
-        Cluster=DBSCAN(min_samples=1, eps=.5),
+        epsilon=0.5,
         **kwargs,
     ):
 
         super().__init__(**kwargs)
+
+        Projection=UMAP(random_state=123456789, n_jobs=1)
+        Cluster=DBSCAN(min_samples=1, eps=epsilon)
 
         self.left = left or self.ovars
         self.X_left = self.df[self.left]

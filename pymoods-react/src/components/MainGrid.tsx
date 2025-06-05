@@ -7,6 +7,7 @@ import DualRadarChart from './OffshoreWindfarmPlots/DualRadarChart';
 import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import Summary from './OffshoreWindfarmPlots/Summary';
+import VerticalSlider from './OffshoreWindfarmPlots/Slider';
 
 import config from '../config';
 const { API_BASE_URL } = config;
@@ -91,53 +92,65 @@ const MainGrid: React.FC<MainGridProps> = ({
       {tabIndex === 0 && (
         <Box sx={{ width: '100%' }}>
           {/* First Row - Charts */}
-          <Grid container spacing={2} sx={{ width: '100%' }}>
+          <Grid container spacing={0} sx={{ width: '100%' }}>
             <Grid item xs={12} md={5}>
-              <Grid container spacing={2} sx={{ width: '100%' }}>
-                <Grid item xs={12} md={12}>
-                  <Box  sx={{ position: 'relative', zIndex: 10 }}>
-                    <ClusterScatterPlot
-                      useCase={selectedUseCase}
-                      filters={filters}
-                      weights={weights}
-                      onWeightsChange={handleWeightChange}
-                      onClusterByChange={setClusterBy}
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={12}>
-                  <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-                    <LMPPlot useCase={selectedUseCase} filters={filters} />
-                  </Box>
-                </Grid>
-               </Grid> 
+              <Box  sx={{ position: 'relative', zIndex: 10 }}>
+                <ClusterScatterPlot
+                  useCase={selectedUseCase}
+                  filters={filters}
+                  weights={weights}
+                  onWeightsChange={handleWeightChange}
+                  onClusterByChange={setClusterBy}
+                />
+              </Box>
             </Grid>
-            <Grid item xs={12} md={1}></Grid>
+            <Grid item xs={12} md={1}>
+              <Box sx={{ height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pt: '10%',
+                pb: '10%'}}>
+                <VerticalSlider
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  onChange={(value) => {
+                    console.log('Slider value:', value);
+                    // handle weight change or other logic here
+                  }}
+                />
+              </Box>
+            </Grid>
             <Grid item xs={12} md={6}>
-              <Grid container spacing={2} sx={{ width: '100%' }}>
-                <Grid item xs={12} md={12}>
-                  <Summary
-                    useCase={selectedUseCase}
-                    filters={filters}
-                    weights={weights}
-                    clusterBy={clusterBy}
-                  />
-                </Grid>
-                <Grid item xs={12} md={12}>
-                  <DualRadarChart
-                    useCase={selectedUseCase}
-                    filters={filters}
-                    weights={weights}
-                  />
-                </Grid>
-              </Grid>
+              <Box>
+                <Summary
+                  useCase={selectedUseCase}
+                  filters={filters}
+                  weights={weights}
+                  clusterBy={clusterBy}
+                />
+              </Box>
             </Grid>
           </Grid>
 
           {/* Second Row - Summary & LMP */}
           <Grid container spacing={2} sx={{ mt: 2, width: '100%' }}>
-            
-            
+            <Grid item xs={12} md={5}>
+              <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1 }}>
+                <LMPPlot useCase={selectedUseCase} filters={filters} />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={1}></Grid>
+            <Grid item xs={12} md={6}>
+              <Box>
+                <DualRadarChart
+                  useCase={selectedUseCase}
+                  filters={filters}
+                  weights={weights}
+                />
+              </Box>
+            </Grid>  
             
           </Grid>
 

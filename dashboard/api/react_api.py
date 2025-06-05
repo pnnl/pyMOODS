@@ -583,7 +583,7 @@ def get_weighted_solutions():
         # Sort by weighted score descending and take top 5
         top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)[
             list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
-        ].head(5)
+        ].head(10)
         
         # Convert to dict for JSON response
         solution_dicts = [
