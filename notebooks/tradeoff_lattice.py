@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.spatial import Delaunay
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import cdist, pdist, squareform
 import networkx as nx
 from scipy.stats import mannwhitneyu
 
@@ -186,72 +186,204 @@ def draw_cluster_labels(pos, coef, threshold=1.0, ax=None, **kwargs):
             )
 
 class TradeoffLattice:
-    def __init__(self, df, ovars, dvars, method='topk', n_specializers=1, n_generalizers=None, ascending=True, umap_kwargs={}):
+    def get_distance(self):
+        X = self.rank[self.ovars].values
+
+        return pd.DataFrame(
+            cdist(X, X, metric=lambda x, y: (x != y).any() and (x >= y).all()),
+            index=self.df.index,
+            columns=self.df.index
+        )
+
+    def get_specializers(self, i):
+        # boolean mask of rows better than all generalizers
+        B = self.rank.iloc[i:] < self.rank.iloc[:i].min(axis=0)
+        return B[B.any(axis=1)]
+    
+    def get_anti_specializers(self, i):
+        # boolean mask of rows worse than all generalizers
+        B = self.rank.iloc[i:] > self.rank.iloc[:i].max(axis=0)
+        return B[B.any(axis=1)]
+
+    def __init__(self, df, ovars, dvars, ascending=[], min_specializers=None, max_specializers=None, n_generalizers=None, max_generalizers=None, non_dominated=True, n_specializers=1, umap_kwargs={}):
         self.df = df
         self.ovars = ovars
         self.dvars = dvars
 
-        self.rank = self.df[ovars].rank(ascending=ascending)
+        self.scale = pd.Series(1, index=ovars)
+        self.scale[ascending] = -1
+        self.rank = (self.df[ovars]*self.scale).rank(ascending=False)
+        self.worst_rank = self.rank.max(axis=1).sort_values()
+        self.rank = self.rank.loc[self.worst_rank.index]
 
-        self.n_generalizers = n_generalizers or len(ovars)
+        iis = list(range(1, len(self.rank) if max_generalizers is None else max_generalizers))
+        self.specializer_counts = pd.DataFrame(
+            [
+                self.get_specializers(i).sum(axis=0)
+                for i in iis
+            ],
+            index=iis
+        )
 
-        self.generalizers = self.rank.max(axis=1)\
-            .sort_values()\
-            .index[:self.n_generalizers]
-
-        if method == 'topk':
-            self.n_specializers = n_specializers or len(ovars)
-            
-            def get_specialization(R):
-                return {
-                    c: R[c].sort_values().index[:self.n_specializers]
-                    for c in R
-                }
+        # automatically compute largest number of generalizers to satisfy min_specializers per ovar
+        if n_generalizers is not None:
+            # user-specified
+            self.n_generalizers = n_generalizers
+        else:
+            if min_specializers is not None:
+                # find the most generalizers such that there are at least *min_specializers* in each category
+                mask = (self.specializer_counts >= min_specializers)\
+                    .all(axis=1)
                 
-            self.specializers = get_specialization(self.rank)
-            self.anti_specializers = get_specialization(-self.rank)
+                if mask.any():
+                    self.n_generalizers = self.specializer_counts.index[mask].max()
+                else:
+                    self.n_generalizers = 1
+            elif max_specializers is not None:
+                # find the fewest generalizers such that there are at most *max_specializers* in each category
+                self.n_generalizers = (self.specializer_counts <= max_specializers)\
+                        .all(axis=1)\
+                        .idxmax()
+            else:
+                print('You must specify one of: min_specializers, max_specializers, or n_generalizers')
 
-        elif method == 'better-than-generalizer':
-            def get_specializers(rank):
-                generalizers = rank.max(axis=1)\
-                    .sort_values()\
-                    .index[:self.n_generalizers]
-                
-                mask = rank < rank.loc[generalizers].min(axis=0)
-                specializers = mask[mask.any(axis=1)]
+        self.generalizers = self.rank.index[:self.n_generalizers]
+        self.specializers = self.get_specializers(self.n_generalizers)
+        self.anti_specializers = self.get_anti_specializers(self.n_generalizers)
 
-                return generalizers, specializers
+        # determine set of non-dominated solutions (useful later on)
+        self.D = self.get_distance()
+        self.non_dominated = self.D.index[self.D.sum(axis=0) == 0]
+
+
+
+        # if method == 'topk':
+        #     self.generalizers = self.rank.max(axis=1)\
+        #         .sort_values()\
+        #         .index[:self.n_generalizers]
+
+        #     self.n_specializers = n_specializers or len(ovars)
             
-            self.generalizers, self.specializers = get_specializers(self.rank)
-            self.anti_generalizers, self.anti_specializers = get_specializers(-self.rank)
+        #     def get_specialization(R):
+        #         return {
+        #             c: R[c].sort_values().index[:self.n_specializers]
+        #             for c in R
+        #         }
+                
+        #     self.specializers = get_specialization(self.rank)
+        #     self.anti_specializers = get_specialization(-self.rank)
 
-    def ovars_formatted(self):
+        # elif method == 'better-than-generalizer':
+        #     def get_specializers(rank):
+        #         generalizers = rank.max(axis=1)\
+        #             .sort_values()\
+        #             .index[:self.n_generalizers]
+                
+        #         print(generalizers)
+                
+        #         if non_dominated:
+        #             generalizers = generalizers[generalizers.map(self.non_dominated.__contains__)]
+                
+        #         mask = rank < rank.loc[generalizers].min(axis=0)
+        #         specializers = mask[mask.any(axis=1)]
+
+        #         if non_dominated:
+        #             specializers = specializers[specializers.index.map(self.non_dominated.__contains__)]
+
+        #         return generalizers, specializers
+            
+        #     self.generalizers, self.specializers = get_specializers(self.rank)
+        #     self.anti_generalizers, self.anti_specializers = get_specializers(-self.rank)
+        # elif method == 'weighted':
+        #     pass
+
+    def ovars_formatted(self, cmap='Greens_r'):
         def get_index_label(i):
             suffix = ''
             if i in self.generalizers:
                 suffix = ' (~)'
-            if i in self.anti_generalizers:
-                suffix = ' (!)'
+            # if i in self.anti_generalizers:
+            #     suffix = ' (!)'
             if i in self.specializers.index:
                 suffix = ' (*)'
         
             return str(i) + suffix
-        
-        def get_order(df):    
-            C = df.corr()
-            C[C < .5] = 0
-            G = nx.from_pandas_adjacency(C)
-            return nx.spectral_ordering(G)
-        
-            
-        row_order = self.rank.max(axis=1).sort_values().index
-        col_order = get_order(self.rank)
-        
-        return self.df.loc[row_order, col_order].style\
-            .format(precision=2)\
-            .format_index(get_index_label)\
-            .background_gradient(axis=0, cmap='viridis')
 
+        df = self.rank.assign(Worst=self.worst_rank)
+
+        return df.style\
+            .format(precision=0)\
+            .format_index(get_index_label)\
+            .background_gradient(axis=None, cmap=cmap)
+
+    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None):
+        
+        data = self.rank
+
+        if not use_rank:        
+            X = self.df[self.ovars]*self.scale
+            data = (X - X.mean())/X.std()
+
+        if reorder:
+            rows = list(set(self.generalizers).union(self.specializers.index))
+            C = data.loc[rows].corr()
+            C[C < 0] = 0
+            
+            A = nx.from_pandas_adjacency(C)
+            order = nx.spectral_ordering(A)
+            data = data[order]
+            S = self.specializers[order]
+
+            self.C = C
+            self.order = order
+        
+        x = np.arange(len(data.columns))
+        
+        # groupby facet for non-generalizers
+        n = self.n_generalizers
+        grouped = data.iloc[self.n_generalizers:]\
+            .groupby(['All']*len(data - n) if facets is None else facets[n:])
+
+        for i, (k, data_k) in enumerate(grouped):
+            # add generalizers back in so they appear in each plot
+            data_k = pd.concat((data.iloc[:n], data_k))
+
+            ax = plt.subplot(len(grouped), 1, i + 1)
+            ax.set_title(k)
+
+            for name, y in data_k.iterrows():
+                s = None
+                if name in self.specializers.index:
+                    kwargs=dict()
+                    ax.scatter(x, y, marker='o', s=S.loc[name, ]*50)
+                    s = name
+                elif name in self.generalizers:
+                    kwargs=dict(linewidth=5, color='lightgray')
+                    s = name
+                else:
+                    kwargs=dict(linewidth=.5, color='lightgray')
+            
+                if s is not None:
+                    ax.annotate(
+                        s, (x[-1], y.iloc[-1]),
+                        va='center',
+                        ha='left',
+                        xytext=(5, 0),
+                        textcoords='offset points'
+                    )
+            
+                ax.plot(x, y, **kwargs)
+            
+            ax.yaxis.set_label('Rank' if use_rank else 'Z-score')
+            ax.xaxis.set_ticks(
+                x, 
+                data.columns if x_label_format is None else map(x_label_format, data.columns),
+            )
+
+            for s in ('right', 'top'):
+                ax.spines[s].set_visible(False)
+        
+        
 def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
 
     D = squareform(pdist(X, **kwargs))
@@ -273,20 +405,22 @@ def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
     return G
 
 class DirectTradeoffLattice(TradeoffLattice):
-    def __init__(self, *args, whiten=True, **kwargs):
+    def __init__(self, *args, whiten=True, non_dominated=False, **kwargs):
         super().__init__(*args, **kwargs)
 
-        X = self.df.values
+        df = self.df.loc[self.non_dominated] if non_dominated else self.df
+            
+        X = df.values
         if whiten:
             X = (X - X.mean())/X.std()
 
         self.G = nx.relabel_nodes(
             knn_graph(X, connected=True),
-            dict(enumerate(self.df.index))
+            dict(enumerate(df.index))
         )
 
         for u, v, d in self.G.edges(data=True):
-            diff = self.df.loc[u] - self.df.loc[v]
+            diff = df.loc[u] - df.loc[v]
             
             d['test'] = pd.DataFrame(dict(
                 magnitude=diff,
@@ -313,8 +447,8 @@ class DirectTradeoffLattice(TradeoffLattice):
             if v in self.generalizers:
                 yield '(generalizer)'
 
-            if v in self.anti_generalizers:
-                yield '(anti-generalizer)'
+            # if v in self.anti_generalizers:
+            #     yield '(anti-generalizer)'
 
             if v in self.specializers.index:
                 for c in self.specializers.columns[self.specializers.loc[v]]:
