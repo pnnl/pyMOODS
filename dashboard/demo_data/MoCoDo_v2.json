@@ -1,14 +1,14 @@
 {
-    "datafile": "/qfs/projects/cameo/SharedFolder/output_cameo/v2_test_summary.csv",
+    "datafile": "v2_test_summary.csv",
     "input_parameters": {
         "wind_profiles": {"name":"Wind Profile (24 Hr)", "description": "", "filepaths": []},
         "market_price": {"name":"Day Ahead Market Prices", "description": "", "filepaths": []},
-        "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]},
         "other_cols": {
             "capacity": {"name": "Wind Farm Rate Capacity", "description": ""}
         }
     },
     "hyperparameters": {
+        "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]},
         "technology": {"name":"Battery Technology", "description": "", "values": ["LFP", "LAB", "NMC", "VRF"]},
         "power": {"name":"Battery Power Rating (MW)", "description": "", "values": [100, 1000]},
         "duration": {"name":"Battery Duration (Hours)", "description": "", "values": [2, 4, 6, 8]},

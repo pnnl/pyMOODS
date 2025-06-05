@@ -1,4 +1,11 @@
 {
+  "datafile": "design_solutions.csv",
+  "input_parameters": {
+  },  
+  "hyperparameters": {
+      "Case Study": {"name": "Case Study", "values": ["Base", "No ESS", "No Reserve", "CCD18_3", "CCD18_5", "CCD18_8", "CCD22_3", "CCD22_5", "CCD22_8"]},
+      "Location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]}
+  },
   "decision_variables": {
     "Cable Capacity(MW)": { "name": "Cable Capacity(MW)", "description": "" },
     "Battery Rated Power(MW)": {
@@ -20,13 +27,13 @@
       "name": "Real-Time Revenue ($k)",
       "description": ""
     },
-    "Reserve Revenue ($k)": {
-      "name": "Reserve Revenue ($k)",
+    "Reserve WF Revenue ($k)": {
+      "name": "Reserve WF Revenue ($k)",
+      "description": ""
+    },
+    "Reserve ESS Revenue ($k)": {
+      "name": "Reserve ESS Revenue ($k)",
       "description": ""
     }
-  },
-  "hyperparameters": {
-    "use_case": {"name": "Use Case", "values": ["CCD18","CCD22"]},
-    "location": {"name": "Location", "values": ["COTTONWOOD", "JOHNDAY", "MOSSLAND", "TESLA", "WCASCADE"]}
-}
+  }
 }

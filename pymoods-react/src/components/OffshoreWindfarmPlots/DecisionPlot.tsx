@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Plotly from "plotly.js-basic-dist";
 import createPlotlyComponent from "react-plotly.js/factory";
 import { Box } from '@mui/material';
 
-// const apiBaseUrl = 'http://moods-dev.pnl.gov/8080';
-const apiBaseUrl = 'http://127.0.0.1:8080'; // Uncomment this line if you are running the API locally
+// Import centralized config
+import config from '../../config';
+const { API_BASE_URL } = config;
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -14,45 +15,62 @@ interface DecisionPlotData {
   config?: Partial<Plotly.Config>;
 }
 
-const DecisionPlot = () => {
-  const [decisionPlotData, setDecisionPlotData] = useState<DecisionPlotData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+interface DecisionPlotProps {
+  useCase: string;
+  filters: Record<string, string[]>;
+  weights?: Record<string, number>;
+  clusterBy?: string;
+}
 
-  // Fetch decision space graph data from the API
+const DecisionPlot: React.FC<DecisionPlotProps> = ({ useCase, filters, weights = {}, clusterBy }) => {
+  const [decisionPlotData, setDecisionPlotData] = useState<DecisionPlotData | null>(null);
+  const [loadingPlot, setLoadingPlot] = useState<boolean>(true);
+
+  // Fetch decision space graph data
   useEffect(() => {
-    setLoading(true);
-    fetch(`${apiBaseUrl}/api/decision`)
-      .then((response) => response.json())
+    if (!useCase || !filters) return;
+
+    const queryParams = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, values]) => {
+      if (Array.isArray(values)) {
+        values.forEach(value => queryParams.append(key, value));
+      }
+    });
+
+    const url = `${API_BASE_URL}/api/decision?${queryParams.toString()}&use_case=${useCase}`;
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to fetch decision plot data");
+        return response.json();
+      })
       .then((data) => {
         const plotData = JSON.parse(data.plot); // Parse the JSON string
         setDecisionPlotData(plotData);
-        setLoading(false);
+        setLoadingPlot(false);
       })
       .catch((error) => {
         console.error('Error fetching decision space graph:', error);
-        setLoading(false);
+        setLoadingPlot(false);
       });
-  }, []);
-
-  if (loading && !decisionPlotData) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>Loading...</Box>;
-  }
+  }, [useCase, filters]);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {decisionPlotData && (
-          <Plot
-            data={decisionPlotData.data}
-            layout={{
-              ...decisionPlotData.layout,
-              width: window.innerWidth * 0.34,
-              height: window.innerWidth * 0.30,
-              autosize: true,
-            }}
-            config={decisionPlotData.config}
-          />
-        )
-      }
+      {/* Plot */}
+      {!loadingPlot && decisionPlotData && (
+        <Plot
+          data={decisionPlotData.data}
+          layout={{
+            ...decisionPlotData.layout,
+            width: window.innerWidth * 0.34,
+            height: window.innerWidth * 0.30,
+            autosize: true,
+          }}
+          config={decisionPlotData.config}
+        />
+      )}
     </Box>
   );
 };
