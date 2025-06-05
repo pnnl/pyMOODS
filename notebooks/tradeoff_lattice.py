@@ -205,7 +205,17 @@ class TradeoffLattice:
         B = self.rank.iloc[i:] > self.rank.iloc[:i].max(axis=0)
         return B[B.any(axis=1)]
 
-    def __init__(self, df, ovars, dvars, ascending=[], min_specializers=None, max_specializers=None, n_generalizers=None, max_generalizers=None, non_dominated=True, n_specializers=1, umap_kwargs={}):
+    def __init__(
+            self, df, ovars, dvars,
+            ascending=[],
+            min_specializers=None,
+            max_specializers=None,
+            n_generalizers=None,
+            max_generalizers=None,
+            score=None, # smaller is better
+            # currently unused
+            non_dominated=True, n_specializers=1, umap_kwargs={}
+    ):
         self.df = df
         self.ovars = ovars
         self.dvars = dvars
@@ -213,8 +223,8 @@ class TradeoffLattice:
         self.scale = pd.Series(1, index=ovars)
         self.scale[ascending] = -1
         self.rank = (self.df[ovars]*self.scale).rank(ascending=False)
-        self.worst_rank = self.rank.max(axis=1).sort_values()
-        self.rank = self.rank.loc[self.worst_rank.index]
+        self.score = self.rank.max(axis=1) if score is None else score
+        self.rank = self.rank.loc[self.score.sort_values().index]
 
         iis = list(range(1, len(self.rank) if max_generalizers is None else max_generalizers))
         self.specializer_counts = pd.DataFrame(
@@ -309,7 +319,7 @@ class TradeoffLattice:
         
             return str(i) + suffix
 
-        df = self.rank.assign(Worst=self.worst_rank)
+        df = self.rank.assign(Score=self.score)
 
         return df.style\
             .format(precision=0)\
