@@ -205,7 +205,17 @@ class TradeoffLattice:
         B = self.rank.iloc[i:] > self.rank.iloc[:i].max(axis=0)
         return B[B.any(axis=1)]
 
-    def __init__(self, df, ovars, dvars, ascending=[], min_specializers=None, max_specializers=None, n_generalizers=None, max_generalizers=None, non_dominated=True, n_specializers=1, umap_kwargs={}):
+    def __init__(
+            self, df, ovars, dvars,
+            ascending=[],
+            min_specializers=None,
+            max_specializers=None,
+            n_generalizers=None,
+            max_generalizers=None,
+            score=None, # smaller is better
+            # currently unused
+            non_dominated=True, n_specializers=1, umap_kwargs={}
+    ):
         self.df = df
         self.ovars = ovars
         self.dvars = dvars
@@ -213,8 +223,8 @@ class TradeoffLattice:
         self.scale = pd.Series(1, index=ovars)
         self.scale[ascending] = -1
         self.rank = (self.df[ovars]*self.scale).rank(ascending=False)
-        self.worst_rank = self.rank.max(axis=1).sort_values()
-        self.rank = self.rank.loc[self.worst_rank.index]
+        self.score = self.rank.max(axis=1) if score is None else score
+        self.rank = self.rank.loc[self.score.sort_values().index]
 
         iis = list(range(1, len(self.rank) if max_generalizers is None else max_generalizers))
         self.specializer_counts = pd.DataFrame(
@@ -250,6 +260,12 @@ class TradeoffLattice:
         self.generalizers = self.rank.index[:self.n_generalizers]
         self.specializers = self.get_specializers(self.n_generalizers)
         self.anti_specializers = self.get_anti_specializers(self.n_generalizers)
+
+        # assign exactly one ovar to each specializer
+        self.specialization = self.specializers.apply(
+            lambda row: self.rank.loc[row.name, row].idxmin(),
+            axis=1
+        )
 
         # determine set of non-dominated solutions (useful later on)
         self.D = self.get_distance()
@@ -309,14 +325,14 @@ class TradeoffLattice:
         
             return str(i) + suffix
 
-        df = self.rank.assign(Worst=self.worst_rank)
+        df = self.rank.assign(Score=self.score)
 
         return df.style\
             .format(precision=0)\
             .format_index(get_index_label)\
             .background_gradient(axis=None, cmap=cmap)
 
-    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None):
+    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None, include_all_generalizers=False):
         
         data = self.rank
 
@@ -341,15 +357,23 @@ class TradeoffLattice:
         
         # groupby facet for non-generalizers
         n = self.n_generalizers
-        grouped = data.iloc[self.n_generalizers:]\
-            .groupby(['All']*len(data - n) if facets is None else facets[n:])
+
+        if include_all_generalizers:        
+            grouped = data.iloc[self.n_generalizers:]\
+                .groupby(['All']*len(data - n) if facets is None else facets[n:])
+        else:
+            grouped = data.groupby(['All']*len(data) if facets is None else facets)
 
         for i, (k, data_k) in enumerate(grouped):
             # add generalizers back in so they appear in each plot
-            data_k = pd.concat((data.iloc[:n], data_k))
+            if include_all_generalizers:
+                data_k = pd.concat((data.iloc[:n], data_k))
 
             ax = plt.subplot(len(grouped), 1, i + 1)
             ax.set_title(k)
+
+            if use_rank:
+                ax.invert_yaxis()
 
             for name, y in data_k.iterrows():
                 s = None
