@@ -1,65 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import RadarChart from "./RadarChart";
-import * as d3 from "d3";
 
-// Import centralized config
-import config from '../../config';
-const { API_BASE_URL } = config;
+// Define interface for radar data
+export interface RadarData {
+  name: string;
+  distribution: number[];
+  selected: number;
+  max?: number;
+}
 
-const DualRadarChart = ({ useCase, filters, weights }) => {
-  const [loading, setLoading] = useState(true);
-  const [objectives, setObjectives] = useState([]);
-  const [decisions, setDecisions] = useState([]);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const params = new URLSearchParams();
-        params.set("use_case", useCase);
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value && value.length > 0) {
-            if (Array.isArray(value)) {
-              value.forEach(v => params.append(key, v));
-            } else {
-              params.append(key, value);
-            }
-          }
-        });
+interface DualRadarChartProps {
+  objectives: RadarData[];
+  decisions: RadarData[];
+  loading: boolean;
+}
 
-        Object.entries(weights).forEach(([key, value]) => {
-            params.append(`weight_${key}`, value.toString());
-        });
-
-        const response = await fetch(`${API_BASE_URL}/api/objective-plot-data?${params.toString()}`);
-        if (!response.ok) throw new Error("Network response was not ok");
-        const result = await response.json();
-        
-        const normalize = (arr) =>
-          arr.map((d) => {
-            const max = d3.max(d.distribution || []);
-            const normalizedDist = (d.distribution || []).map((v) => v / (max || 1));
-            return {
-              ...d,
-              distribution: normalizedDist,
-              max: max || 1,
-              selected: (d.selected || 0) / (max || 1),
-            };
-          });
-
-        setObjectives(normalize(result?.objectives || []));
-        setDecisions(normalize(result?.decisions || []));
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch dual radar data:", err);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [useCase, filters]);
-
+const DualRadarChart: React.FC<DualRadarChartProps> = ({ objectives, decisions, loading }) => {
   if (loading) return <div>Loading...</div>;
-
+  
   return (
     <div style={{
       display: 'flex',
@@ -70,30 +28,24 @@ const DualRadarChart = ({ useCase, filters, weights }) => {
       {/* Left Chart */}
       <div style={{
         flex: '1 1 45%',
-        // minWidth: '150px', // Reduced min width for responsiveness
         aspectRatio: '1/1'
       }}>
         <RadarChart
           key="objectives"
           data={objectives}
           title="Objective Functions"
-          useCase={useCase}
-          filters={filters}
         />
       </div>
 
       {/* Right Chart */}
       <div style={{
         flex: '1 1 45%',
-        // minWidth: '150px',
         aspectRatio: '1/1'
       }}>
         <RadarChart
           key="decisions"
           data={decisions}
           title="Decision Variables"
-          useCase={useCase}
-          filters={filters}
         />
       </div>
     </div>

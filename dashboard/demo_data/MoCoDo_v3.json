@@ -1,5 +1,6 @@
 {
   "datafile": "design_solutions.csv",
+  "scenariofile": "scenarios.csv",
   "input_parameters": {
   },  
   "hyperparameters": {

@@ -200,12 +200,6 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
     const updated = [...objectiveWeights];
     updated[index].weight = numValue;
     setObjectiveWeights(updated);
-
-    console.log("SideMenu - Weight changed:", {
-      index,
-      newWeight: numValue,
-      updatedWeights: updated,
-    });
   };
 
   return (
@@ -228,7 +222,6 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
                   setSelectedCaseStudy(newValue);
                   if (onSelectUseCase && newValue) {
                     onSelectUseCase(newValue);
-                    console.log("SideMenu: Sent new use case:", newValue);
                   }
                 }}
                 displayEmpty

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -9,75 +9,76 @@ import {
   TableHead,
   TableRow,
   Paper,
-  LinearProgress
+  LinearProgress,
+  IconButton,
 } from '@mui/material';
-
-import config from '../../config';
-const { API_BASE_URL } = config;
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 interface Solution {
   [key: string]: any;
 }
 
 interface SummaryProps {
-  useCase: string;
-  filters: Record<string, string[]>;
-  weights: Record<string, number>;
-  clusterBy: string;
+  data: Solution[]; // Data passed from MainGrid
+  loading: boolean;
 }
 
-const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy }) => {
-  const [solutions, setSolutions] = useState<Solution[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (!useCase || !filters || !weights || !clusterBy) return;
-
-    const fetchTopSolutions = async () => {
-      setLoading(true);
-      const queryParams = new URLSearchParams();
-
-      Object.entries(filters).forEach(([key, values]) => {
-        values.forEach(value => queryParams.append(key, value));
-      });
-
-      Object.entries(weights).forEach(([key, value]) => {
-        queryParams.append(`weight_${key}`, value.toString());
-      });
-
-      queryParams.append('use_case', useCase);
-      queryParams.append('cluster_by', clusterBy);
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/solutions?${queryParams.toString()}`);
-        if (!response.ok) throw new Error("Failed to fetch solutions");
-
-        const data = await response.json();
-        setSolutions(data.solutions || []);
-      } catch (error) {
-        console.error('Error fetching solutions:', error);
-        setSolutions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTopSolutions();
-  }, [useCase, filters, weights, clusterBy]);
-
+const Summary: React.FC<SummaryProps> = ({ data, loading }) => {
   if (loading) return <LinearProgress />;
-  if (solutions.length === 0) return <Typography>No solutions found.</Typography>;
+  if (!data || data.length === 0)
+    return <Typography>No solutions found.</Typography>;
 
-  const allKeys = Array.from(new Set(solutions.flatMap(Object.keys)));
+  const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+
+  // State for sorting
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: 'asc' | 'desc';
+  }>({
+    key: null,
+    direction: 'asc',
+  });
+
+  // Determine if a column is numeric
+  const isNumericColumn = (key: string) =>
+    data.every((item) => typeof item[key] === 'number');
+
+  // Handle sort toggle
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return {
+          key,
+          direction: prev.direction === 'asc' ? 'desc' : 'asc',
+        };
+      } else {
+        return { key, direction: 'asc' };
+      }
+    });
+  };
+
+  // Sorted data
+  const sortedData = [...data].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  });
 
   // Gradient: dark green (best) to light red (worst)
   const getRowColor = (index: number, total: number) => {
     const ratio = index / Math.max(1, total - 1);
-    // Color interpolation from dark green (0,100,0) to light red (255,200,200)
     const r = Math.round(0 + ratio * (255 - 0));
     const g = Math.round(100 + ratio * (200 - 100));
     const b = Math.round(0 + ratio * (200 - 0));
-    return `rgba(${r}, ${g}, ${b}, 0.3)`; // Increased alpha for visibility
+    return `rgba(${r}, ${g}, ${b}, 0.3)`;
   };
 
   return (
@@ -89,7 +90,7 @@ const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy 
             tableLayout: 'fixed',
             minWidth: 300,
             maxWidth: '95%',
-            margin: '0 auto', // This centers the table
+            margin: '0 auto',
             width: 'max-content',
           }}
         >
@@ -108,21 +109,45 @@ const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy 
                     maxWidth: 150,
                     px: 1,
                     fontSize: '0.8rem',
-                    verticalAlign: 'top'
+                    verticalAlign: 'top',
+                    cursor: isNumericColumn(key) ? 'pointer' : 'default',
+                    '&:hover': isNumericColumn(key)
+                      ? { backgroundColor: 'action.hover' }
+                      : {},
                   }}
+                  onClick={() => isNumericColumn(key) && handleSort(key)}
                 >
-                  {key === 'weighted_score' ? 'Weighted Sum' : key}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent:
+                        key === 'Weighted Sum' ? 'flex-end' : 'flex-start',
+                      alignItems: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    {key === 'weighted_score' ? 'Weighted Sum' : key}
+                    {isNumericColumn(key) && sortConfig.key === key && (
+                      <>
+                        {sortConfig.direction === 'asc' ? (
+                          <ArrowUpwardIcon fontSize="small" />
+                        ) : (
+                          <ArrowDownwardIcon fontSize="small" />
+                        )}
+                      </>
+                    )}
+                  </Box>
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {solutions.map((solution, index) => (
+            {sortedData.slice(0, 5).map((solution, index) => (
               <TableRow
                 key={`solution-${index}`}
                 sx={{
-                  backgroundColor: getRowColor(index, solutions.length),
+                  backgroundColor: getRowColor(index, sortedData.length),
                   transition: 'transform 0.4s ease-in-out, box-shadow 0.3s ease',
                   ...(index === 0 && {
                     transform: 'scale3d(1.05, 1.05, 1)',
@@ -132,7 +157,6 @@ const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy 
                       transform: 'scale3d(1.08, 1.08, 1)',
                       boxShadow: 6,
                     },
-                    // Optional bounce on mount using keyframes
                     animation: 'bounceIn 0.6s ease',
                     '@keyframes bounceIn': {
                       '0%': {
@@ -159,10 +183,12 @@ const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy 
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       px: 1,
-                      fontSize: '0.75rem'
+                      fontSize: '0.75rem',
                     }}
                   >
-                    {typeof solution[key] === 'number' ? solution[key].toFixed(2) : solution[key]}
+                    {typeof solution[key] === 'number'
+                      ? solution[key].toFixed(2)
+                      : solution[key]}
                   </TableCell>
                 ))}
               </TableRow>

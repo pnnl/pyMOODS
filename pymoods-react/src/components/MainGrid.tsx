@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Box, Tabs, Tab, Grid } from "@mui/material";
+import { Box, Tabs, Tab, Grid, LinearProgress, Typography } from "@mui/material";
 
 // Import Plot Components
 import ClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
-import DualRadarChart from './OffshoreWindfarmPlots/DualRadarChart';
+import DualRadarChart, { RadarData } from './OffshoreWindfarmPlots/DualRadarChart';
 import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import Summary from './OffshoreWindfarmPlots/Summary';
@@ -19,6 +19,10 @@ interface MainGridProps {
   onWeightsChange?: (weights: Record<string, number>) => void;
 }
 
+interface Solution {
+  [key: string]: any;
+}
+
 const MainGrid: React.FC<MainGridProps> = ({
   selectedUseCase,
   filters,
@@ -26,17 +30,26 @@ const MainGrid: React.FC<MainGridProps> = ({
   onWeightsChange,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
-  const [objectiveNames, setObjectiveNames] = useState<string[]>([]);
-  // const [clusterBy, setClusterBy] = useState<string>(
-  //   Object.keys(filters).length > 0 ? Object.keys(filters)[0] : ''
-  // );
   const [clusterBy, setClusterBy] = useState<string>("AI-Generated");
+  const [objectiveNames, setObjectiveNames] = useState<string[]>([]);
 
-  useEffect(() => {
-    console.log("MainGrid received selectedUseCase:", selectedUseCase);
-  }, [selectedUseCase]);
+  // State for Summary
+  const [summaryData, setSummaryData] = useState<Solution[]>([]);
+  const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
 
-  // Fetch objectives and set default weights if necessary
+  // State for DualRadarChart
+  const [radarData, setRadarData] = useState<{
+    objectives: RadarData[];
+    decisions: RadarData[];
+  }>({
+    objectives: [],
+    decisions: []
+  });
+  const [radarLoading, setRadarLoading] = useState<boolean>(true);
+
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch objective names for weight UI
   useEffect(() => {
     const fetchObjectives = async () => {
       try {
@@ -47,9 +60,9 @@ const MainGrid: React.FC<MainGridProps> = ({
           params.append(`weight_${key}`, value.toString());
         });
 
-        const response = await fetch(
-          `${API_BASE_URL}/api/objective?${params.toString()}`
-        );
+        const response = await fetch(`${API_BASE_URL}/api/objective?${params.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch objectives");
+
         const data = await response.json();
 
         const objNames = Object.keys(data.weights_used || {});
@@ -62,13 +75,7 @@ const MainGrid: React.FC<MainGridProps> = ({
     if (selectedUseCase) fetchObjectives();
   }, [selectedUseCase, weights]);
 
-  const handleWeightChange = (newWeights: Record<string, number>) => {
-    if (onWeightsChange) {
-      onWeightsChange(newWeights);
-    }
-  };
-
-  // Automatically select the first filter key as clusterBy when filters change
+  // Automatically select clusterBy based on available filters
   useEffect(() => {
     if (Object.keys(filters).length > 0 && !clusterBy) {
       const availableKeys = [
@@ -81,6 +88,109 @@ const MainGrid: React.FC<MainGridProps> = ({
       );
     }
   }, [filters]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!selectedUseCase || !Object.keys(filters).length || !Object.keys(weights).length) return;
+  
+      setSummaryLoading(true);
+      setRadarLoading(true);
+      setError(null);
+  
+      const queryParams = new URLSearchParams();
+  
+      // Add filters
+      Object.entries(filters).forEach(([key, values]) =>
+        values.forEach(value => queryParams.append(key, value))
+      );
+  
+      // Add weights
+      Object.entries(weights).forEach(([key, value]) =>
+        queryParams.append(`weight_${key}`, value.toString())
+      );
+  
+      // Add use case
+      queryParams.append('use_case', selectedUseCase);
+  
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/solutions?${queryParams.toString()}`);
+        if (!response.ok) throw new Error("Failed to fetch shared data");
+  
+        const result = await response.json();
+  
+        // Process summary data
+        const orderedColumns = [...(result.hyperparameter_keys || []), ...(result.decision_keys || []), ...(result.additional_cols || [])];
+        const processedSolutions = result.solutions.map(solution => {
+          const orderedSolution: Record<string, any> = {};
+          orderedColumns.forEach(key => {
+            if (solution.hasOwnProperty(key)) {
+              orderedSolution[key] = solution[key];
+            }
+          });
+          return orderedSolution;
+        });
+  
+        setSummaryData(processedSolutions);
+  
+        // Radar chart data
+        const computeChartData = (keys: string[]) => {
+          return keys.map((key) => {
+            const values = result.solutions.map(row => parseFloat(row[key]) || 0);
+            const max = Math.max(...values);
+            return {
+              name: key,
+              distribution: values,
+              selected: parseFloat(result.solutions[0]?.[key]) || 0,
+              max: max || 1
+            };
+          });
+        };
+  
+        setRadarData({
+          objectives: computeChartData(result.objective_keys || []),
+          decisions: computeChartData(result.decision_keys || [])
+        });
+  
+      } catch (err) {
+        console.error("Error fetching unified data:", err);
+        setError("Failed to load visualizations.");
+        setSummaryData([]);
+        setRadarData({ objectives: [], decisions: [] });
+      } finally {
+        setSummaryLoading(false);
+        setRadarLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, [
+    selectedUseCase,
+    JSON.stringify(filters),
+    JSON.stringify(weights)
+  ]);
+
+  const handleWeightChange = (newWeights: Record<string, number>) => {
+    if (onWeightsChange) {
+      onWeightsChange(newWeights);
+    }
+  };
+
+  if (summaryLoading || radarLoading) {
+    return (
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <LinearProgress />
+        <Typography>Loading visualizations...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ textAlign: 'center', mt: 4 }}>
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "78vw", px: { xs: 1, sm: 2 }, py: 2 }}>
@@ -103,7 +213,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           {/* First Row - Charts */}
           <Grid container spacing={0} sx={{ width: '100%' }}>
             <Grid item xs={12} md={5}>
-              <Box  sx={{ position: 'relative', zIndex: 10 }}>
+              <Box sx={{ position: 'relative', zIndex: 10 }}>
                 <ClusterScatterPlot
                   useCase={selectedUseCase}
                   filters={filters}
@@ -114,12 +224,14 @@ const MainGrid: React.FC<MainGridProps> = ({
               </Box>
             </Grid>
             <Grid item xs={12} md={1}>
-              <Box sx={{ height: '100%',
+              <Box sx={{
+                height: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 pt: '10%',
-                pb: '10%'}}>
+                pb: '10%'
+              }}>
                 <VerticalSlider
                   min={0}
                   max={1}
@@ -133,12 +245,7 @@ const MainGrid: React.FC<MainGridProps> = ({
             </Grid>
             <Grid item xs={12} md={6}>
               <Box>
-                <Summary
-                  useCase={selectedUseCase}
-                  filters={filters}
-                  weights={weights}
-                  clusterBy={clusterBy}
-                />
+                <Summary data={summaryData} loading={summaryLoading} />
               </Box>
             </Grid>
           </Grid>
@@ -154,13 +261,12 @@ const MainGrid: React.FC<MainGridProps> = ({
             <Grid item xs={12} md={6}>
               <Box>
                 <DualRadarChart
-                  useCase={selectedUseCase}
-                  filters={filters}
-                  weights={weights}
+                  objectives={radarData.objectives}
+                  decisions={radarData.decisions}
+                  loading={radarLoading}
                 />
               </Box>
-            </Grid>  
-            
+            </Grid>
           </Grid>
 
           {/* Third Row - Charts */}

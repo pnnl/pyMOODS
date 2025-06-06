@@ -183,7 +183,7 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
                 fill="#333"
                 dy={dy}
             >
-                {getAcronym(d.variable)}
+                {getAcronym(d.name)}
             </text>
             </g>
         );

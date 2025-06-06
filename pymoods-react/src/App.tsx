@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import AppNavbar from './components/AppNavbar';
 import SideMenu from './components/SideMenu';
 import MainGrid from './components/MainGrid';
@@ -10,18 +10,29 @@ function App() {
   const [selectedUseCase, setSelectedUseCase] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [weights, setWeights] = useState<Record<string, number>>({});
+  const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false); // Track if data is ready
 
   const handleWeightsChange = (newWeights: Record<string, number>) => {
     setWeights(newWeights);
   };
 
+  const handleFiltersChange = (newFilters: Record<string, string[]>) => {
+    setFilters(newFilters);
+  };
+
+  // Load default use case
   useEffect(() => {
     setSelectedUseCase('MoCoDo_v3');
   }, []);
 
-  const handleFiltersChange = (newFilters: Record<string, string[]>) => {
-    setFilters(newFilters);
-  };
+  // Determine when filters and weights are fully loaded
+  useEffect(() => {
+    if (Object.keys(filters).length > 0 && Object.keys(weights).length > 0) {
+      setIsDataLoaded(true);
+    } else {
+      setIsDataLoaded(false);
+    }
+  }, [filters, weights]);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -56,18 +67,30 @@ function App() {
         </Box>
 
         {selectedUseCase ? (
-          <Box sx={{ 
-            textAlign: 'center', pl: 3, pt: 0 }}>
-            <MainGrid 
-              selectedUseCase={selectedUseCase} 
-              filters={filters} 
-              weights={weights}
-              onWeightsChange={handleWeightsChange}
-            />
-          </Box>
+          <>
+            {!isDataLoaded ? (
+              <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography variant="h6">Loading Use Case Data...</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Please wait while we load filters and objective weights.
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ textAlign: 'center', pl: 3, pt: 0 }}>
+                <MainGrid
+                  selectedUseCase={selectedUseCase}
+                  filters={filters}
+                  weights={weights}
+                  onWeightsChange={handleWeightsChange}
+                />
+              </Box>
+            )}
+          </>
         ) : (
-          <Box sx={{ 
-            textAlign: 'center', mt: 4 }}>
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Typography variant="h6">Select a Use Case</Typography>
             <Typography variant="body2" color="textSecondary">
               Please choose a use case from the sidebar.

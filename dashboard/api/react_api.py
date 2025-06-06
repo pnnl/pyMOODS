@@ -56,15 +56,34 @@ def load_case_study_data(case_study_name):
 
     csv_data = pd.read_csv(csv_path)
 
+    # Load corresponding Scenarios
+    scenario_filename = mocodo_data.get("scenariofile", None)
+    if not scenario_filename:
+        raise ValueError(f"'scenariofile' not defined in {case_study_name}.json")
+
+    scenariofile_path = os.path.join(
+        os.path.dirname(
+            os.path.dirname(__file__)
+        ), 
+        "demo_data", 
+        scenario_filename
+    )
+    if not os.path.exists(scenariofile_path):
+        raise FileNotFoundError(f"Scenario file not found: {scenariofile_path}")
+
+    scenario_data = pd.read_csv(scenariofile_path)
+
     result = {
         "hyperparameters": hyperparameters,
         "input_parameters": input_parameters,
         "objective_functions": objective_functions,
         "decision_variables": decision_variables,
-        "csv_data": csv_data
+        "csv_data": csv_data,
+        "scenario_data": scenario_data
     }
 
     USE_CASE_CACHE[case_study_name] = result
+
     return result
 
 # Plotting Functions
@@ -581,9 +600,9 @@ def get_weighted_solutions():
         filtered_data['Weighted Sum'] = sum(filtered_data[col] * weights[col] for col in objective_cols)
 
         # Sort by weighted score descending and take top 5
-        top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)[
-            list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
-        ].head(10)
+        top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)
+        #     list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
+        # ]
         
         # Convert to dict for JSON response
         solution_dicts = [
@@ -594,7 +613,11 @@ def get_weighted_solutions():
         return Response(
             json.dumps({
                 "solutions": solution_dicts,
-                "weights_used": weights
+                "weights_used": weights,
+                "objective_keys": objective_cols,
+                "decision_keys": decision_cols,
+                "hyperparameter_keys": list(hyperparameters.keys()),
+                "additional_cols": ['Weighted Sum']
             }, sort_keys=False),
             mimetype='application/json'
         )
@@ -777,10 +800,11 @@ def get_lmp_data():
     try:
         data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
-        csv_data = data["csv_data"]
+        scenario_data = data["scenario_data"]
+        print(scenario_data)
 
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
-        filtered_data = csv_data.copy()
+        filtered_data = scenario_data.copy()
 
         for key, values in query_params.items():
             if values:

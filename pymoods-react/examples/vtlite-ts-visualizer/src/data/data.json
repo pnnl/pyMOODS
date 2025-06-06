@@ -1,0 +1,26 @@
+[
+  {
+    "config": "A",
+    "sim": 1,
+    "time": 0,
+    "ChS": 10,
+    "DisS": 20,
+    "SCS": 30,
+    "WPQ": 40,
+    "WSQ": 50,
+    "Case Study": "Study A",
+    "Location": "Loc X"
+  },
+  {
+    "config": "A",
+    "sim": 1,
+    "time": 1,
+    "ChS": 12,
+    "DisS": 22,
+    "SCS": 32,
+    "WPQ": 42,
+    "WSQ": 52,
+    "Case Study": "Study A",
+    "Location": "Loc X"
+  }
+]
