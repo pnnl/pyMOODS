@@ -115,8 +115,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
 
   const improvedLayout = {
     ...scatterplotData.layout,
-    height: 400,
-    width: 600,
+    height: 450,
   };
 
   return (
@@ -205,21 +204,6 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
             style={{ width: "100%" }}
             useResizeHandler
           />
-        </Box>
-        <Box sx={{ display: 'flex', flexDirection:'column', alignItems:'center',width: 80, ml: 2 }}>
-          <Typography variant="caption" gutterBottom>
-            Slider
-          </Typography>
-          <Slider
-          orientation="vertical"
-          defaultValue={50}
-          min={0}
-          max={100}
-          sx={{height: 380}}
-          onChange={(e, value) =>{
-            console.log("Slider val", value);
-          }}
-          ></Slider>
         </Box>
       </Box>
     </Box>
