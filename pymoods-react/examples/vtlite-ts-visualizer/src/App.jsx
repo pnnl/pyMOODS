@@ -1,10 +1,11 @@
-// src/App.jsx
 import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import TimeSeriesChart from './components/TimeSeriesChart';
+import ParallelCoordinatesChart from './components/ParallelCoordinatesChart';
 
 const App = () => {
   const [data, setData] = useState([]);
+  const [activeTab, setActiveTab] = useState('time-series');
 
   useEffect(() => {
     Papa.parse('scenarios.csv', {
@@ -13,7 +14,6 @@ const App = () => {
       skipEmptyLines: true,
       dynamicTyping: true,
       complete: (results) => {
-        console.log("First row of CSV:", results.data[0]);
         const parsedData = results.data.map(row => ({
           config: row.config,
           sim: parseInt(row.sim),
@@ -43,7 +43,6 @@ const App = () => {
           Location: row.Location,
         }));
 
-        console.log('Parsed Data:', parsedData);
         setData(parsedData);
       },
       error: (error) => {
@@ -54,12 +53,24 @@ const App = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Time Series Visualizer</h1>
-      {data.length > 0 ? (
+      <h1>Visualizer</h1>
+
+      {/* Tabs */}
+      <div style={{ marginBottom: '10px' }}>
+        <button onClick={() => setActiveTab('time-series')}>Time Series</button>
+        <button onClick={() => setActiveTab('parallel-coords')}>Parallel Coordinates</button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'time-series' && data.length > 0 && (
         <TimeSeriesChart data={data} />
-      ) : (
-        <p>Loading data...</p>
       )}
+
+      {activeTab === 'parallel-coords' && data.length > 0 && (
+        <ParallelCoordinatesChart data={data} />
+      )}
+
+      {data.length === 0 && <p>Loading data...</p>}
     </div>
   );
 };

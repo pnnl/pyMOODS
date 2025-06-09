@@ -8,6 +8,7 @@ import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import Summary from './OffshoreWindfarmPlots/Summary';
 import VerticalSlider from './OffshoreWindfarmPlots/Slider';
+import ParallelCoordinatesChart from './OffshoreWindfarmPlots/ParallelCoordinatesChart';
 
 import config from "../config";
 const { API_BASE_URL } = config;
@@ -47,6 +48,7 @@ const MainGrid: React.FC<MainGridProps> = ({
     decisions: []
   });
   const [radarLoading, setRadarLoading] = useState<boolean>(true);
+  const [rankData, setRankData] = useState<Record<string, any>>({});
 
   const [error, setError] = useState<string | null>(null);
 
@@ -131,6 +133,9 @@ const MainGrid: React.FC<MainGridProps> = ({
           return orderedSolution;
         });
         setSummaryData(processedSolutions);
+
+        // Save ranks separately
+        setRankData(result.ranks || {});
   
         // Radar chart data
         const computeChartData = (keys: string[]) => {
@@ -213,8 +218,8 @@ const MainGrid: React.FC<MainGridProps> = ({
       {tabIndex === 0 && (
         <Box sx={{ width: "100%" }}>
           {/* First Row - Charts */}
-          <Grid container spacing={0} sx={{ width: '100%' }}>
-            <Grid item xs={12} md={5}>
+          <Grid container spacing={2} sx={{ width: '100%' }}>
+            <Grid item xs={12} md={6}>
               <Box sx={{ position: 'relative', zIndex: 10 }}>
                 <ClusterScatterPlot
                   useCase={selectedUseCase}
@@ -225,28 +230,11 @@ const MainGrid: React.FC<MainGridProps> = ({
                 />
               </Box>
             </Grid>
-            <Grid item xs={12} md={1}>
-              <Box sx={{
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pt: '10%',
-                pb: '10%'
-              }}>
-                <VerticalSlider
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  onChange={(value) => {
-                    console.log('Slider value:', value);
-                    // handle weight change or other logic here
-                  }}
-                />
-              </Box>
-            </Grid>
             <Grid item xs={12} md={6}>
-              <Box>
+              <Box sx={{ width: '100%' }}>
+                <ParallelCoordinatesChart ranks={rankData} />
+              </Box>
+              <Box sx={{ width: '100%', mt: 4 }}>
                 <Summary 
                   data={summaryData} 
                   loading={summaryLoading} 
@@ -258,7 +246,7 @@ const MainGrid: React.FC<MainGridProps> = ({
 
           {/* Second Row - Summary & LMP */}
           <Grid container spacing={2} sx={{ mt: 2, width: '100%' }}>
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={6}>
               <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1 }}>
                 <LMPPlot 
                   useCase={selectedUseCase} 
@@ -267,7 +255,6 @@ const MainGrid: React.FC<MainGridProps> = ({
                 />
               </Box>
             </Grid>
-            <Grid item xs={12} md={1}></Grid>
             <Grid item xs={12} md={6}>
               <Box>
                 <DualRadarChart

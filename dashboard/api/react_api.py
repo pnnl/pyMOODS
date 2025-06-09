@@ -607,6 +607,26 @@ def get_weighted_solutions():
         print(top_solutions.iloc[0])
         #     list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
         # ]
+
+        # Scale the objective columns for ranking
+        scale = {
+            'Cable Material Cost($M)': -1,
+            'Battery Cost($M)': -1,
+            'Day-Ahead Revenue ($k)': 1,
+            'Real-Time Revenue ($k)': 1,
+            'Reserve WF Revenue ($k)': 1,
+            'Reserve ESS Revenue ($k)': 1
+        }
+        scale_series = pd.Series(scale)
+        rank_frame = filtered_data.head(5).copy()
+        print(rank_frame)
+        rank_frame.index = (rank_frame["Case Study"] + "," + rank_frame["Location"])
+        rank_frame = rank_frame[objective_cols]
+        
+        # Apply scaling and rank
+        # rank_frame = rank_frame * scale_series
+        # rank_frame = rank_frame.rank(ascending=False)
+        print(rank_frame.to_dict(orient='index'))
         
         # Convert to dict for JSON response
         solution_dicts = [
@@ -617,6 +637,7 @@ def get_weighted_solutions():
         return Response(
             json.dumps({
                 "solutions": solution_dicts,
+                "ranks": rank_frame.to_dict(orient='index'),
                 "weights_used": weights,
                 "index_keys": ['Solution ID'],
                 "objective_keys": objective_cols,

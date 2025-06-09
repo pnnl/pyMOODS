@@ -99,7 +99,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+      <TableContainer sx={{ overflowX: 'auto' }}>
         <Table
           size="small"
           sx={{
@@ -130,6 +130,8 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
                     '&:hover': isNumericColumn(key)
                       ? { backgroundColor: 'action.hover' }
                       : {},
+                    backgroundColor: '#2e7d32', 
+                    color: 'white'
                   }}
                   onClick={() => isNumericColumn(key) && handleSort(key)}
                 >
