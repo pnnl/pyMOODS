@@ -55,6 +55,9 @@ def load_case_study_data(case_study_name):
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
     csv_data = pd.read_csv(csv_path)
+    csv_data.index.set_names('Solution ID', inplace=True)
+    csv_data.index = csv_data.index.astype(int)
+    csv_data.reset_index(inplace=True)
 
     # Load corresponding Scenarios
     scenario_filename = mocodo_data.get("scenariofile", None)
@@ -601,6 +604,7 @@ def get_weighted_solutions():
 
         # Sort by weighted score descending and take top 5
         top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)
+        print(top_solutions.iloc[0])
         #     list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
         # ]
         
@@ -614,6 +618,7 @@ def get_weighted_solutions():
             json.dumps({
                 "solutions": solution_dicts,
                 "weights_used": weights,
+                "index_keys": ['Solution ID'],
                 "objective_keys": objective_cols,
                 "decision_keys": decision_cols,
                 "hyperparameter_keys": list(hyperparameters.keys()),

@@ -6,6 +6,7 @@ export interface RadarData {
   name: string;
   distribution: number[];
   selected: number;
+  min?: number;
   max?: number;
 }
 

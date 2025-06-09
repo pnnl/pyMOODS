@@ -36,6 +36,7 @@ const MainGrid: React.FC<MainGridProps> = ({
   // State for Summary
   const [summaryData, setSummaryData] = useState<Solution[]>([]);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
+  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
 
   // State for DualRadarChart
   const [radarData, setRadarData] = useState<{
@@ -119,7 +120,7 @@ const MainGrid: React.FC<MainGridProps> = ({
         const result = await response.json();
   
         // Process summary data
-        const orderedColumns = [...(result.hyperparameter_keys || []), ...(result.decision_keys || []), ...(result.additional_cols || [])];
+        const orderedColumns = [...(result.index_keys || []), ...(result.hyperparameter_keys || []), ...(result.decision_keys || []), ...(result.additional_cols || [])];
         const processedSolutions = result.solutions.map(solution => {
           const orderedSolution: Record<string, any> = {};
           orderedColumns.forEach(key => {
@@ -129,18 +130,19 @@ const MainGrid: React.FC<MainGridProps> = ({
           });
           return orderedSolution;
         });
-  
         setSummaryData(processedSolutions);
   
         // Radar chart data
         const computeChartData = (keys: string[]) => {
           return keys.map((key) => {
             const values = result.solutions.map(row => parseFloat(row[key]) || 0);
+            const min = Math.min(...values);
             const max = Math.max(...values);
             return {
               name: key,
               distribution: values,
               selected: parseFloat(result.solutions[0]?.[key]) || 0,
+              min: min || 1,
               max: max || 1
             };
           });
@@ -245,7 +247,11 @@ const MainGrid: React.FC<MainGridProps> = ({
             </Grid>
             <Grid item xs={12} md={6}>
               <Box>
-                <Summary data={summaryData} loading={summaryLoading} />
+                <Summary 
+                  data={summaryData} 
+                  loading={summaryLoading} 
+                  onRowSelect={(solution) => setSelectedSolution(solution)}
+                />
               </Box>
             </Grid>
           </Grid>
@@ -254,7 +260,11 @@ const MainGrid: React.FC<MainGridProps> = ({
           <Grid container spacing={2} sx={{ mt: 2, width: '100%' }}>
             <Grid item xs={12} md={5}>
               <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1 }}>
-                <LMPPlot useCase={selectedUseCase} filters={filters} />
+                <LMPPlot 
+                  useCase={selectedUseCase} 
+                  filters={filters} 
+                  selectedSolution={selectedSolution}
+                />
               </Box>
             </Grid>
             <Grid item xs={12} md={1}></Grid>

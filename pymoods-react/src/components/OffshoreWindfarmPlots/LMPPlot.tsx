@@ -12,15 +12,22 @@ interface LMPData {
   [key: string]: any; // Allow extra fields like CaseStudy, Location, etc.
 }
 
+interface Solution {
+  [key: string]: any;
+}
+
 interface LMPPlotProps {
   useCase: string;
   filters: Record<string, string[]>;
+  selectedSolution?: Solution;
 }
 
-const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters }) => {
+const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution }) => {
   const [data, setData] = useState<LMPData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipData, setTooltipData] = useState({ x: 0, y: 0, sim: '', value: '', time: '' });
 
   // State for filtering
   const caseStudies = [...new Set(data.map((d) => d['CaseStudy'] || 'default'))];
@@ -31,26 +38,63 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters }) => {
 
   const [caseStudyFilter, setCaseStudyFilter] = useState(defaultCaseStudy);
   const [locationFilter, setLocationFilter] = useState(defaultLocation);
-  const [selectedColumn, setSelectedColumn] = useState('LMP');
+  const [selectedColumn, setSelectedColumn] = useState<string>('');
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
 
+  const numericColumns = React.useMemo(() => {
+    if (!data.length) return [];
+  
+    const firstRow = data[0];
+    return Object.keys(firstRow).filter(
+      key =>
+        key !== 'INTERVALSTARTTIME_GMT' &&
+        key !== 'CaseStudy' &&
+        key !== 'Location' &&
+        !isNaN(parseFloat(firstRow[key]))
+    );
+  }, [data]);
+
+  useEffect(() => {
+    if (numericColumns.length > 0 && !selectedColumn) {
+      setSelectedColumn(numericColumns[0]);
+    }
+  }, [numericColumns, selectedColumn]);
+
   // Apply filters
   const filteredData = data.filter(
     (d) =>
-      (!caseStudyFilter || d['CaseStudy'] === caseStudyFilter) &&
-      (!locationFilter || d['Location'] === locationFilter)
+      (!selectedSolution || d['Case Study'] === selectedSolution["Case Study"]) &&
+      (!selectedSolution || d['Location'] === selectedSolution["Location"])
   );
-
-  // Group by scenario ID (sim or identifier)
+  
   const groupedBySim: Record<string, Array<{ time: number; value: number }>> = {};
+
   filteredData.forEach((d) => {
-    const val = +d[selectedColumn];
+    const rawValue = d[selectedColumn];
+
+    let val;
+
+    if (typeof rawValue === 'string') {
+      // Remove non-numeric characters except . and -
+      const cleaned = rawValue.replace(/[^0-9.-]/g, '');
+
+      // Check if cleaned string is a valid number
+      val = cleaned && !isNaN(cleaned) && isFinite(cleaned) ? parseFloat(cleaned) : NaN;
+
+    } else if (typeof rawValue === 'number') {
+      val = rawValue;
+    } else {
+      val = NaN;
+    }
+
     const sim = d['sim'] || d['INTERVALSTARTTIME_GMT'] || 'default';
+    const time = d['time'];
+
     if (!groupedBySim[sim]) groupedBySim[sim] = [];
     groupedBySim[sim].push({
-      time: new Date(d.INTERVALSTARTTIME_GMT).getTime(),
+      time,
       value: isNaN(val) ? 0 : val,
     });
   });
@@ -116,43 +160,78 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters }) => {
 
     // Draw lines
     Object.entries(groupedBySim).forEach(([sim, values], i) => {
-      const color = d3.schemeCategory10[i % 10];
-
       svg
         .append('path')
         .datum(values)
         .attr('fill', 'none')
-        .attr('stroke', color)
+        .attr('stroke', 'lightgrey')
         .attr('stroke-width', 1.5)
-        .attr('d', d3.line().x((d: any) => x(d.time)).y((d: any) => y(d.value)))
+        .attr('d', d3.line().x((d) => x(d.time)).y((d) => y(d.value)))
         .on('mouseover', function (event, d) {
-          d3.select(this).raise().attr('stroke-width', 2.5);
-          showTooltip(event, sim, d[d.length - 1]);
+          d3.select(this)
+            .raise()
+            .attr('stroke', 'steelblue');
+        
+          const [mouseX, mouseY] = d3.pointer(event, svgRef.current);
+          const invertX = x.invert(mouseX);
+          const closest = d.reduce((a, b) => {
+            return Math.abs(a.time - invertX) < Math.abs(b.time - invertX) ? a : b;
+          });
+        
+          setTooltipData({
+            x: mouseX,
+            y: mouseY,
+            sim: sim,
+            value: closest.value.toFixed(4),
+            time: closest.time.toFixed(2),
+          });
+          setTooltipVisible(true);
         })
         .on('mousemove', function (event) {
-          moveTooltip(event);
+          const [mouseX, mouseY] = d3.pointer(event, svgRef.current);
+          setTooltipData((prev) => ({
+            ...prev,
+            x: mouseX,
+            y: mouseY,
+          }));
         })
         .on('mouseout', function () {
-          hideTooltip();
-          d3.select(this).attr('stroke-width', 1.5);
+          d3.select(this).attr('stroke', 'lightgrey');
+          setTooltipVisible(false);
         });
     });
   };
 
   const showTooltip = (event: any, sim: string, point: any) => {
-    if (!tooltipRef.current) return;
-    const tooltip = tooltipRef.current;
+  if (!tooltipRef.current) return;
+  const tooltip = tooltipRef.current;
 
-    tooltip.style.opacity = '1';
-    tooltip.style.left = `${event.pageX + 10}px`;
-    tooltip.style.top = `${event.pageY + 10}px`;
+  // Get page dimensions
+  const pageWidth = window.innerWidth;
 
-    tooltip.innerHTML = `
-      <strong>Scenario:</strong> ${sim}<br/>
-      <strong>Time:</strong> ${new Date(point.time).toLocaleTimeString()}<br/>
-      <strong>${selectedColumn}:</strong> ${point.value.toFixed(2)}
-    `;
-  };
+  // Calculate desired position
+  let x = event.pageX + 10;
+  const y = event.pageY + 10;
+
+  // Tooltip width
+  const tooltipWidth = tooltip.offsetWidth || 200; // fallback width
+
+  // Adjust if it would overflow the right edge
+  if (x + tooltipWidth > pageWidth - 20) {
+    x = event.pageX - tooltipWidth - 10; // move to the left of cursor
+  }
+
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+  tooltip.style.opacity = '1';
+
+  // Set inner HTML
+  tooltip.innerHTML = `
+    <strong>Scenario:</strong> ${sim}<br/>
+    <strong>Time:</strong> ${new Date(point.time).toLocaleTimeString()}<br/>
+    <strong>${selectedColumn}:</strong> ${point.value.toFixed(2)}
+  `;
+};
 
   const moveTooltip = (event: any) => {
     if (!tooltipRef.current) return;
@@ -181,8 +260,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters }) => {
     });
 
     const url = `${API_BASE_URL}/api/lmp?${queryParams.toString()}&use_case=${useCase}`;
-    console.log(url)
-
+    
     fetch(url)
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch LMP data");
@@ -202,30 +280,23 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters }) => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6" align="center">LMP Time Series</Typography>
-
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-        <FormControl size="small">
-          <InputLabel>Column</InputLabel>
-          <Select
-            value={selectedColumn}
-            onChange={(e) => setSelectedColumn(e.target.value)}
-            label="Column"
-          >
-            {Object.keys(data[0] || {})
-              .filter(
-                (key) =>
-                  key !== 'INTERVALSTARTTIME_GMT' &&
-                  key !== 'CaseStudy' &&
-                  key !== 'Location'
-              )
-              .map((col) => (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, width: '100%' }}>
+        <Box sx={{ width: '50%', maxWidth: 400 }}>
+          <FormControl size="small" fullWidth>
+            <InputLabel>Column</InputLabel>
+            <Select
+              value={selectedColumn}
+              onChange={(e) => setSelectedColumn(e.target.value)}
+              label="Column"
+            >
+              {numericColumns.map((col) => (
                 <MenuItem key={col} value={col}>
                   {col}
                 </MenuItem>
               ))}
-          </Select>
-        </FormControl>
+            </Select>
+          </FormControl>
+        </Box>
 
         {caseStudies.length > 1 && (
           <FormControl size="small">
@@ -243,27 +314,46 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters }) => {
             </Select>
           </FormControl>
         )}
-
-        {locations.length > 1 && (
-          <FormControl size="small">
-            <InputLabel>Location</InputLabel>
-            <Select
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-              label="Location"
-            >
-              {locations.map((loc) => (
-                <MenuItem key={loc} value={loc}>
-                  {loc}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
       </Box>
 
       <Box sx={{ textAlign: 'center' }}>
         <svg ref={svgRef}></svg>
+        {tooltipVisible && (
+          <div
+            ref={tooltipRef}
+            style={{
+              position: 'absolute',
+              left: `${
+                tooltipRef.current
+                  ? Math.min(
+                      tooltipData.x + 10,
+                      window.innerWidth - tooltipRef.current.offsetWidth - 10
+                    )
+                  : tooltipData.x + 10
+              }px`,
+              top: `${tooltipData.y + 10}px`,
+              background: '#fff',
+              border: '1px solid #ccc',
+              padding: '8px 14px',
+              borderRadius: '6px',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+              pointerEvents: 'none',
+              fontSize: '14px',
+              zIndex: 9999,
+              minWidth: '120px',
+              whiteSpace: 'nowrap',
+              textAlign: 'left',
+              maxWidth: '300px',
+            }}
+          >
+            <strong>Scenario:</strong> {tooltipData.sim}
+            <br />
+            <strong>Time:</strong> {tooltipData.time}
+            <br />
+            <strong>{selectedColumn}:</strong> {tooltipData.value}
+          </div>
+        )}
+
         <div
           ref={tooltipRef}
           style={{

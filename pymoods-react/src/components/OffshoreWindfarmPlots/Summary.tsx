@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -22,9 +22,13 @@ interface Solution {
 interface SummaryProps {
   data: Solution[]; // Data passed from MainGrid
   loading: boolean;
+  onRowSelect?: (solution: Solution) => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, loading }) => {
+const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
+  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
+
   if (loading) return <LinearProgress />;
   if (!data || data.length === 0)
     return <Typography>No solutions found.</Typography>;
@@ -71,6 +75,18 @@ const Summary: React.FC<SummaryProps> = ({ data, loading }) => {
 
     return 0;
   });
+
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+
+    const index = selectedRowIndex ?? 0;
+    const solution = sortedData[Math.min(index, sortedData.length - 1)];
+    
+    setSelectedSolution(solution);
+    if (onRowSelect) {
+      onRowSelect(solution);
+    }
+  }, [data, sortedData, selectedRowIndex]);
 
   // Gradient: dark green (best) to light red (worst)
   const getRowColor = (index: number, total: number) => {
@@ -186,8 +202,10 @@ const Summary: React.FC<SummaryProps> = ({ data, loading }) => {
                       fontSize: '0.75rem',
                     }}
                   >
-                    {typeof solution[key] === 'number'
-                      ? solution[key].toFixed(2)
+                    {typeof solution[key] === 'number' && !Number.isNaN(solution[key])
+                      ? Number.isInteger(solution[key])
+                        ? solution[key]
+                        : solution[key].toFixed(2)
                       : solution[key]}
                   </TableCell>
                 ))}

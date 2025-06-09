@@ -190,10 +190,12 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
         })}
 
         {/* Data dots */}
-        {data.map((d, i) => {
+        {
+        data.map((d, i) => {
           const angle = i * angleSlice;
           return d.distribution.map((val, j) => {
-            const r = val * radius;
+            const normalizedVal = val / d.max;
+            const r = normalizedVal * radius;
             const [x, y] = radialCoords(r, angle);
             return (
               <circle
@@ -211,9 +213,10 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
         {/* Selected point indicators */}
         {data.map((d, i) => {
           const angle = i * angleSlice;
-          const r = selectedValues[i] * radius;
+          const normalizedVal = selectedValues[i] / d.max;
+          const r = normalizedVal * radius;
           const [x, y] = radialCoords(r, angle);
-          const valueText = (selectedValues[i] * d.max).toFixed(1);
+          const valueText = (selectedValues[i]).toFixed(1);
           const tooltipX = x + 10;
           const tooltipY = y - 15;
           const tooltipWidth = 220;

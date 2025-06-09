@@ -70,12 +70,10 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
       }
     });
 
-    console.log("Weights:", weights);
     queryParams.append("weights", JSON.stringify(weights)); // send weights
 
     const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(useCase)}`;
-    console.log("URL:", url);
-
+    
     fetch(url)
       .then((response) => {
         if (!response.ok)
