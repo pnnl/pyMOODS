@@ -140,7 +140,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
       >
         <InputLabel 
           id="color-by-select-label" 
-          sx={{ fontSize: '0.875rem' }}
+          sx={{ fontSize: '0.9rem', fontWeight:'bold', fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif' }}
         >
           Color By
         </InputLabel>
@@ -199,7 +199,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
               scrollZoom: true,
               modeBarButtonsToRemove: ["toggleSpikelines"],
             }}
-            style={{ width: "100%" }}
+            style={{ width: "100%"}}
             useResizeHandler
           />
         </Box>

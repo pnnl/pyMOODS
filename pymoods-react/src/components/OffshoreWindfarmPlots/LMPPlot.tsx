@@ -283,7 +283,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, width: '100%' }}>
         <Box sx={{ width: '50%', maxWidth: 400 }}>
           <FormControl size="small" fullWidth>
-            <InputLabel>Column</InputLabel>
+            <InputLabel style={{fontSize: '0.9rem', fontWeight:'bold', fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'}}>Column</InputLabel>
             <Select
               value={selectedColumn}
               onChange={(e) => setSelectedColumn(e.target.value)}

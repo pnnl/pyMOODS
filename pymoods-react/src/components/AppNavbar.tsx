@@ -39,7 +39,7 @@ export default function AppNavbar() {
           <img
             src={pyMOODSLogo}
             alt="pyMOODS Logo"
-            style={{ height: "80px", width:"80px"}}
+            style={{ height: "90px", width:"90px"}}
           />
           <Typography
             variant="h6"
@@ -50,6 +50,7 @@ export default function AppNavbar() {
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
             }}
           >
             pyMOODS Decision Support System
