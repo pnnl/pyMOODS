@@ -53,6 +53,7 @@ const SidebarInputLabel = styled(InputLabel)({
   color: 'white',
   position: 'relative',
   fontSize: '14px',
+  fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
   top: 'unset',
   left: 'unset',
   transform: 'none',

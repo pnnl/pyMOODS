@@ -133,9 +133,10 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
       <p style={{
         textAlign: 'center',
         marginBottom: '10px',
-        fontWeight: "bold",
-        fontSize: '14px',
-        color: '#555',
+        fontWeight: "500",
+        fontFamily:"Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+        fontSize: '20px',
+        color: '#213547',
         }}>
         {title}
         </p>
@@ -287,7 +288,7 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
                       lineHeight: "1.3em",
                     }}
                   >
-                    {d.variable}: {valueText}
+                    {d.name}: {valueText}
                   </div>
                 </foreignObject>
               )}

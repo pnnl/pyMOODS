@@ -185,7 +185,8 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       .attr('x', d => xScale(d))
       .attr('y', height + 20)
       .attr('text-anchor', 'middle')
-      .style('font-size', '14px')
+      .style('font-size', '11px')
+      .style('fill', '#213547')
       .text((d, i) => numericColumns[i])
       .call(wrapText, 60);
   };
