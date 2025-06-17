@@ -7,8 +7,7 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
-  Slider
+  InputLabel
 } from "@mui/material";
 
 // Import centralized config
@@ -22,18 +21,19 @@ interface ScatterplotData {
   layout: Partial<Plotly.Layout>;
 }
 
+interface Solution {
+  [key: string]: any;
+}
+
 interface ClusterScatterPlotProps {
   useCase: string;
-  filters: Record<string, string[]>;
-  weights: Record<string, number>; 
-  onWeightsChange?: (weights: Record<string, number>) => void;
+  solutionsData: Solution[];
   onColorByChange?: (colorBy: string) => void;
 }
 
 const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
   useCase,
-  filters,
-  weights,
+  solutionsData,
   onColorByChange
 }) => {
   const [scatterplotData, setScatterplotData] =
@@ -41,40 +41,27 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [colorBy, setColorBy] = useState<string>("AI-Generated");
 
+  console.log(solutionsData)
+
   // Fetch scatterplot data
   useEffect(() => {
-    if (!useCase || Object.keys(weights).length === 0) return;
+    if (!useCase || !solutionsData) return;
 
     setLoading(true);
 
-    // const availableOptions = Object.keys(filters);
-    // const valid = availableOptions.includes(colorBy);
-  
-    // if (!valid || useCase) {
-    //   const newColorBy = "AI-Generated";
-    //   setColorBy(newColorBy);
-    //   if (onColorByChange) {
-    //     onColorByChange(newColorBy);
-    //   }
-    // }
+    const payload = {
+      use_case: useCase,
+      solution_ids: solutionsData,//.map(sol => sol.id),
+      color_by: colorBy
+    };
 
-    const queryParams = new URLSearchParams();
-
-    // Add selected color field
-    queryParams.append('color_by', colorBy);
-
-    // Add other filters
-    Object.entries(filters).forEach(([key, values]) => {
-      if (Array.isArray(values) && values.length > 0) {
-        values.forEach((value) => queryParams.append(key, value));
-      }
-    });
-
-    queryParams.append("weights", JSON.stringify(weights)); // send weights
-
-    const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(useCase)}`;
-    
-    fetch(url)
+    fetch(`${API_BASE_URL}/api/project`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
       .then((response) => {
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -94,7 +81,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
       .finally(() => {
         setLoading(false);
       });
-  }, [useCase, filters, weights, colorBy]);
+  }, [solutionsData, colorBy]);
 
   if (loading || !scatterplotData) {
     return (
@@ -168,7 +155,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
           >
             AI-Generated
           </MenuItem>
-          {Object.keys(filters).map((option) => (
+          {/* {Object.keys(filters).map((option) => (
             <MenuItem 
               key={option} 
               value={option}
@@ -176,7 +163,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
             >
               {option}
             </MenuItem>
-          ))}
+          ))} */}
           
         </Select>
       </FormControl>

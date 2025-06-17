@@ -35,6 +35,7 @@ const MainGrid: React.FC<MainGridProps> = ({
   const [objectiveNames, setObjectiveNames] = useState<string[]>([]);
 
   // State for Summary
+  const [completeData, setCompleteData] = useState<Solution[]>([]);
   const [summaryData, setSummaryData] = useState<Solution[]>([]);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
@@ -120,6 +121,8 @@ const MainGrid: React.FC<MainGridProps> = ({
         if (!response.ok) throw new Error("Failed to fetch shared data");
   
         const result = await response.json();
+        console.log("Fetched unified data:", result.solutions);
+        setCompleteData(result.solutions);
   
         // Process summary data
         const orderedColumns = [...(result.index_keys || []), ...(result.hyperparameter_keys || []), ...(result.decision_keys || []), ...(result.additional_cols || [])];
@@ -132,6 +135,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           });
           return orderedSolution;
         });
+        console.log("Processed solutions for summary:", processedSolutions);
         setSummaryData(processedSolutions);
 
         // Save ranks separately
@@ -222,10 +226,8 @@ const MainGrid: React.FC<MainGridProps> = ({
             <Grid item xs={12} md={6}>
               <Box sx={{ position: 'relative', zIndex: 10 }}>
                 <ClusterScatterPlot
-                  useCase={selectedUseCase}
-                  filters={filters}
-                  weights={weights}
-                  onWeightsChange={handleWeightChange}
+                  useCase={selectedUseCase} 
+                  solutionsData={completeData} 
                   onClusterByChange={setClusterBy}
                 />
               </Box>

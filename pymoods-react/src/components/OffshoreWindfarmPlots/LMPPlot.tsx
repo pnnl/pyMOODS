@@ -31,13 +31,9 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
 
   // State for filtering
   const caseStudies = [...new Set(data.map((d) => d['CaseStudy'] || 'default'))];
-  const locations = [...new Set(data.map((d) => d['Location'] || 'default'))];
-
   const defaultCaseStudy = caseStudies.length > 0 ? caseStudies[0] : '';
-  const defaultLocation = locations.length > 0 ? locations[0] : '';
-
   const [caseStudyFilter, setCaseStudyFilter] = useState(defaultCaseStudy);
-  const [locationFilter, setLocationFilter] = useState(defaultLocation);
+  
   const [selectedColumn, setSelectedColumn] = useState<string>('');
 
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -200,48 +196,6 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
           setTooltipVisible(false);
         });
     });
-  };
-
-  const showTooltip = (event: any, sim: string, point: any) => {
-  if (!tooltipRef.current) return;
-  const tooltip = tooltipRef.current;
-
-  // Get page dimensions
-  const pageWidth = window.innerWidth;
-
-  // Calculate desired position
-  let x = event.pageX + 10;
-  const y = event.pageY + 10;
-
-  // Tooltip width
-  const tooltipWidth = tooltip.offsetWidth || 200; // fallback width
-
-  // Adjust if it would overflow the right edge
-  if (x + tooltipWidth > pageWidth - 20) {
-    x = event.pageX - tooltipWidth - 10; // move to the left of cursor
-  }
-
-  tooltip.style.left = `${x}px`;
-  tooltip.style.top = `${y}px`;
-  tooltip.style.opacity = '1';
-
-  // Set inner HTML
-  tooltip.innerHTML = `
-    <strong>Scenario:</strong> ${sim}<br/>
-    <strong>Time:</strong> ${new Date(point.time).toLocaleTimeString()}<br/>
-    <strong>${selectedColumn}:</strong> ${point.value.toFixed(2)}
-  `;
-};
-
-  const moveTooltip = (event: any) => {
-    if (!tooltipRef.current) return;
-    tooltipRef.current.style.left = `${event.pageX + 10}px`;
-    tooltipRef.current.style.top = `${event.pageY + 10}px`;
-  };
-
-  const hideTooltip = () => {
-    if (!tooltipRef.current) return;
-    tooltipRef.current.style.opacity = '0';
   };
 
   // Fetch LMP data
