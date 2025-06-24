@@ -34,12 +34,12 @@ export default function AppNavbar() {
         borderColor: "divider",
       }}
     >
-      <Toolbar variant="dense" disableGutters sx={{ px: 1, pb: 1, pt: 1 }}>
+      <Toolbar variant="dense" disableGutters sx={{ px: 1, pb: 0.5, pt: 0.5 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <img
             src={pyMOODSLogo}
             alt="pyMOODS Logo"
-            style={{ height: "56px" }}
+            style={{ height: "90px", width:"90px"}}
           />
           <Typography
             variant="h6"
@@ -50,6 +50,7 @@ export default function AppNavbar() {
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
             }}
           >
             pyMOODS Decision Support System

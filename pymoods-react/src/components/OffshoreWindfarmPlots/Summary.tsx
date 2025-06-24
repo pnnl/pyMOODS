@@ -1,4 +1,3 @@
-// Summary.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -10,121 +9,213 @@ import {
   TableHead,
   TableRow,
   Paper,
-  LinearProgress
+  LinearProgress,
+  IconButton,
 } from '@mui/material';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-import config from '../../config';
-const { API_BASE_URL } = config;
-
-interface ClusterSummary {
-  cluster: string | number;
-  count: number;
-  avg_weighted_score: number;
-  best_solution: number;
-  best_solution_id: number;
+interface Solution {
+  [key: string]: any;
 }
 
 interface SummaryProps {
-  useCase: string;
-  filters: Record<string, string[]>;
-  weights: Record<string, number>;
-  clusterBy: string; // ✅ New required prop
+  data: Solution[]; // Data passed from MainGrid
+  loading: boolean;
+  onRowSelect?: (solution: Solution) => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ useCase, filters, weights, clusterBy }) => {
-  const [clusterSummaries, setClusterSummaries] = useState<ClusterSummary[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
+  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
 
-  // Define consistent colors for each cluster
-  const clusterColors = [
-    "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-    "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-  ];
+  if (loading) return <LinearProgress />;
+  if (!data || data.length === 0)
+    return <Typography>No solutions found.</Typography>;
+
+  const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+
+  // State for sorting
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: 'asc' | 'desc';
+  }>({
+    key: null,
+    direction: 'asc',
+  });
+
+  // Determine if a column is numeric
+  const isNumericColumn = (key: string) =>
+    data.every((item) => typeof item[key] === 'number');
+
+  // Handle sort toggle
+  const handleSort = (key: string) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return {
+          key,
+          direction: prev.direction === 'asc' ? 'desc' : 'asc',
+        };
+      } else {
+        return { key, direction: 'asc' };
+      }
+    });
+  };
+
+  // Sorted data
+  const sortedData = [...data].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  });
 
   useEffect(() => {
-    if (!useCase || !filters || !weights || !clusterBy) return;
+    if (!data || data.length === 0) return;
 
-    const fetchSummaryData = async () => {
-      setLoading(true);
-      const queryParams = new URLSearchParams();
+    const index = selectedRowIndex ?? 0;
+    const solution = sortedData[Math.min(index, sortedData.length - 1)];
+    
+    setSelectedSolution(solution);
+    if (onRowSelect) {
+      onRowSelect(solution);
+    }
+  }, [data, sortedData, selectedRowIndex]);
 
-      // Add filters
-      Object.entries(filters).forEach(([key, values]) => {
-        if (Array.isArray(values)) {
-          values.forEach(value => queryParams.append(key, value));
-        }
-      });
-
-      // Add objective weights
-      Object.entries(weights).forEach(([key, value]) => {
-        queryParams.append(`weight_${key}`, value.toString());
-      });
-
-      // Use passed-in clusterBy instead of defaulting
-      queryParams.append('use_case', useCase);
-      queryParams.append('cluster_by', clusterBy); // ✅ Use dynamic clusterBy
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/solutions?${queryParams.toString()}`);
-        if (!response.ok) throw new Error("Failed to fetch cluster summaries");
-
-        const data = await response.json();
-        const sorted = [...data.clusters].sort((a: ClusterSummary, b: ClusterSummary) =>
-          b.avg_weighted_score - a.avg_weighted_score
-        );
-        setClusterSummaries(sorted);
-      } catch (error) {
-        console.error('Error fetching cluster summaries:', error);
-        setClusterSummaries([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSummaryData();
-  }, [useCase, filters, weights, clusterBy]); // ✅ Added clusterBy to dependency array
+  // Gradient: dark green (best) to light red (worst)
+  const getRowColor = (index: number, total: number) => {
+    const ratio = index / Math.max(1, total - 1);
+    const r = Math.round(0 + ratio * (255 - 0));
+    const g = Math.round(100 + ratio * (200 - 100));
+    const b = Math.round(0 + ratio * (200 - 0));
+    return `rgba(${r}, ${g}, ${b}, 0.3)`;
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
-      {loading ? (
-        <LinearProgress />
-      ) : clusterSummaries.length === 0 ? (
-        <Typography variant="body2" color="textSecondary">
-          No clusters found.
-        </Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table size="small">
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table
+          size="small"
+          sx={{
+            tableLayout: 'fixed',
+            minWidth: 300,
+            maxWidth: '95%',
+            margin: '0 auto',
+            width: 'max-content',
+          }}
+        >
           <TableHead>
             <TableRow>
-                <TableCell align="left" sx={{ fontWeight: 'bold', width: '100px' }}>Cluster</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '90px' }}>#Solutions</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', width: '110px' }}>Cost</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold', width: '150px' }}>Best Solution (ID)</TableCell>
-            </TableRow>
-            </TableHead>
-            <TableBody>
-              {clusterSummaries.map((row, index) => (
-                <TableRow
-                  key={`cluster-${index}`}
+              {allKeys.map((key) => (
+                <TableCell
+                  key={`col-${key}`}
+                  align={key === 'Weighted Sum' ? 'right' : 'left'}
                   sx={{
-                    backgroundColor: clusterColors[index % clusterColors.length],
-                    color: 'white',
-                    '& .MuiTableCell-root': {
-                      color: 'white'
-                    }
+                    fontWeight: 'bold',
+                    whiteSpace: 'normal',
+                    wordWrap: 'break-word',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: 150,
+                    px: 1,
+                    fontSize: '0.8rem',
+                    verticalAlign: 'top',
+                    cursor: isNumericColumn(key) ? 'pointer' : 'default',
+                    '&:hover': isNumericColumn(key)
+                      ? { backgroundColor: 'action.hover' }
+                      : {},
+                    backgroundColor: '#2e7d32', 
+                    color: 'white'
                   }}
+                  onClick={() => isNumericColumn(key) && handleSort(key)}
                 >
-                  <TableCell>{row.cluster}</TableCell>
-                  <TableCell align="center">{row.count}</TableCell>
-                  <TableCell align="right">{row.avg_weighted_score.toFixed(2)}</TableCell>
-                  <TableCell align="right">{row.best_solution.toFixed(2)} ({row.best_solution_id})</TableCell>
-                </TableRow>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent:
+                        key === 'Weighted Sum' ? 'flex-end' : 'flex-start',
+                      alignItems: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    {key === 'weighted_score' ? 'Weighted Sum' : key}
+                    {isNumericColumn(key) && sortConfig.key === key && (
+                      <>
+                        {sortConfig.direction === 'asc' ? (
+                          <ArrowUpwardIcon fontSize="small" />
+                        ) : (
+                          <ArrowDownwardIcon fontSize="small" />
+                        )}
+                      </>
+                    )}
+                  </Box>
+                </TableCell>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {sortedData.slice(0, 5).map((solution, index) => (
+              <TableRow
+                key={`solution-${index}`}
+                sx={{
+                  backgroundColor: getRowColor(index, sortedData.length),
+                  transition: 'transform 0.4s ease-in-out, box-shadow 0.3s ease',
+                  ...(index === 0 && {
+                    transform: 'scale3d(1.05, 1.05, 1)',
+                    zIndex: 2,
+                    boxShadow: 4,
+                    '&:hover': {
+                      transform: 'scale3d(1.08, 1.08, 1)',
+                      boxShadow: 6,
+                    },
+                    animation: 'bounceIn 0.6s ease',
+                    '@keyframes bounceIn': {
+                      '0%': {
+                        transform: 'scale3d(0.9, 0.9, 1)',
+                        opacity: 0,
+                      },
+                      '60%': {
+                        transform: 'scale3d(1.08, 1.08, 1)',
+                        opacity: 1,
+                      },
+                      '100%': {
+                        transform: 'scale3d(1.05, 1.05, 1)',
+                      },
+                    },
+                  }),
+                }}
+              >
+                {allKeys.map((key) => (
+                  <TableCell
+                    key={`sol-${index}-cell-${key}`}
+                    align={key === 'Weighted Sum' ? 'right' : 'left'}
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      px: 1,
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    {typeof solution[key] === 'number' && !Number.isNaN(solution[key])
+                      ? Number.isInteger(solution[key])
+                        ? solution[key]
+                        : solution[key].toFixed(2)
+                      : solution[key]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };

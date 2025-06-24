@@ -133,9 +133,10 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
       <p style={{
         textAlign: 'center',
         marginBottom: '10px',
-        fontWeight: "bold",
-        fontSize: '14px',
-        color: '#555',
+        fontWeight: "500",
+        fontFamily:"Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+        fontSize: '20px',
+        color: '#213547',
         }}>
         {title}
         </p>
@@ -183,17 +184,19 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
                 fill="#333"
                 dy={dy}
             >
-                {getAcronym(d.variable)}
+                {getAcronym(d.name)}
             </text>
             </g>
         );
         })}
 
         {/* Data dots */}
-        {data.map((d, i) => {
+        {
+        data.map((d, i) => {
           const angle = i * angleSlice;
           return d.distribution.map((val, j) => {
-            const r = val * radius;
+            const normalizedVal = val / d.max;
+            const r = normalizedVal * radius;
             const [x, y] = radialCoords(r, angle);
             return (
               <circle
@@ -211,9 +214,10 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
         {/* Selected point indicators */}
         {data.map((d, i) => {
           const angle = i * angleSlice;
-          const r = selectedValues[i] * radius;
+          const normalizedVal = selectedValues[i] / d.max;
+          const r = normalizedVal * radius;
           const [x, y] = radialCoords(r, angle);
-          const valueText = (selectedValues[i] * d.max).toFixed(1);
+          const valueText = (selectedValues[i]).toFixed(1);
           const tooltipX = x + 10;
           const tooltipY = y - 15;
           const tooltipWidth = 220;
@@ -284,7 +288,7 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
                       lineHeight: "1.3em",
                     }}
                   >
-                    {d.variable}: {valueText}
+                    {d.name}: {valueText}
                   </div>
                 </foreignObject>
               )}

@@ -1,10 +1,11 @@
-import json
-import sys
 import os
 os.environ['NUMBA_THREADING_LAYER'] = 'omp'
 os.environ['NUMBA_NUM_THREADS'] = '1'
+import sys
+import json
 
-from flask import Flask, jsonify, request
+from collections import OrderedDict
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
@@ -24,6 +25,9 @@ from dashlib.offshore_windfarm.vis import Visualizer
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
+
+# Global cache
+USE_CASE_CACHE = {}
 
 # Helper function to load case study data
 def load_case_study_data(case_study_name):
@@ -51,14 +55,39 @@ def load_case_study_data(case_study_name):
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
     csv_data = pd.read_csv(csv_path)
+    csv_data.index.set_names('Solution ID', inplace=True)
+    csv_data.index = csv_data.index.astype(int)
+    csv_data.reset_index(inplace=True)
 
-    return {
+    # Load corresponding Scenarios
+    scenario_filename = mocodo_data.get("scenariofile", None)
+    if not scenario_filename:
+        raise ValueError(f"'scenariofile' not defined in {case_study_name}.json")
+
+    scenariofile_path = os.path.join(
+        os.path.dirname(
+            os.path.dirname(__file__)
+        ), 
+        "demo_data", 
+        scenario_filename
+    )
+    if not os.path.exists(scenariofile_path):
+        raise FileNotFoundError(f"Scenario file not found: {scenariofile_path}")
+
+    scenario_data = pd.read_csv(scenariofile_path)
+
+    result = {
         "hyperparameters": hyperparameters,
         "input_parameters": input_parameters,
         "objective_functions": objective_functions,
         "decision_variables": decision_variables,
-        "csv_data": csv_data
+        "csv_data": csv_data,
+        "scenario_data": scenario_data
     }
+
+    USE_CASE_CACHE[case_study_name] = result
+
+    return result
 
 # Plotting Functions
 def get_convex_hull(points):
@@ -78,20 +107,25 @@ def rgba_with_opacity(rgb_hex, opacity=1.0):
     return f"rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, {opacity})"
 
 
-def draw_clusters_scatterplot(clusters, points, objective_funcs, selected_indices=None):
+def draw_clusters_scatterplot(
+    full_dataset,
+    points, 
+    clusters, 
+    objective_keys,
+    color_by=None,     
+    size=None          
+):
     fig = go.Figure()
-
+    objective_funcs = full_dataset[objective_keys]
+    
     # Unassigned points
     no_cluster_mask = ~points.index.isin(clusters.index)
     no_cluster_df = points[no_cluster_mask]
     no_cluster_objectives = objective_funcs.loc[no_cluster_df.index]
-
-    # Format hover text for unassigned points
     hover_text = [
-        '<br>'.join([f'<b>{col.title()}:</b> {row[col].round(2)}' for col in objective_funcs.columns])
+        '<br>'.join([f'<b>{col.title()}:</b> {row[col]}' for col in objective_funcs.columns])
         for _, row in no_cluster_objectives.iterrows()
     ]
-
     fig.add_trace(go.Scatter(
         x=no_cluster_df[0], y=no_cluster_df[1],
         mode='markers',
@@ -101,162 +135,121 @@ def draw_clusters_scatterplot(clusters, points, objective_funcs, selected_indice
         hovertext=hover_text
     ))
 
-    clusters = pd.get_dummies(clusters.iloc[:, 0], dtype=int).replace(0, -1)
+    # Clustering and coloring logic
+    clustering = pd.get_dummies(clusters.iloc[:, 0], dtype=int).replace(0, -1)
+    use_coloring = color_by in full_dataset.columns
+    if use_coloring:
+        color_vals = full_dataset[color_by].dropna().unique()
+        color_palette = pc.qualitative.D3
+        color_map = {val: rgba_with_opacity(color_palette[i % len(color_palette)], 1.0)
+                     for i, val in enumerate(color_vals)}
 
-    for i, c in enumerate(clusters.columns):
-        color_hex = pc.qualitative.D3[i % len(pc.qualitative.D3)]
-        color_rgba = rgba_with_opacity(color_hex, 1.0)
-        color_fill = rgba_with_opacity(color_hex, 0.15)
-
-        # Group by cluster and get convex hulls
-        grouped = points.groupby(clusters[c])
-        hulls = [
-            get_convex_hull(dfk) for k, dfk in grouped if k != -1
-        ]
-
-        # Add convex hull polygons
-        for hull in hulls:
-            x_coords = hull[0].to_list()
-            y_coords = hull[1].to_list()
-            fig.add_trace(go.Scatter(
-                x=x_coords + [x_coords[0]],
-                y=y_coords + [y_coords[0]],
-                mode="lines",
-                fill="toself",
-                fillcolor=color_fill,
-                line=dict(color=color_rgba, width=1.5),
-                showlegend=False,
-                hoverinfo='skip'
-            ))
-
-        # Point masks
-        mask = clusters[c] != -1
-        multi_cluster_mask = (clusters[clusters.columns] != -1).sum(axis=1) > 1
-        cluster_points_idx = clusters.index[mask]
+    # Keep track of which color_by values have already appeared in the legend
+    seen_legend = set()
+    
+    for i, c in enumerate(clustering.columns):
+        mask = clustering[c] != -1
+        cluster_points_idx = clustering.index[mask]
         cluster_points = points.loc[cluster_points_idx]
-        # Get corresponding objective function values
-        cluster_objectives = objective_funcs.loc[cluster_points_idx]
+        cluster_objectives = full_dataset.loc[cluster_points_idx]
+        generalizer_mask = (clustering[clustering.columns] != -1).sum(axis=1) > 1
 
-        # Generate hover text dynamically from objective_funcs columns
-        hover_text = [
-            '<br>'.join([f'<b>{col.title()}:</b> {row[col].round(2)}' for col in objective_funcs.columns])
-            for _, row in cluster_objectives.iterrows()
-        ]
-
-        # If selection mode is active
-        if selected_indices is not None:
-            selected_mask = cluster_points.index.isin(selected_indices)
-
-            # Single cluster, unselected
-            single_unselected = cluster_points[~multi_cluster_mask & ~selected_mask]
-            fig.add_trace(go.Scatter(
-                x=single_unselected[0], y=single_unselected[1],
-                mode='markers',
-                marker=dict(color='lightgray', size=6, opacity=0.6),
-                name=f'{c} (unselected)'
-            ))
-
-            # Single cluster, selected
-            single_selected = cluster_points[~multi_cluster_mask & selected_mask]
-            fig.add_trace(go.Scatter(
-                x=single_selected[0], y=single_selected[1],
-                mode='markers',
-                marker=dict(color=color_rgba, size=7),
-                name=f'{c} (selected)'
-            ))
-
-            # Multi-cluster, unselected
-            multi_unselected = cluster_points[multi_cluster_mask & ~selected_mask]
-            fig.add_trace(go.Scatter(
-                x=multi_unselected[0], y=multi_unselected[1],
-                mode='markers',
-                marker=dict(color='lightgray', size=6, opacity=0.6),
-                name='Multi-cluster (unselected)',
-                showlegend=(i == 0)
-            ))
-
-            # Multi-cluster, selected
-            multi_selected = cluster_points[multi_cluster_mask & selected_mask]
-            fig.add_trace(go.Scatter(
-                x=multi_selected[0], y=multi_selected[1],
-                mode='markers',
-                marker=dict(color='black', size=7),
-                name='Multi-cluster (selected)',
-                showlegend=(i == 0)
-            ))
-
+        if size is not None and isinstance(size, pd.Series):
+            point_sizes = size.loc[cluster_points_idx]
+            diff = point_sizes.max() - point_sizes.min()
+            if abs(diff) < 1: diff = 1  # Avoid division by zero
+            point_sizes = (point_sizes - point_sizes.min()) / diff
+            point_sizes = point_sizes * 30 + 5
         else:
-            # Default view: all clustered points
-            cluster_only = cluster_points[~multi_cluster_mask]
+            point_sizes = pd.Series(10, index=cluster_points_idx)
+
+        if use_coloring:
+            cluster_colors = full_dataset.loc[cluster_points_idx, color_by]
+            for val in cluster_colors.unique():
+                idx = cluster_colors[cluster_colors == val].index
+                subset_points = cluster_points.loc[idx]
+                subset_objectives = cluster_objectives.loc[idx]
+                hover_text = [
+                    '<br>'.join([f'<b>{col.title()}:</b> {row[col]}' for col in objective_funcs.columns])
+                    for _, row in subset_objectives.iterrows()
+                ]
+                fig.add_trace(go.Scatter(
+                    x=subset_points[0], y=subset_points[1],
+                    mode='markers',
+                    marker=dict(color=color_map[val], size=point_sizes.loc[idx]),
+                    name=str(val),
+                    legendgroup=str(val),
+                    hoverinfo='text',
+                    hovertext=hover_text,
+                    showlegend=(val not in seen_legend)
+                ))
+                seen_legend.add(val)
+        else:
+            hover_text = [
+                '<br>'.join([f'<b>{col.title()}:</b> {row[col]}' for col in objective_funcs.columns])
+                for _, row in cluster_objectives.iterrows()
+            ]
             fig.add_trace(go.Scatter(
-                x=cluster_only[0], y=cluster_only[1],
+                x=cluster_points[0], y=cluster_points[1],
                 mode='markers',
-                marker=dict(color=color_rgba, size=10),
+                marker=dict(color=pc.qualitative.D3[i % len(pc.qualitative.D3)], size=point_sizes),
                 name=c,
                 hoverinfo='text',
                 hovertext=hover_text
             ))
 
-            multi_cluster = cluster_points[multi_cluster_mask]
+        generalizers = cluster_points[generalizer_mask]
+        if not generalizers.empty:
             fig.add_trace(go.Scatter(
-                x=multi_cluster[0], y=multi_cluster[1],
+                x=generalizers[0], y=generalizers[1],
                 mode='markers',
-                marker=dict(color='black', size=10),
-                name='Multiple Clusters',
+                marker=dict(color='black', size=point_sizes.loc[generalizers.index]),
+                name='Generalizers',
                 showlegend=(i == 0)
             ))
 
-    # Improved layout
     fig.update_layout(
         title="",
-        margin=dict(t=0, b=10, l=10, r=10),  # t=20 keeps top tight
+        margin=dict(t=0, b=10, l=10, r=10),
         legend=dict(
-            # title=dict(text='Clusters', font=dict(size=11)),
-            orientation="h",
-            yanchor="top",
-            y=0,
-            xanchor="center",
-            x=0.5,
-            bgcolor='white',
-            bordercolor='#d3d3d3',
-            borderwidth=1,
-            font=dict(size=12),
-            itemwidth=30,
-            traceorder='normal',
-            itemsizing='constant'
+            orientation="h", yanchor="top", y=0, xanchor="center", x=0.5,
+            bgcolor='white', bordercolor='#d3d3d3', borderwidth=1,
+            font=dict(size=10), itemwidth=30, traceorder='normal', itemsizing='constant'
         ),
         template="plotly_white",
-        xaxis=dict(visible=False),
-        yaxis=dict(visible=False),
+        xaxis=dict(visible=False), yaxis=dict(visible=False),
         shapes=[{
             'type': 'rect',
-            'xref': 'paper',   # Relative to full plot area
-            'yref': 'paper',
-            'x0': 0,           # Start at left
-            'y0': 0,           # Start at bottom
-            'x1': 1,           # End at right
-            'y1': 1,           # End at top
-            'line': {
-                'color': '#999',     # Border color
-                'width': 1.5,        # Border width
-                'dash': 'solid'      # Line style
-            },
-            'fillcolor': 'rgba(255,255,255,0)'  # No fill
+            'xref': 'paper', 'yref': 'paper',
+            'x0': 0, 'y0': 0, 'x1': 1, 'y1': 1,
+            'line': {'color': '#999', 'width': 1.5, 'dash': 'solid'},
+            'fillcolor': 'rgba(255,255,255,0)'
         }],
         hovermode='closest',
         showlegend=True,
         height=300,
-        width=None,
         autosize=True
     )
-
-    # Improve responsiveness and tooltip behavior
     fig.update_traces(hoverlabel=dict(bgcolor="white", font_size=12))
+    
+    x_min, x_max = points[0].min(), points[0].max()
+    y_min, y_max = points[1].min(), points[1].max()
+
+    # Add a 15% buffer on each side
+    x_buffer = 0.15 * (x_max - x_min)
+    y_buffer = 0.15 * (y_max - y_min)
+
+    xrange = [x_min - x_buffer, x_max + x_buffer]
+    yrange = [y_min - y_buffer, y_max + y_buffer]
+
+    fig.update_layout(
+        xaxis=dict(range=xrange, autorange=False),
+        yaxis=dict(range=yrange, autorange=False)
+    )
 
     return fig
 
 def generate_objective_graph_data(objective_col, data):
-    # print("Generating objective graph data...", data)
     # objective_col = list(data["objective_functions"].keys())[0]
     objective_mean = data[objective_col].mean() if not data.empty else 0
     objective_std = data[objective_col].std() if not data.empty else 0
@@ -392,56 +385,76 @@ def get_case_studies():
     files = [f.split(".")[0] for f in os.listdir(case_study_dir) if f.endswith('.json')]
     return jsonify({"files": files})
 
-@app.route('/api/files/<filename>', methods=['GET'])
-def get_file_data(filename):
+@app.route('/api/init', methods=['GET'])
+def get_init_data():
+    use_case = request.args.get('use_case')
+    if not use_case:
+        return jsonify({"error": "Missing query param: use_case"}), 400
     try:
-        data = load_case_study_data(filename)
+        data = load_case_study_data(use_case)
+
+        # Parameters for filters
         hyperparams = data["hyperparameters"]
-        result = [
+        filter_options = [
             {
                 "key": key,
                 "name": info.get("name", key),
-                "values": info["values"]
+                "values": info["values"],
+                "is_clusterable": True
             }
             for key, info in hyperparams.items()
             if isinstance(info, dict) and "values" in info and isinstance(info["values"], list)
         ]
-        return jsonify(result)
+
+        # Objective weights
+        objective_cols = list(data["objective_functions"].keys())
+        default_weights = {col: 1 for col in objective_cols}
+
+        return jsonify({
+            "filters": filter_options,
+            "objectives": default_weights
+        })
+
     except Exception as e:
-        app.logger.error(f"Error fetching file data: {str(e)}")
+        app.logger.error(f"Error initializing data: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+# @app.route('/api/files/<filename>', methods=['GET'])
+# def get_file_data(filename):
+#     try:
+#         data = load_case_study_data(filename)
+#         hyperparams = data["hyperparameters"]
+#         result = [
+#             {
+#                 "key": key,
+#                 "name": info.get("name", key),
+#                 "values": info["values"]
+#             }
+#             for key, info in hyperparams.items()
+#             if isinstance(info, dict) and "values" in info and isinstance(info["values"], list)
+#         ]
+#         return jsonify(result)
+#     except Exception as e:
+#         app.logger.error(f"Error fetching file data: {str(e)}")
+#         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
+    """Get scatterplot data with optimized filtering and parameter handling"""
     case_study = request.args.get('use_case')
     if not case_study:
         return jsonify({"error": "Missing query param: use_case"}), 400
 
     try:
-        data = load_case_study_data(case_study)
+        # Load case study data
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
 
-        # Safely determine cluster_by
-        cluster_by = request.args.get('cluster_by')
-        if not cluster_by or cluster_by not in csv_data.columns:
-            # Try categorical columns first
-            cat_columns = csv_data.select_dtypes(include=['object']).columns.tolist()
-            if cluster_by == "AI-Generated":
-                cluster_by = "AI-Generated"
-            elif cat_columns:
-                cluster_by = cat_columns[0]
-            else:
-                # Try numeric columns
-                num_columns = csv_data.select_dtypes(include=[np.number]).columns.tolist()
-                if num_columns:
-                    cluster_by = num_columns[0]
-                else:
-                    # Last resort: use first column
-                    cluster_by = csv_data.columns[0]
+        # Get color_by parameter
+        color_by = request.args.get('color_by')
 
-        print(f"Clustering by: {cluster_by}")
-        
+        # Initialize Visualizer
         vis_obj = Visualizer(
             data=csv_data,
             data_ovars=list(data["objective_functions"].keys()),
@@ -449,43 +462,61 @@ def get_scatterplot():
         )
         points = vis_obj.joint_xy
 
-        kwargs = dict(
-            threshold=0.5,
-            clu=HDBSCAN(
-                min_cluster_size=2, 
-                cluster_selection_epsilon=1., 
-                n_jobs=1
-            ),
-            drop_intermediate=False
-        )
-
-        # clusters = vis_obj.get_overlapping_clusters(**kwargs)
-        print("Getting AI Clusters:", csv_data)
-        print(csv_data.columns)
-        # print(clusters)
-
+        # Apply filters
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
         filtered_data = csv_data.copy()
         
+        # Efficient filtering using vectorized operations
         for key, values in query_params.items():
             if values:
                 filtered_data = filtered_data[filtered_data[key].isin(values)]
 
-        if cluster_by == "AI-Generated":
-            clusters = vis_obj.df_clustered[["label"]]
-        else:
-            clusters = filtered_data[[cluster_by]]
-        print("Clusters:", clusters)
+        # Get clusters for filtered data
+        clusters = vis_obj.df_clustered.loc[filtered_data.index, ["label"]]
         
+        # Extract relevant points for filtered data
         updated_points = points.loc[filtered_data.index]
-        objective_funcs = filtered_data[data["objective_functions"].keys()]
+        
+        # Extract objective functions
+        objective_keys = list(data["objective_functions"].keys())
+        objective_funcs = filtered_data[objective_keys]
 
-        fig = draw_clusters_scatterplot(clusters, updated_points, objective_funcs)
+        # Size encoding based on weights
+        weights_input = request.args.get('weights')
+        weights = {}
+        if weights_input:
+            try:
+                weights = json.loads(weights_input)
+                weights = {
+                    k: float(v) for k, v in weights.items() 
+                    if k in objective_funcs.columns
+                }
+            except Exception as e:
+                app.logger.warning(f"Invalid weights JSON: {str(e)}")
+
+        if weights:
+            size = objective_funcs[list(weights.keys())].mul(list(weights.values())).sum(axis=1)
+        else:
+            size = 10
+            
+        # print("Computed sizes:", size)
+        # Normalize and scale marker sizes
+        # size = size.abs().clip(lower=5, upper=55)
+
+        # Generate the figure
+        fig = draw_clusters_scatterplot(
+            full_dataset=filtered_data,
+            points=updated_points,
+            clusters=clusters,
+            objective_keys=objective_keys,
+            color_by=color_by,
+            size=size
+        )
 
         return jsonify({
             "scatterplot": fig.to_json(),
             "config": {"displayModeBar": False, "responsive": True},
-            "cluster_by": cluster_by
+            "color_by": color_by
         })
 
     except Exception as e:
@@ -498,7 +529,7 @@ def get_objective_data():
     if not case_study:
         return jsonify({"error": "Missing query param: use_case"}), 400
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
         
@@ -538,95 +569,85 @@ def get_weighted_solutions():
     if not case_study:
         return jsonify({"error": "Missing query param: use_case"}), 400
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
-
+        
         # Parse filters
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
         filtered_data = csv_data.copy()
         for key, values in query_params.items():
             if values:
                 filtered_data = filtered_data[filtered_data[key].isin(values)]
-
+        
         # Get objective columns
         objective_cols = list(data["objective_functions"].keys())
-
-        # Parse weights
-        # Parse weights from individual query parameters
+        decision_cols = list(data["decision_variables"].keys())
+        
+        # Parse weights from query params
         weights = {}
         for key in request.args:
             if key.startswith("weight_"):
-                obj_name = key[len("weight_"):]  # Remove "weight_" prefix
+                obj_name = key[len("weight_"):]
                 try:
                     weights[obj_name] = float(request.args[key])
                 except ValueError:
-                    weights[obj_name] = 1.0  # Default to 1.0 on invalid input
-
-        # Use default weights only for missing objectives
-        objective_cols = list(data["objective_functions"].keys())
+                    weights[obj_name] = 1.0
+        
+        # Default weights for missing objectives
         for obj in objective_cols:
             if obj not in weights:
                 weights[obj] = 1.0
 
         # Compute weighted score
-        filtered_data['weighted_score'] = sum(filtered_data[col] * weights[col] for col in objective_cols)
+        filtered_data['Weighted Sum'] = sum(filtered_data[col] * weights[col] for col in objective_cols)
 
-        # Cluster by parameter passed from frontend
-        # Get cluster_by parameter
-        cluster_by = request.args.get('cluster_by')
+        # Sort by weighted score descending and take top 5
+        top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)
+        print(top_solutions.iloc[0])
+        #     list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
+        # ]
 
-        # Validate that cluster_by exists in the data
-        if not cluster_by or cluster_by not in csv_data.columns:
-            # Fall back to first categorical column
-            cat_columns = csv_data.select_dtypes(include=['object']).columns.tolist()
-            if cluster_by == "AI-Generated":
-                cluster_by = "AI-Generated"
-            elif cat_columns:
-                cluster_by = cat_columns[0]
-            else:
-                # Fall back to first numeric column as string category
-                num_columns = csv_data.select_dtypes(include=[np.number]).columns.tolist()
-                if num_columns:
-                    cluster_by = num_columns[0]
-                else:
-                    cluster_by = csv_data.columns[0]  # Just pick the first one
-
-        # Now safely use cluster_by
-        # initial_clusters = csv_data[[cluster_by]]
-        vis_obj = Visualizer(
-            data=csv_data,
-            data_ovars=list(data["objective_functions"].keys()),
-            data_dvars=list(data["decision_variables"].keys())
-        )
+        # Scale the objective columns for ranking
+        scale = {
+            'Cable Material Cost($M)': -1,
+            'Battery Cost($M)': -1,
+            'Day-Ahead Revenue ($k)': 1,
+            'Real-Time Revenue ($k)': 1,
+            'Reserve WF Revenue ($k)': 1,
+            'Reserve ESS Revenue ($k)': 1
+        }
+        scale_series = pd.Series(scale)
+        rank_frame = filtered_data.head(5).copy()
+        print(rank_frame)
+        rank_frame.index = (rank_frame["Case Study"] + "," + rank_frame["Location"])
+        rank_frame = rank_frame[objective_cols]
         
-        if cluster_by == "AI-Generated":
-            filtered_data[cluster_by] = vis_obj.df_clustered["label"]
-
-        best_solution_df = filtered_data.loc[
-                                filtered_data.groupby(cluster_by)['weighted_score'].idxmax()
-                            ].set_index(cluster_by)
-        print("Best Solution::::::", best_solution_df)
-        # Group by cluster and compute stats
-        cluster_summary = (
-            filtered_data.groupby(cluster_by)
-            .agg(
-                count=('weighted_score', 'size'),
-                avg_weighted_score=('weighted_score', 'mean'),
-                best_solution=('weighted_score', 'max'),
-                best_solution_id=('weighted_score', 'idxmax')
-            )
-            # .join(best_solution_df.add_prefix('best_'))
-            .reset_index()
-            .rename(columns={cluster_by: 'cluster'})
-            .sort_values(by='avg_weighted_score', ascending=False)
+        # Apply scaling and rank
+        # rank_frame = rank_frame * scale_series
+        # rank_frame = rank_frame.rank(ascending=False)
+        print(rank_frame.to_dict(orient='index'))
+        
+        # Convert to dict for JSON response
+        solution_dicts = [
+            OrderedDict([(col, row[col]) for col in top_solutions.columns])
+            for _, row in top_solutions.iterrows()
+        ]
+        
+        return Response(
+            json.dumps({
+                "solutions": solution_dicts,
+                "ranks": rank_frame.to_dict(orient='index'),
+                "weights_used": weights,
+                "index_keys": ['Solution ID'],
+                "objective_keys": objective_cols,
+                "decision_keys": decision_cols,
+                "hyperparameter_keys": list(hyperparameters.keys()),
+                "additional_cols": ['Weighted Sum']
+            }, sort_keys=False),
+            mimetype='application/json'
         )
 
-        return jsonify({
-            "clusters": cluster_summary.to_dict(orient='records'),
-            "weights_used": weights,
-            "cluster_by": cluster_by
-        })
     except Exception as e:
         app.logger.error(f"Error fetching weighted solutions: {str(e)}")
         return jsonify({"error": str(e)}), 500
@@ -638,7 +659,7 @@ def get_objective_plot_data():
         return jsonify({"error": "Missing query param: use_case"}), 400
 
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
 
@@ -657,10 +678,31 @@ def get_objective_plot_data():
         # Objective Functions
         objective_cols = list(data["objective_functions"].keys())
         
+        # Parse weights from query params
+        weights = {}
+        for key in request.args:
+            if key.startswith("weight_"):
+                obj_name = key[len("weight_"):]
+                try:
+                    weights[obj_name] = float(request.args[key])
+                except ValueError:
+                    weights[obj_name] = 1.0
+        
+        # Default weights for missing objectives
+        for obj in objective_cols:
+            if obj not in weights:
+                weights[obj] = 1.0
+
+        # Compute weighted score
+        filtered_data['Weighted Sum'] = sum(filtered_data[col] * weights[col] for col in objective_cols)
+
+        # Sort by weighted score descending and take top 5
+        filtered_data = filtered_data.sort_values(by='Weighted Sum', ascending=False)
+        
         objectives = []
         for col in objective_cols:
             distribution = filtered_data[col].tolist()
-            selected_value = sum(distribution) / len(distribution) if distribution else 0
+            selected_value = filtered_data.iloc[0][col]
             max_value = max(distribution) if distribution else 1
             objectives.append({
                 "variable": col,
@@ -675,7 +717,7 @@ def get_objective_plot_data():
         decisions = []
         for col in decision_cols:
             distribution = filtered_data[col].tolist()
-            selected_value = sum(distribution) / len(distribution) if distribution else 0
+            selected_value = filtered_data.iloc[0][col]
             max_value = max(distribution) if distribution else 1
             decisions.append({
                 "variable": col,
@@ -701,7 +743,7 @@ def get_decision_plot():
         return jsonify({"error": "Missing query param: use_case"}), 400
 
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
 
@@ -729,7 +771,7 @@ def get_decision_space_graph():
         return jsonify({"error": "Missing query param: use_case"}), 400
 
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
         objective_col = list(data["objective_functions"].keys())[0]
@@ -758,7 +800,7 @@ def get_parameters():
     if not case_study:
         return jsonify({"error": "Missing query param: use_case"}), 400
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparams = data["hyperparameters"]
         result = [
             {
@@ -782,12 +824,13 @@ def get_lmp_data():
         return jsonify({"error": "Missing query param: use_case"}), 400
 
     try:
-        data = load_case_study_data(case_study)
+        data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
-        csv_data = data["csv_data"]
+        scenario_data = data["scenario_data"]
+        print(scenario_data)
 
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
-        filtered_data = csv_data.copy()
+        filtered_data = scenario_data.copy()
 
         for key, values in query_params.items():
             if values:
