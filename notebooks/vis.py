@@ -139,7 +139,7 @@ class Loader:
             
 lightgray = '#edecea'
 
-def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, ax=None, with_labels=True, ignore={-1, None}):
+def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, ax=None, with_labels=True, ignore={-1, None}, cluster_label_prefix='#'):
     grouped = X.groupby(y)
 
     s = marker_size**.5 if type(marker_size) in {int, float}\
@@ -164,7 +164,7 @@ def get_cluster_hulls(X, y, color=lightgray, marker_color=None, marker_size=5, a
 
     if with_labels:
         for s, row in grouped.mean().iterrows():
-            ax.annotate(f'c{s}', row.values, ha='center', va='center', color='red')
+            ax.annotate(f'{cluster_label_prefix}{s}', row.values, ha='center', va='center', color='red')
 
 def seriate_olo(X):
     def get_index_order(y):
