@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Box, Tabs, Tab, Grid, LinearProgress, Typography } from "@mui/material";
 
 // Import Plot Components
-import ClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
+import ScatterPlot from './OffshoreWindfarmPlots/ScatterPlot';
+// import ClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
 import DualRadarChart, { RadarData } from './OffshoreWindfarmPlots/DualRadarChart';
 import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import Summary from './OffshoreWindfarmPlots/Summary';
-import VerticalSlider from './OffshoreWindfarmPlots/Slider';
 import ParallelCoordinatesChart from './OffshoreWindfarmPlots/ParallelCoordinatesChart';
 
 import config from "../config";
@@ -225,7 +225,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           <Grid container spacing={2} sx={{ width: '100%' }}>
             <Grid item xs={12} md={6}>
               <Box sx={{ position: 'relative', zIndex: 10 }}>
-                <ClusterScatterPlot
+                <ScatterPlot
                   useCase={selectedUseCase} 
                   solutionsData={completeData} 
                   onClusterByChange={setClusterBy}

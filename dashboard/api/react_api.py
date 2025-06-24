@@ -483,6 +483,7 @@ def get_projection_data():
         # Get clusters for filtered data
         clusters = vis_obj.df_clustered.loc[filtered_data.index, ["label"]]
         print("Data:::::", updated_points, clusters, filtered_data)
+        pd.concat([updated_points, clusters, filtered_data], axis=1).to_csv("test.csv")
         
         # Prepare response
         result = {

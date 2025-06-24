@@ -1,7 +1,10 @@
+// App.js
+
 import React, { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import TimeSeriesChart from './components/TimeSeriesChart';
 import ParallelCoordinatesChart from './components/ParallelCoordinatesChart';
+import ScatterPlotChart from './components/ScatterPlotChart'; // Import the new component
 
 const App = () => {
   const [data, setData] = useState([]);
@@ -59,6 +62,7 @@ const App = () => {
       <div style={{ marginBottom: '10px' }}>
         <button onClick={() => setActiveTab('time-series')}>Time Series</button>
         <button onClick={() => setActiveTab('parallel-coords')}>Parallel Coordinates</button>
+        <button onClick={() => setActiveTab('scatter-plot')}>Scatter Plot</button>
       </div>
 
       {/* Tab Content */}
@@ -68,6 +72,10 @@ const App = () => {
 
       {activeTab === 'parallel-coords' && data.length > 0 && (
         <ParallelCoordinatesChart data={data} />
+      )}
+
+      {activeTab === 'scatter-plot' && data.length > 0 && (
+        <ScatterPlotChart data={data} />
       )}
 
       {data.length === 0 && <p>Loading data...</p>}
