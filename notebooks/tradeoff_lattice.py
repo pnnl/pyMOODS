@@ -406,7 +406,56 @@ class TradeoffLattice:
 
             for s in ('right', 'top'):
                 ax.spines[s].set_visible(False)
+
+    def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_negative=False, show_positive=True, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
+        G = self.G
+        ax = ax or plt.gca()
         
+        if by is not None:
+            G = reorient_lattice(G, by=by)
+    
+        pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        try:
+            pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        except:
+            print('Graphviz not available. Using Kamada Kawai Layout')
+            pos = nx.kamada_kawai_layout(G)
+            
+        # node labels
+        if with_node_labels is True:
+            for v, xy in pos.items():
+                s = '\n'.join(self.get_node_label(v))
+                ax.annotate(s, xy, va='center', ha='center', **node_labels_kwargs)
+    
+        nx.draw_networkx_edges(
+            G, pos,
+            node_size=node_size,
+            edge_color=[
+                'black' if by is None or d['test'].loc[by, 'pvalue'] <= alpha else 'lightgray'
+                for u, v, d in G.edges(data=True)
+            ]
+        )
+    
+        def create_edge_label(d):
+            test = d['test']
+            return '\n'.join([
+                f'{"+" if ser.direction > 0 else "- "}{k}'
+                for k, ser in test[test.pvalue <= alpha].iterrows()
+                if (with_edge_labels is True or k in with_edge_labels) and (
+                    (show_positive is True and ser.direction > 0) or\
+                    (show_negative is True and ser.direction < 0)
+                )
+            ])
+    
+        if with_edge_labels is not False:
+            nx.draw_networkx_edge_labels(
+                G, pos,
+                edge_labels={
+                    (u, v): create_edge_label(d)
+                    for u, v, d in G.edges(data=True)
+                },
+                **edge_labels_kwargs
+            )        
         
 def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
 
@@ -452,68 +501,18 @@ class DirectTradeoffLattice(TradeoffLattice):
                 pvalue=0
             ))
             
-    def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_negative=False, show_positive=True, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
-        G = self.G
-        ax = ax or plt.gca()
-        
-        if by is not None:
-            G = reorient_lattice(G, by=by)
-    
-        pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
-        try:
-            pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
-        except:
-            print('Graphviz not available. Using Kamada Kawai Layout')
-            pos = nx.kamada_kawai_layout(G)
+    def get_node_label(self, v):
+        yield f'# {v}'
+        if v in self.generalizers:
+            yield '(generalizer)'
 
-        def get_node_label(v):
-            yield f'# {v}'
-            if v in self.generalizers:
-                yield '(generalizer)'
+        # if v in self.anti_generalizers:
+        #     yield '(anti-generalizer)'
 
-            # if v in self.anti_generalizers:
-            #     yield '(anti-generalizer)'
+        if v in self.specializers.index:
+            for c in self.specializers.columns[self.specializers.loc[v]]:
+                yield f'+{c}'
 
-            if v in self.specializers.index:
-                for c in self.specializers.columns[self.specializers.loc[v]]:
-                    yield f'+{c}'
-
-            if v in self.anti_specializers.index:
-                for c in self.anti_specializers.columns[self.anti_specializers.loc[v]]:
-                    yield f'-{c}'
-            
-        # node labels
-        if with_node_labels is True:
-            for v, xy in pos.items():
-                s = '\n'.join(get_node_label(v))
-                ax.annotate(s, xy, va='center', ha='center', **node_labels_kwargs)
-    
-        nx.draw_networkx_edges(
-            G, pos,
-            node_size=node_size,
-            edge_color=[
-                'black' if by is None or d['test'].loc[by, 'pvalue'] <= alpha else 'lightgray'
-                for u, v, d in G.edges(data=True)
-            ]
-        )
-    
-        def create_edge_label(d):
-            test = d['test']
-            return '\n'.join([
-                f'{"+" if ser.direction > 0 else "- "}{k}'
-                for k, ser in test[test.pvalue <= alpha].iterrows()
-                if (with_edge_labels is True or k in with_edge_labels) and (
-                    (show_positive is True and ser.direction > 0) or\
-                    (show_negative is True and ser.direction < 0)
-                )
-            ])
-    
-        if with_edge_labels is not False:
-            nx.draw_networkx_edge_labels(
-                G, pos,
-                edge_labels={
-                    (u, v): create_edge_label(d)
-                    for u, v, d in G.edges(data=True)
-                },
-                **edge_labels_kwargs
-            )
+        if v in self.anti_specializers.index:
+            for c in self.anti_specializers.columns[self.anti_specializers.loc[v]]:
+                yield f'-{c}'
