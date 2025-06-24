@@ -1,5 +1,6 @@
 import React from "react";
-import RadarChart from "./RadarChart";
+// import RadarChart from "./RadarChart";
+import BeeswarmPlot from "./BeeSwarm";
 
 // Define interface for radar data
 export interface RadarData {
@@ -31,7 +32,7 @@ const DualRadarChart: React.FC<DualRadarChartProps> = ({ objectives, decisions, 
         flex: '1 1 45%',
         aspectRatio: '1/1'
       }}>
-        <RadarChart
+        <BeeswarmPlot
           key="objectives"
           data={objectives}
           title="Objective Functions"
@@ -43,7 +44,7 @@ const DualRadarChart: React.FC<DualRadarChartProps> = ({ objectives, decisions, 
         flex: '1 1 45%',
         aspectRatio: '1/1'
       }}>
-        <RadarChart
+        <BeeswarmPlot
           key="decisions"
           data={decisions}
           title="Decision Variables"
