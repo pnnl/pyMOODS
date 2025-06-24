@@ -332,11 +332,9 @@ class TradeoffLattice:
             .format_index(get_index_label)\
             .background_gradient(axis=None, cmap=cmap)
 
-    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None, include_all_generalizers=False, highlight_generalizers=False):
+    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None, include_all_generalizers=False):
         
         data = self.rank
-        S = self.specializers
-        Ge = self.generalizers
 
         if not use_rank:        
             X = self.df[self.ovars]*self.scale
@@ -351,7 +349,6 @@ class TradeoffLattice:
             order = nx.spectral_ordering(A)
             data = data[order]
             S = self.specializers[order]
-            Ge = self.generalizers[order]
 
             self.C = C
             self.order = order
@@ -363,9 +360,9 @@ class TradeoffLattice:
 
         if include_all_generalizers:        
             grouped = data.iloc[self.n_generalizers:]\
-                .groupby(lambda _: 0 if facets is None else facets[n:])
+                .groupby(['All']*len(data - n) if facets is None else facets[n:])
         else:
-            grouped = data.groupby(lambda _: 0 if facets is None else facets)
+            grouped = data.groupby(['All']*len(data) if facets is None else facets)
 
         for i, (k, data_k) in enumerate(grouped):
             # add generalizers back in so they appear in each plot
@@ -381,50 +378,27 @@ class TradeoffLattice:
             for name, y in data_k.iterrows():
                 s = None
                 if name in self.specializers.index:
-                    if highlight_generalizers:
-                        kwargs=dict(linewidth=.5, color='lightgray')
-                        s = name
-                    else:
-                        kwargs=dict()
-                        ax.scatter(x, y, marker='o', s=S.loc[name, ]*50)
-                        s = name
-                        ax.annotate(
-                            s, (x[-1], y.iloc[-1]),
-                            va='center',
-                            ha='left',
-                            xytext=(5, 0),
-                            textcoords='offset points'
-                        )      
+                    kwargs=dict()
+                    ax.scatter(x, y, marker='o', s=S.loc[name, ]*50)
+                    s = name
                 elif name in self.generalizers:
-                    if highlight_generalizers:
-                        kwargs=dict()
-                        ax.scatter(x, y, marker='o', s=50)
-                        s = name
-                        ax.annotate(
-                            s, (x[-1], y.iloc[-1]),
-                            va='center',
-                            ha='left',
-                            xytext=(5, 0),
-                            textcoords='offset points'
-                        )   
-                    else: 
-                        kwargs=dict(linewidth=5, color='lightgray')
-                        s = name
+                    kwargs=dict(linewidth=5, color='lightgray')
+                    s = name
                 else:
                     kwargs=dict(linewidth=.5, color='lightgray')
             
-                # if s is not None:
-                #     ax.annotate(
-                #         s, (x[-1], y.iloc[-1]),
-                #         va='center',
-                #         ha='left',
-                #         xytext=(5, 0),
-                #         textcoords='offset points'
-                #     )
+                if s is not None:
+                    ax.annotate(
+                        s, (x[-1], y.iloc[-1]),
+                        va='center',
+                        ha='left',
+                        xytext=(5, 0),
+                        textcoords='offset points'
+                    )
             
                 ax.plot(x, y, **kwargs)
             
-            ax.yaxis.set_label_text('Rank' if use_rank else 'Z-score')
+            ax.yaxis.set_label('Rank' if use_rank else 'Z-score')
             ax.xaxis.set_ticks(
                 x, 
                 data.columns if x_label_format is None else map(x_label_format, data.columns),
