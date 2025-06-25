@@ -105,29 +105,31 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
 
   return (
     <Box
-      sx={{
-        width: "100%",
-        mt: 1,
-        mb: 1,
-        display: "flex",
-        flexDirection: "column",
-        gap: 1,
-      }}
-    >
-      {/* Clustering Dropdown */}
-      <FormControl
-        fullWidth
         sx={{
           display: "flex",
-          justifyContent: "center",
-          mb: 2,
-          maxWidth: 150,
-          margin: "0 auto",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 1,
         }}
       >
+        <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Typography sx={{ fontSize: "1.2rem" }}>Solution Space</Typography>
+        </Box>
+        {/* Clustering Dropdown */}
+        <FormControl
+          fullWidth
+          size="small"
+          variant="outlined"
+          sx={{
+            maxWidth: 150,
+          }}
+        >
         <InputLabel 
           id="color-by-select-label" 
-          sx={{ fontSize: '0.9rem', fontWeight:'bold', fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif' }}
+          sx={{ fontSize: "1.1rem",
+          fontFamily:
+            "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          color: "#213547" }}
         >
           Color By
         </InputLabel>
@@ -186,7 +188,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
               scrollZoom: true,
               modeBarButtonsToRemove: ["toggleSpikelines"],
             }}
-            style={{ width: "100%"}}
+            style={{ width: "100%" }}
             useResizeHandler
           />
         </Box>

@@ -128,7 +128,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
                     verticalAlign: 'top',
                     cursor: isNumericColumn(key) ? 'pointer' : 'default',
                     '&:hover': isNumericColumn(key)
-                      ? { backgroundColor: 'action.hover' }
+                      ? { backgroundColor: '#006400' }
                       : {},
                     backgroundColor: '#2e7d32', 
                     color: 'white'

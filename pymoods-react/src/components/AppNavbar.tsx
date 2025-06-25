@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 
 import ECompLogo from "../assets/e-comp-logo.png";
 import PNNLLogo from "../assets/pnnl-logo.svg";
-import pyMOODSLogo from "../assets/pymoods-logo.svg";
+import pyMOODSLogo from "../assets/pymoods-logo-updated.svg";
 
 const Toolbar = styled(MuiToolbar)({
   display: "flex",
@@ -17,7 +17,7 @@ const Toolbar = styled(MuiToolbar)({
   paddingLeft: 0,
   paddingRight: 0,
   gap: "8px",
-  minHeight: 48,
+  minHeight: 40,
   [`& ${tabsClasses.flexContainer}`]: {
     gap: "8px",
   },
@@ -30,21 +30,25 @@ export default function AppNavbar() {
       elevation={0}
       sx={{
         bgcolor: "background.paper",
-        borderBottom: "1px solid",
-        borderColor: "divider",
+        // borderBottom: "1px solid",
+        // borderColor: "divider",
+        width: "100%",
+        paddingLeft: 0,
+        paddingRight: 0, 
       }}
     >
-      <Toolbar variant="dense" disableGutters sx={{ px: 1, pb: 0.5, pt: 0.5 }}>
+      <Toolbar variant="dense" disableGutters sx={{ px: 1, pb: 0, pt: 0 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <img
             src={pyMOODSLogo}
             alt="pyMOODS Logo"
-            style={{ height: "90px", width:"90px"}}
+            style={{ height: "95px", width:"95px", "marginTop": "-15px", objectFit:"contain"}}
           />
           <Typography
             variant="h6"
             sx={{
               fontWeight: 700,
+              fontSize:"1.3rem",
               color: "text.primary",
               letterSpacing: 0.5,
               whiteSpace: "nowrap",
@@ -53,12 +57,12 @@ export default function AppNavbar() {
               fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
             }}
           >
-            pyMOODS Decision Support System
+            Decision Support System for Large Scale Electricity Infrastructure Planning
           </Typography>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <img src={PNNLLogo} alt="PNNL Logo" style={{ height: "56px" }} />
-          <img src={ECompLogo} alt="e-Comp Logo" style={{ height: "56px" }} />
+          <img src={PNNLLogo} alt="PNNL Logo" style={{ height: "58px", marginTop:"-10px" }} />
+          <img src={ECompLogo} alt="e-Comp Logo" style={{ height: "58px" }} />
         </Stack>
       </Toolbar>
     </AppBar>
