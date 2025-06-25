@@ -8,7 +8,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Slider
+  Slider,
 } from "@mui/material";
 
 // Import centralized config
@@ -25,7 +25,7 @@ interface ScatterplotData {
 interface ClusterScatterPlotProps {
   useCase: string;
   filters: Record<string, string[]>;
-  weights: Record<string, number>; 
+  weights: Record<string, number>;
   onWeightsChange?: (weights: Record<string, number>) => void;
   onColorByChange?: (colorBy: string) => void;
 }
@@ -34,7 +34,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
   useCase,
   filters,
   weights,
-  onColorByChange
+  onColorByChange,
 }) => {
   const [scatterplotData, setScatterplotData] =
     useState<ScatterplotData | null>(null);
@@ -49,7 +49,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
 
     // const availableOptions = Object.keys(filters);
     // const valid = availableOptions.includes(colorBy);
-  
+
     // if (!valid || useCase) {
     //   const newColorBy = "AI-Generated";
     //   setColorBy(newColorBy);
@@ -61,7 +61,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
     const queryParams = new URLSearchParams();
 
     // Add selected color field
-    queryParams.append('color_by', colorBy);
+    queryParams.append("color_by", colorBy);
 
     // Add other filters
     Object.entries(filters).forEach(([key, values]) => {
@@ -72,8 +72,10 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
 
     queryParams.append("weights", JSON.stringify(weights)); // send weights
 
-    const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(useCase)}`;
-    
+    const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(
+      useCase
+    )}`;
+
     fetch(url)
       .then((response) => {
         if (!response.ok)
@@ -124,63 +126,76 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
         mb: 1,
         display: "flex",
         flexDirection: "column",
-        gap: 1,
+        gap: 2,
       }}
     >
-      {/* Clustering Dropdown */}
-      <FormControl
-        fullWidth
+      <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
-          mb: 2,
-          maxWidth: 150,
-          margin: "0 auto",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 1,
         }}
       >
-        <InputLabel 
-          id="color-by-select-label" 
-          sx={{ fontSize: '0.9rem', fontWeight:'bold', fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif' }}
-        >
-          Color By
-        </InputLabel>
-        <Select
-          labelId="color-by-select-label"
-          value={colorBy}
-          label="Color By"
-          onChange={(e) => {
-            const newColorBy = e.target.value as string;
-            setColorBy(newColorBy);
-            if (onColorByChange) {
-              onColorByChange(newColorBy);
-            }
-          }}
+        <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Typography sx={{ fontSize: "1.2rem" }}>Solution Space</Typography>
+        </Box>
+        {/* Clustering Dropdown */}
+        <FormControl
+          fullWidth
+          size="small"
+          variant="outlined"
           sx={{
-            height: 40,
-            fontSize: "0.875rem",
-            textAlign: "center",
+            maxWidth: 150,
           }}
         >
-          <MenuItem 
-            key="AI-Generated" 
-            value="AI-Generated"
-            sx={{ fontSize: '0.875rem' }}
+          <InputLabel
+            id="color-by-select-label"
+            sx={{
+              fontSize: "1.1rem",
+              fontFamily:
+                "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+              color: "#213547"
+            }}
           >
-            AI-Generated
-          </MenuItem>
-          {Object.keys(filters).map((option) => (
-            <MenuItem 
-              key={option} 
-              value={option}
-              sx={{ fontSize: '0.875rem' }}
+            Color By
+          </InputLabel>
+          <Select
+            labelId="color-by-select-label"
+            value={colorBy}
+            label="Color By"
+            onChange={(e) => {
+              const newColorBy = e.target.value as string;
+              setColorBy(newColorBy);
+              if (onColorByChange) {
+                onColorByChange(newColorBy);
+              }
+            }}
+            sx={{
+              height: 40,
+              fontSize: "0.875rem",
+              textAlign: "center",
+            }}
+          >
+            <MenuItem
+              key="AI-Generated"
+              value="AI-Generated"
+              sx={{ fontSize: "0.875rem" }}
             >
-              {option}
+              AI-Generated
             </MenuItem>
-          ))}
-          
-        </Select>
-      </FormControl>
-
+            {Object.keys(filters).map((option) => (
+              <MenuItem
+                key={option}
+                value={option}
+                sx={{ fontSize: "0.875rem" }}
+              >
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
       <Box
         sx={{
           display: "flex",
@@ -199,7 +214,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
               scrollZoom: true,
               modeBarButtonsToRemove: ["toggleSpikelines"],
             }}
-            style={{ width: "100%"}}
+            style={{ width: "100%" }}
             useResizeHandler
           />
         </Box>

@@ -35,7 +35,7 @@ function App() {
   }, [filters, weights]);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minWidth: "100%", minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Sidebar */}
       <Box
         sx={{
@@ -60,6 +60,8 @@ function App() {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
+          width: '100%',
+          maxWidth: '100%',
         }}
       >
         <Box sx={{ mb: 0, mt: 0, ml: 1, pl: 1 }}>

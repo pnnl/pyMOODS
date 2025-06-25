@@ -1,9 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import * as d3 from 'd3';
-import { Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import React, { useState, useEffect, useRef } from "react";
+import * as d3 from "d3";
+import {
+  Box,
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 
 // Import centralized config
-import config from '../../config';
+import config from "../../config";
 const { API_BASE_URL } = config;
 
 interface LMPData {
@@ -22,36 +29,48 @@ interface LMPPlotProps {
   selectedSolution?: Solution;
 }
 
-const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution }) => {
+const LMPPlot: React.FC<LMPPlotProps> = ({
+  useCase,
+  filters,
+  selectedSolution,
+}) => {
   const [data, setData] = useState<LMPData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
-  const [tooltipData, setTooltipData] = useState({ x: 0, y: 0, sim: '', value: '', time: '' });
+  const [tooltipData, setTooltipData] = useState({
+    x: 0,
+    y: 0,
+    sim: "",
+    value: "",
+    time: "",
+  });
 
   // State for filtering
-  const caseStudies = [...new Set(data.map((d) => d['CaseStudy'] || 'default'))];
-  const locations = [...new Set(data.map((d) => d['Location'] || 'default'))];
+  const caseStudies = [
+    ...new Set(data.map((d) => d["CaseStudy"] || "default")),
+  ];
+  const locations = [...new Set(data.map((d) => d["Location"] || "default"))];
 
-  const defaultCaseStudy = caseStudies.length > 0 ? caseStudies[0] : '';
-  const defaultLocation = locations.length > 0 ? locations[0] : '';
+  const defaultCaseStudy = caseStudies.length > 0 ? caseStudies[0] : "";
+  const defaultLocation = locations.length > 0 ? locations[0] : "";
 
   const [caseStudyFilter, setCaseStudyFilter] = useState(defaultCaseStudy);
   const [locationFilter, setLocationFilter] = useState(defaultLocation);
-  const [selectedColumn, setSelectedColumn] = useState<string>('');
+  const [selectedColumn, setSelectedColumn] = useState<string>("");
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
 
   const numericColumns = React.useMemo(() => {
     if (!data.length) return [];
-  
+
     const firstRow = data[0];
     return Object.keys(firstRow).filter(
-      key =>
-        key !== 'INTERVALSTARTTIME_GMT' &&
-        key !== 'CaseStudy' &&
-        key !== 'Location' &&
+      (key) =>
+        key !== "INTERVALSTARTTIME_GMT" &&
+        key !== "CaseStudy" &&
+        key !== "Location" &&
         !isNaN(parseFloat(firstRow[key]))
     );
   }, [data]);
@@ -65,32 +84,38 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
   // Apply filters
   const filteredData = data.filter(
     (d) =>
-      (!selectedSolution || d['Case Study'] === selectedSolution["Case Study"]) &&
-      (!selectedSolution || d['Location'] === selectedSolution["Location"])
+      (!selectedSolution ||
+        d["Case Study"] === selectedSolution["Case Study"]) &&
+      (!selectedSolution || d["Location"] === selectedSolution["Location"])
   );
-  
-  const groupedBySim: Record<string, Array<{ time: number; value: number }>> = {};
+
+  const groupedBySim: Record<
+    string,
+    Array<{ time: number; value: number }>
+  > = {};
 
   filteredData.forEach((d) => {
     const rawValue = d[selectedColumn];
 
     let val;
 
-    if (typeof rawValue === 'string') {
+    if (typeof rawValue === "string") {
       // Remove non-numeric characters except . and -
-      const cleaned = rawValue.replace(/[^0-9.-]/g, '');
+      const cleaned = rawValue.replace(/[^0-9.-]/g, "");
 
       // Check if cleaned string is a valid number
-      val = cleaned && !isNaN(cleaned) && isFinite(cleaned) ? parseFloat(cleaned) : NaN;
-
-    } else if (typeof rawValue === 'number') {
+      val =
+        cleaned && !isNaN(cleaned) && isFinite(cleaned)
+          ? parseFloat(cleaned)
+          : NaN;
+    } else if (typeof rawValue === "number") {
       val = rawValue;
     } else {
       val = NaN;
     }
 
-    const sim = d['sim'] || d['INTERVALSTARTTIME_GMT'] || 'default';
-    const time = d['time'];
+    const sim = d["sim"] || d["INTERVALSTARTTIME_GMT"] || "default";
+    const time = d["time"];
 
     if (!groupedBySim[sim]) groupedBySim[sim] = [];
     groupedBySim[sim].push({
@@ -105,17 +130,24 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
   }, [filteredData, selectedColumn]);
 
   const drawChart = () => {
-    const width = 700;
-    const height = 300;
-    const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+    const svgElement = svgRef.current;
+    if (!svgElement) return;
+
+    const containerWidth = svgElement.parentElement?.clientWidth || 800;
+    const containerHeight = svgElement.parentElement?.clientHeight || 400;
+    const width = Math.max(containerWidth, 600);
+    const height = Math.max(containerHeight, 300);
+    const margin = { top: 20, right: 30, bottom: 40, left: 80 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
     if (!svgRef.current) return;
 
-    const svg = d3.select(svgRef.current).attr('width', width).attr('height', height);
-    svg.selectAll('*').remove(); // Clear previous chart
+    const svg = d3.select(svgElement);
+    svg.selectAll("*").remove(); // Clear previous chart
 
-    const allTimes = Object.values(groupedBySim).flatMap(series =>
-      series.map(d => d.time)
+    const allTimes = Object.values(groupedBySim).flatMap((series) =>
+      series.map((d) => d.time)
     );
     const xDomain = d3.extent(allTimes) as [number, number]; // X-axis = time
 
@@ -126,33 +158,38 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
       ) || 100,
     ];
 
-    const x = d3.scaleTime()
+    const x = d3
+      .scaleTime()
       .domain(xDomain)
-      .range([margin.left, width - margin.right]);
+      .range([margin.left, innerWidth - margin.right]);
 
-    const y = d3.scaleLinear()
+    const y = d3
+      .scaleLinear()
       .domain(yDomain)
-      .range([height - margin.bottom, margin.top]);
+      .range([innerHeight - margin.bottom, margin.top]);
 
     const xAxis = (g: any) =>
-      g.attr('transform', `translate(0,${height - margin.bottom})`)
-       .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M")))
-       .selectAll("text")
-       .attr("font-size", "12px");
+      g
+        .attr("transform", `translate(0,${innerHeight - margin.bottom})`)
+        .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M")))
+        .selectAll("text")
+        .attr("font-size", "12px");
 
     const yAxis = (g: any) =>
-      g.attr('transform', `translate(${margin.left},0)`)
-       .call(d3.axisLeft(y))
-       .selectAll("text")
-       .attr("font-size", "12px");
+      g
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y))
+        .selectAll("text")
+        .attr("font-size", "12px");
 
-    svg.append('g').call(xAxis);
-    svg.append('g').call(yAxis);
+    // svg.append('g').call(xAxis);
+    svg.append("g").call(yAxis);
 
     // Axis label
-    svg.append("text")
-      .attr("x", -height / 2)
-      .attr("y", margin.left - 40)
+    svg
+      .append("text")
+      .attr("x", -innerHeight / 2)
+      .attr("y", margin.left - 69)
       .attr("text-anchor", "middle")
       .attr("transform", "rotate(-90)")
       .attr("font-size", "14px")
@@ -161,23 +198,29 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
     // Draw lines
     Object.entries(groupedBySim).forEach(([sim, values], i) => {
       svg
-        .append('path')
+        .append("path")
         .datum(values)
-        .attr('fill', 'none')
-        .attr('stroke', 'lightgrey')
-        .attr('stroke-width', 1.5)
-        .attr('d', d3.line().x((d) => x(d.time)).y((d) => y(d.value)))
-        .on('mouseover', function (event, d) {
-          d3.select(this)
-            .raise()
-            .attr('stroke', 'steelblue');
-        
+        .attr("fill", "none")
+        .attr("stroke", "lightgrey")
+        .attr("stroke-width", 1.5)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x((d) => x(d.time))
+            .y((d) => y(d.value))
+        )
+        .on("mouseover", function (event, d) {
+          d3.select(this).raise().attr("stroke", "steelblue");
+
           const [mouseX, mouseY] = d3.pointer(event, svgRef.current);
           const invertX = x.invert(mouseX);
           const closest = d.reduce((a, b) => {
-            return Math.abs(a.time - invertX) < Math.abs(b.time - invertX) ? a : b;
+            return Math.abs(a.time - invertX) < Math.abs(b.time - invertX)
+              ? a
+              : b;
           });
-        
+
           setTooltipData({
             x: mouseX,
             y: mouseY,
@@ -187,7 +230,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
           });
           setTooltipVisible(true);
         })
-        .on('mousemove', function (event) {
+        .on("mousemove", function (event) {
           const [mouseX, mouseY] = d3.pointer(event, svgRef.current);
           setTooltipData((prev) => ({
             ...prev,
@@ -195,43 +238,43 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
             y: mouseY,
           }));
         })
-        .on('mouseout', function () {
-          d3.select(this).attr('stroke', 'lightgrey');
+        .on("mouseout", function () {
+          d3.select(this).attr("stroke", "lightgrey");
           setTooltipVisible(false);
         });
     });
   };
 
   const showTooltip = (event: any, sim: string, point: any) => {
-  if (!tooltipRef.current) return;
-  const tooltip = tooltipRef.current;
+    if (!tooltipRef.current) return;
+    const tooltip = tooltipRef.current;
 
-  // Get page dimensions
-  const pageWidth = window.innerWidth;
+    // Get page dimensions
+    const pageWidth = window.innerWidth;
 
-  // Calculate desired position
-  let x = event.pageX + 10;
-  const y = event.pageY + 10;
+    // Calculate desired position
+    let x = event.pageX + 10;
+    const y = event.pageY + 10;
 
-  // Tooltip width
-  const tooltipWidth = tooltip.offsetWidth || 200; // fallback width
+    // Tooltip width
+    const tooltipWidth = tooltip.offsetWidth || 200; // fallback width
 
-  // Adjust if it would overflow the right edge
-  if (x + tooltipWidth > pageWidth - 20) {
-    x = event.pageX - tooltipWidth - 10; // move to the left of cursor
-  }
+    // Adjust if it would overflow the right edge
+    if (x + tooltipWidth > pageWidth - 20) {
+      x = event.pageX - tooltipWidth - 10; // move to the left of cursor
+    }
 
-  tooltip.style.left = `${x}px`;
-  tooltip.style.top = `${y}px`;
-  tooltip.style.opacity = '1';
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+    tooltip.style.opacity = "1";
 
-  // Set inner HTML
-  tooltip.innerHTML = `
+    // Set inner HTML
+    tooltip.innerHTML = `
     <strong>Scenario:</strong> ${sim}<br/>
     <strong>Time:</strong> ${new Date(point.time).toLocaleTimeString()}<br/>
     <strong>${selectedColumn}:</strong> ${point.value.toFixed(2)}
   `;
-};
+  };
 
   const moveTooltip = (event: any) => {
     if (!tooltipRef.current) return;
@@ -241,7 +284,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
 
   const hideTooltip = () => {
     if (!tooltipRef.current) return;
-    tooltipRef.current.style.opacity = '0';
+    tooltipRef.current.style.opacity = "0";
   };
 
   // Fetch LMP data
@@ -255,22 +298,22 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
 
     Object.entries(filters).forEach(([key, values]) => {
       if (Array.isArray(values)) {
-        values.forEach(value => queryParams.append(key, value));
+        values.forEach((value) => queryParams.append(key, value));
       }
     });
 
     const url = `${API_BASE_URL}/api/lmp?${queryParams.toString()}&use_case=${useCase}`;
-    
+
     fetch(url)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch LMP data");
         return res.json();
       })
-      .then(jsonData => {
+      .then((jsonData) => {
         setData(jsonData.data || []);
       })
-      .catch(err => {
-        console.error('Error fetching LMP data:', err);
+      .catch((err) => {
+        console.error("Error fetching LMP data:", err);
         setError("Failed to load LMP data.");
       })
       .finally(() => {
@@ -279,24 +322,53 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
   }, [useCase, filters]);
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, width: '100%' }}>
-        <Box sx={{ width: '50%', maxWidth: 400 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel style={{fontSize: '0.9rem', fontWeight:'bold', fontFamily:'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'}}>Column</InputLabel>
-            <Select
-              value={selectedColumn}
-              onChange={(e) => setSelectedColumn(e.target.value)}
-              label="Column"
-            >
-              {numericColumns.map((col) => (
-                <MenuItem key={col} value={col}>
-                  {col}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+    <Box sx={{ p: 2, width: "100%", flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-around",
+          mb: 2,
+          width: "100%",
+        }}
+      >
+        <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Typography sx={{ fontSize: "1.2rem" }}>Scenario Data</Typography>
         </Box>
+        {/* <Box sx={{ width: '50%', maxWidth: 400 }}> */}
+        <FormControl
+          fullWidth
+          size="small"
+          variant="outlined"
+          sx={{
+            maxWidth: 150,
+            marginRight: "30px",
+          }}
+        >
+          <InputLabel
+            id="column-select-label"
+            style={{
+              fontSize: "1.1rem",
+              fontFamily:
+                "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+              color: "#213547",
+            }}
+          >
+            Column
+          </InputLabel>
+          <Select
+            labelId="column-select-label"
+            value={selectedColumn}
+            onChange={(e) => setSelectedColumn(e.target.value)}
+            label="Column"
+          >
+            {numericColumns.map((col) => (
+              <MenuItem key={col} value={col}>
+                {col}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        {/* </Box> */}
 
         {caseStudies.length > 1 && (
           <FormControl size="small">
@@ -316,13 +388,25 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
         )}
       </Box>
 
-      <Box sx={{ textAlign: 'center' }}>
-        <svg ref={svgRef}></svg>
+      <Box sx={{ width: '100%', overflow: 'hidden' }}>
+  <Box
+    sx={{
+      minWidth: 1000,
+      height: 500,
+      position: 'relative',
+    }}
+  >
+        <svg
+          ref={svgRef}
+          style={{ width: "100%", height: "100%" }}
+          preserveAspectRatio="xMidYMid meet"
+          viewBox="0 0 1000 500"
+        ></svg>
         {tooltipVisible && (
           <div
             ref={tooltipRef}
             style={{
-              position: 'absolute',
+              position: "absolute",
               left: `${
                 tooltipRef.current
                   ? Math.min(
@@ -332,18 +416,18 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
                   : tooltipData.x + 10
               }px`,
               top: `${tooltipData.y + 10}px`,
-              background: '#fff',
-              border: '1px solid #ccc',
-              padding: '8px 14px',
-              borderRadius: '6px',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-              pointerEvents: 'none',
-              fontSize: '14px',
+              background: "#fff",
+              border: "1px solid #ccc",
+              padding: "8px 14px",
+              borderRadius: "6px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+              pointerEvents: "none",
+              fontSize: "14px",
               zIndex: 9999,
-              minWidth: '120px',
-              whiteSpace: 'nowrap',
-              textAlign: 'left',
-              maxWidth: '300px',
+              minWidth: "120px",
+              whiteSpace: "nowrap",
+              textAlign: "left",
+              maxWidth: "300px",
             }}
           >
             <strong>Scenario:</strong> {tooltipData.sim}
@@ -357,25 +441,23 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
         <div
           ref={tooltipRef}
           style={{
-            position: 'absolute',
-            padding: '8px 12px',
-            background: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            pointerEvents: 'none',
+            position: "absolute",
+            padding: "8px 12px",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            pointerEvents: "none",
             opacity: 0,
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            fontSize: '12px',
+            boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+            fontSize: "12px",
             zIndex: 9999,
-            minWidth: '120px',
-            whiteSpace: 'nowrap',
+            minWidth: "120px",
+            whiteSpace: "nowrap",
           }}
         />
       </Box>
-
-      {loading && !data.length && (
-        <Typography>Loading LMP data...</Typography>
-      )}
+      </Box>
+      {loading && !data.length && <Typography>Loading LMP data...</Typography>}
 
       {error && <Typography color="error">{error}</Typography>}
     </Box>
