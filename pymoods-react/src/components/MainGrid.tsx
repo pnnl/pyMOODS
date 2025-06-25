@@ -9,15 +9,13 @@ import {
 } from "@mui/material";
 
 // Import Plot Components
-import ClusterScatterPlot from "./OffshoreWindfarmPlots/ClusterScatterPlot";
-import DualRadarChart, {
-  RadarData,
-} from "./OffshoreWindfarmPlots/DualRadarChart";
-import DecisionPlot from "./OffshoreWindfarmPlots/DecisionPlot";
-import LMPPlot from "./OffshoreWindfarmPlots/LMPPlot";
-import Summary from "./OffshoreWindfarmPlots/Summary";
-import VerticalSlider from "./OffshoreWindfarmPlots/Slider";
-import ParallelCoordinatesChart from "./OffshoreWindfarmPlots/ParallelCoordinatesChart";
+import ScatterPlot from './OffshoreWindfarmPlots/ScatterPlot';
+// import ClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
+import DualRadarChart, { RadarData } from './OffshoreWindfarmPlots/DualRadarChart';
+import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
+import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
+import Summary from './OffshoreWindfarmPlots/Summary';
+import ParallelCoordinatesChart from './OffshoreWindfarmPlots/ParallelCoordinatesChart';
 
 import config from "../config";
 const { API_BASE_URL } = config;
@@ -44,6 +42,7 @@ const MainGrid: React.FC<MainGridProps> = ({
   const [objectiveNames, setObjectiveNames] = useState<string[]>([]);
 
   // State for Summary
+  const [completeData, setCompleteData] = useState<Solution[]>([]);
   const [summaryData, setSummaryData] = useState<Solution[]>([]);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(
@@ -140,7 +139,9 @@ const MainGrid: React.FC<MainGridProps> = ({
         if (!response.ok) throw new Error("Failed to fetch shared data");
 
         const result = await response.json();
-
+        console.log("Fetched unified data:", result.solutions);
+        setCompleteData(result.solutions);
+  
         // Process summary data
         const orderedColumns = [
           ...(result.index_keys || []),
@@ -157,6 +158,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           });
           return orderedSolution;
         });
+        console.log("Processed solutions for summary:", processedSolutions);
         setSummaryData(processedSolutions);
 
         // Save ranks separately
@@ -241,14 +243,12 @@ const MainGrid: React.FC<MainGridProps> = ({
       {tabIndex === 0 && (
         <Box sx={{ width: "100%" }}>
           {/* First Row - Charts */}
-          <Grid container spacing={2} sx={{ width: "100%" }}>
-            <Grid item xs={12} sm={6}>
-              <Box sx={{ position: "relative", zIndex: 10, width: "100%" }}>
-                <ClusterScatterPlot
-                  useCase={selectedUseCase}
-                  filters={filters}
-                  weights={weights}
-                  onWeightsChange={handleWeightChange}
+          <Grid container spacing={2} sx={{ width: '100%' }}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ position: 'relative', zIndex: 10, width:"100%" }}>
+                <ScatterPlot
+                  useCase={selectedUseCase} 
+                  solutionsData={completeData} 
                   onClusterByChange={setClusterBy}
                 />
               </Box>

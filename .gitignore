@@ -165,3 +165,8 @@ LOCALREADME.md
 # pyMOODS React App Redesign
 pymoods-react/node_modules
 pymoods-react/yarn.lock
+
+# Ignore CSV and PDF files globally
+*.csv
+*.pdf
+*.jld2

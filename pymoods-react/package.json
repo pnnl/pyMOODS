@@ -16,12 +16,14 @@
     "@mui/material": "^6.4.2",
     "@rollup/rollup-darwin-arm64": "^4.37.0",
     "d3": "^7.9.0",
+    "d3-scale": "^4.0.2",
     "papaparse": "^5.5.2",
     "plotly.js": "^3.0.1",
     "plotly.js-basic-dist": "^3.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-plotly.js": "^2.6.0"
+    "react-plotly.js": "^2.6.0",
+    "recharts": "^3.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

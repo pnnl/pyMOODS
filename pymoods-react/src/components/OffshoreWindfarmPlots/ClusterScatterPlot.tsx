@@ -7,8 +7,7 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
-  Slider,
+  InputLabel
 } from "@mui/material";
 
 // Import centralized config
@@ -22,61 +21,47 @@ interface ScatterplotData {
   layout: Partial<Plotly.Layout>;
 }
 
+interface Solution {
+  [key: string]: any;
+}
+
 interface ClusterScatterPlotProps {
   useCase: string;
-  filters: Record<string, string[]>;
-  weights: Record<string, number>;
-  onWeightsChange?: (weights: Record<string, number>) => void;
+  solutionsData: Solution[];
   onColorByChange?: (colorBy: string) => void;
 }
 
 const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
   useCase,
-  filters,
-  weights,
-  onColorByChange,
+  solutionsData,
+  onColorByChange
 }) => {
   const [scatterplotData, setScatterplotData] =
     useState<ScatterplotData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [colorBy, setColorBy] = useState<string>("AI-Generated");
 
+  console.log(solutionsData)
+
   // Fetch scatterplot data
   useEffect(() => {
-    if (!useCase || Object.keys(weights).length === 0) return;
+    if (!useCase || !solutionsData) return;
 
     setLoading(true);
 
-    // const availableOptions = Object.keys(filters);
-    // const valid = availableOptions.includes(colorBy);
+    const payload = {
+      use_case: useCase,
+      solution_ids: solutionsData,//.map(sol => sol.id),
+      color_by: colorBy
+    };
 
-    // if (!valid || useCase) {
-    //   const newColorBy = "AI-Generated";
-    //   setColorBy(newColorBy);
-    //   if (onColorByChange) {
-    //     onColorByChange(newColorBy);
-    //   }
-    // }
-
-    const queryParams = new URLSearchParams();
-
-    // Add selected color field
-    queryParams.append("color_by", colorBy);
-
-    // Add other filters
-    Object.entries(filters).forEach(([key, values]) => {
-      if (Array.isArray(values) && values.length > 0) {
-        values.forEach((value) => queryParams.append(key, value));
-      }
-    });
-
-    queryParams.append("weights", JSON.stringify(weights)); // send weights
-
-    const url = `${API_BASE_URL}/api/scatterplot?${queryParams.toString()}&use_case=${encodeURIComponent(
-      useCase
-    )}`;
-
-    fetch(url)
+    fetch(`${API_BASE_URL}/api/project`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
       .then((response) => {
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -96,7 +81,7 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
       .finally(() => {
         setLoading(false);
       });
-  }, [useCase, filters, weights, colorBy]);
+  }, [solutionsData, colorBy]);
 
   if (loading || !scatterplotData) {
     return (
@@ -120,16 +105,6 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
 
   return (
     <Box
-      sx={{
-        width: "100%",
-        mt: 1,
-        mb: 1,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-      }}
-    >
-      <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
@@ -149,53 +124,52 @@ const ClusterScatterPlot: React.FC<ClusterScatterPlotProps> = ({
             maxWidth: 150,
           }}
         >
-          <InputLabel
-            id="color-by-select-label"
-            sx={{
-              fontSize: "1.1rem",
-              fontFamily:
-                "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-              color: "#213547"
-            }}
+        <InputLabel 
+          id="color-by-select-label" 
+          sx={{ fontSize: "1.1rem",
+          fontFamily:
+            "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          color: "#213547" }}
+        >
+          Color By
+        </InputLabel>
+        <Select
+          labelId="color-by-select-label"
+          value={colorBy}
+          label="Color By"
+          onChange={(e) => {
+            const newColorBy = e.target.value as string;
+            setColorBy(newColorBy);
+            if (onColorByChange) {
+              onColorByChange(newColorBy);
+            }
+          }}
+          sx={{
+            height: 40,
+            fontSize: "0.875rem",
+            textAlign: "center",
+          }}
+        >
+          <MenuItem 
+            key="AI-Generated" 
+            value="AI-Generated"
+            sx={{ fontSize: '0.875rem' }}
           >
-            Color By
-          </InputLabel>
-          <Select
-            labelId="color-by-select-label"
-            value={colorBy}
-            label="Color By"
-            onChange={(e) => {
-              const newColorBy = e.target.value as string;
-              setColorBy(newColorBy);
-              if (onColorByChange) {
-                onColorByChange(newColorBy);
-              }
-            }}
-            sx={{
-              height: 40,
-              fontSize: "0.875rem",
-              textAlign: "center",
-            }}
-          >
-            <MenuItem
-              key="AI-Generated"
-              value="AI-Generated"
-              sx={{ fontSize: "0.875rem" }}
+            AI-Generated
+          </MenuItem>
+          {/* {Object.keys(filters).map((option) => (
+            <MenuItem 
+              key={option} 
+              value={option}
+              sx={{ fontSize: '0.875rem' }}
             >
-              AI-Generated
+              {option}
             </MenuItem>
-            {Object.keys(filters).map((option) => (
-              <MenuItem
-                key={option}
-                value={option}
-                sx={{ fontSize: "0.875rem" }}
-              >
-                {option}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
+          ))} */}
+          
+        </Select>
+      </FormControl>
+
       <Box
         sx={{
           display: "flex",
