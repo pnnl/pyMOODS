@@ -39,6 +39,40 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
   const svgRef = useRef<SVGSVGElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
 
+  // Fetch LMP data
+  useEffect(() => {
+    if (!useCase) return;
+
+    setLoading(true);
+    setError(null);
+
+    const queryParams = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, values]) => {
+      if (Array.isArray(values)) {
+        values.forEach(value => queryParams.append(key, value));
+      }
+    });
+
+    const url = `${API_BASE_URL}/api/lmp?${queryParams.toString()}&use_case=${useCase}`;
+    
+    fetch(url)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch LMP data");
+        return res.json();
+      })
+      .then(jsonData => {
+        setData(jsonData.data || []);
+      })
+      .catch(err => {
+        console.error('Error fetching LMP data:', err);
+        setError("Failed to load LMP data.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [useCase, filters]);
+
   const numericColumns = React.useMemo(() => {
     if (!data.length) return [];
   
@@ -197,40 +231,6 @@ const LMPPlot: React.FC<LMPPlotProps> = ({ useCase, filters, selectedSolution })
         });
     });
   };
-
-  // Fetch LMP data
-  useEffect(() => {
-    if (!useCase) return;
-
-    setLoading(true);
-    setError(null);
-
-    const queryParams = new URLSearchParams();
-
-    Object.entries(filters).forEach(([key, values]) => {
-      if (Array.isArray(values)) {
-        values.forEach(value => queryParams.append(key, value));
-      }
-    });
-
-    const url = `${API_BASE_URL}/api/lmp?${queryParams.toString()}&use_case=${useCase}`;
-    
-    fetch(url)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch LMP data");
-        return res.json();
-      })
-      .then(jsonData => {
-        setData(jsonData.data || []);
-      })
-      .catch(err => {
-        console.error('Error fetching LMP data:', err);
-        setError("Failed to load LMP data.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [useCase, filters]);
 
   return (
     <Box sx={{ p: 2 }}>

@@ -188,7 +188,7 @@ const MainGrid: React.FC<MainGridProps> = ({
 
   if (summaryLoading || radarLoading) {
     return (
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
+      <Box sx={{ textAlign: 'center', mt: 12 }}>
         <LinearProgress />
         <Typography>Loading visualizations...</Typography>
       </Box>
@@ -197,7 +197,7 @@ const MainGrid: React.FC<MainGridProps> = ({
 
   if (error) {
     return (
-      <Box sx={{ textAlign: 'center', mt: 4 }}>
+      <Box sx={{ textAlign: 'center', mt: 12 }}>
         <Typography color="error">{error}</Typography>
       </Box>
     );
