@@ -284,7 +284,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
         }}
       >
         <Box sx={{ flex: 1, textAlign: "center" }}>
-          <Typography sx={{ fontSize: "1.2rem" }}>Scenario Data</Typography>
+          <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>Scenario Data</Typography>
         </Box>
         {/* <Box sx={{ width: '50%', maxWidth: 400 }}> */}
         <FormControl

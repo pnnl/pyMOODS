@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 
 import ECompLogo from "../assets/e-comp-logo.png";
 import PNNLLogo from "../assets/pnnl-logo.svg";
-import pyMOODSLogo from "../assets/pymoods-logo-updated.svg";
+// import pyMOODSLogo from "../assets/pymoods-logo-updated.svg";
 
 const Toolbar = styled(MuiToolbar)({
   display: "flex",
@@ -39,11 +39,11 @@ export default function AppNavbar() {
     >
       <Toolbar variant="dense" disableGutters sx={{ px: 1, pb: 0, pt: 0 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <img
+          {/* <img
             src={pyMOODSLogo}
             alt="pyMOODS Logo"
             style={{ height: "95px", width:"95px", "marginTop": "-15px", objectFit:"contain"}}
-          />
+          /> */}
           <Typography
             variant="h6"
             sx={{
@@ -61,8 +61,8 @@ export default function AppNavbar() {
           </Typography>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <img src={PNNLLogo} alt="PNNL Logo" style={{ height: "58px", marginTop:"-10px" }} />
-          <img src={ECompLogo} alt="e-Comp Logo" style={{ height: "58px" }} />
+          <img src={PNNLLogo} alt="PNNL Logo" style={{ height: "58px" }} />
+          <img src={ECompLogo} alt="e-Comp Logo" style={{ height: "58px"}} />
         </Stack>
       </Toolbar>
     </AppBar>

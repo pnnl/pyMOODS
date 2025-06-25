@@ -10,7 +10,8 @@ import InputLabel from '@mui/material/InputLabel';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
-
+import Stack from "@mui/material/Stack";
+import pyMOODSLogo from "../assets/pymoods-logo-updated.svg";
 import config from '../config';
 const { API_BASE_URL } = config;
 
@@ -208,7 +209,12 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
       <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
         {/* Base container with consistent top/bottom padding */}
         <Box sx={{ p: 2 }}>
-
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <img
+            src={pyMOODSLogo}
+            alt="pyMOODS Logo"
+            style={{ height: "110px", width:"110px", objectFit:"contain",alignItems: "center", backgroundColor:"white"}}
+          /></Box>
           {/* Use Case Section */}
           <Box sx={{ mb: 3, mt: 6.2 }}>
             <Typography variant="body1" sx={{ color: 'white', fontWeight: 500}}>
