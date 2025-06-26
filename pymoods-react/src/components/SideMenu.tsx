@@ -209,14 +209,40 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
       <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
         {/* Base container with consistent top/bottom padding */}
         <Box sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <img
-            src={pyMOODSLogo}
-            alt="pyMOODS Logo"
-            style={{ height: "110px", width:"110px", objectFit:"contain",alignItems: "center", backgroundColor:"white"}}
-          /></Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <div style={{
+            width: "100px",
+            height: "100px",
+            overflow: "hidden",
+            display: "inline-block",
+            backgroundColor: "#FAF9F6",
+            borderRadius: "8px", // optional
+            position: "relative",
+          }}>
+            <div style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              transform: "scale(1.3)", // 🔍 Adjust this value to control zoom level
+              transformOrigin: "center center"
+            }}>
+              <img
+                src={pyMOODSLogo}
+                alt="pyMOODS Logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
+            </div>
+          </div>
+          </Box>
           {/* Use Case Section */}
-          <Box sx={{ mb: 3, mt: 6.2 }}>
+          <Box sx={{ mb: 3, mt: 0 }}>
             <Typography variant="body1" sx={{ color: 'white', fontWeight: 500}}>
               Use Case
             </Typography>

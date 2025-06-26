@@ -224,9 +224,9 @@ const MainGrid: React.FC<MainGridProps> = ({
   }
 
   return (
-    <Box sx={{ width: "100%", px: { xs: 1, sm: 2 }, py: 0 }}>
+    <Box sx={{ width: "100%", px: { xs: 0, sm: 0 }, py: 0 }}>
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1, mr: 0, mt:1 }}>
         <Tabs
           value={tabIndex}
           onChange={(_, v) => setTabIndex(v)}
@@ -241,13 +241,13 @@ const MainGrid: React.FC<MainGridProps> = ({
 
       {/* Tab Content */}
       {tabIndex === 0 && (
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: "100%", ml: 0}}>
           {/* First Row - Charts */}
-          <Grid container spacing={2} sx={{ width: '100%' }}>
-            <Grid item xs={12} md={6}>
-            <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
+          <Grid container spacing={0} sx={{ width: '100%' }}>
+            <Grid item xs={12} md={6} sx={{ px: 4, mx: 0}}>
+            {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Space
-                </Typography>
+                </Typography> */}
               <Box sx={{ position: 'relative', zIndex: 10, width:"100%" }}>
                 <ScatterPlot
                   useCase={selectedUseCase} 
@@ -257,16 +257,16 @@ const MainGrid: React.FC<MainGridProps> = ({
               </Box>
             </Grid>
             <Grid item xs={12} sm={6}>
-            <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
+            {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
             Specializers and Generalizers
-                </Typography>
+                </Typography> */}
               <Box sx={{ width: "100%" }}>
                 <ParallelCoordinatesChart ranks={rankData} />
               </Box>
               <Box sx={{ width: "100%", mt: 4 }}>
-              <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
+              {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Ranking
-                </Typography>
+                </Typography> */}
                 <Summary
                   data={summaryData}
                   loading={summaryLoading}
@@ -277,7 +277,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           </Grid>
 
           {/* Second Row - Summary & LMP */}
-          <Grid container spacing={2} sx={{ mt: 2, width: '100%' }}>
+          <Grid container spacing={2} sx={{ width: '100%' }}>
             <Grid item xs={12} md={6}>
               <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, mt:"-80px" }}>
                 <LMPPlot 

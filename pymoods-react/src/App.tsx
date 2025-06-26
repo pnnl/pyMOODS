@@ -83,7 +83,7 @@ function App() {
             //   </Box>
             // ) : 
             (
-              <Box sx={{ textAlign: 'center', pl: 3, pt: 0 }}>
+              <Box sx={{ textAlign: 'center', ml: 2, mr:0, pl: 0, pr: 0, pt: 0 }}>
                 <MainGrid
                   selectedUseCase={selectedUseCase}
                   filters={filters}
