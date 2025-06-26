@@ -166,7 +166,12 @@ LOCALREADME.md
 pymoods-react/node_modules
 pymoods-react/yarn.lock
 
+# data files used by notebooks
+notebooks/input_cameo
+notebooks/output_cameo
+
 # Ignore CSV and PDF files globally
 *.csv
 *.pdf
 *.jld2
+

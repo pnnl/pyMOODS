@@ -358,7 +358,7 @@ class TradeoffLattice:
         # groupby facet for non-generalizers
         n = self.n_generalizers
 
-        if include_all_generalizers:        
+        if include_all_generalizers and facets is not None:
             grouped = data.iloc[self.n_generalizers:]\
                 .groupby(['All']*len(data - n) if facets is None else facets[n:])
         else:
