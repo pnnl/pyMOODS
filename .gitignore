@@ -165,3 +165,5 @@ LOCALREADME.md
 # pyMOODS React App Redesign
 pymoods-react/node_modules
 pymoods-react/yarn.lock
+notebooks/input_cameo
+notebooks/output_cameo
