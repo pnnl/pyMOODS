@@ -133,10 +133,9 @@ const RadarChart = ({ data, title = "Radar Chart", isDecision = false }) => {
       <p style={{
         textAlign: 'center',
         marginBottom: '10px',
-        fontWeight: "500",
         fontFamily:"Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-        fontSize: '20px',
-        color: '#213547',
+        fontSize: "1.2rem",
+        color: '#0f172a',
         }}>
         {title}
         </p>

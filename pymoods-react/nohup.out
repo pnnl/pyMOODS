@@ -1,0 +1,296 @@
+
+> pymoods-react@0.0.0 dev
+> vite
+
+
+  VITE v6.3.2  ready in 308 ms
+
+  ➜  Local:   http://localhost:8080/
+  ➜  Network: http://172.20.226.20:8080/
+4:10:08 PM [vite] (client) hmr update /src/App.tsx
+4:10:08 PM [vite] (client) hmr update /src/components/MainGrid.tsx
+4:10:08 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/ClusterScatterPlot.tsx
+4:10:08 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/DecisionPlot.tsx
+4:10:08 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/LMPPlot.tsx
+4:10:08 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/ObjectivePlot.tsx
+4:10:08 PM [vite] (client) hmr update /src/components/SideMenu.tsx
+4:11:20 PM [vite] (client) ✨ new dependencies optimized: @mui/material/Select, @mui/material/MenuItem, @mui/material/FormControl, @mui/material/InputLabel, @mui/material/Chip, @mui/material/CircularProgress
+4:11:20 PM [vite] (client) ✨ optimized dependencies changed. reloading
+9:52:54 PM [vite] (client) hmr update /src/App.tsx
+9:52:55 PM [vite] (client) hmr update /src/components/AppNavbar.tsx
+9:52:55 PM [vite] (client) hmr update /src/components/MainGrid.tsx
+9:52:55 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/ClusterScatterPlot.tsx
+9:52:55 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/DecisionPlot.tsx
+9:52:55 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/ObjectivePlot.tsx
+9:52:55 PM [vite] (client) hmr update /src/components/SideMenu.tsx
+9:52:55 PM [vite] (client) page reload sample_radial/radial-chart-demo/index.html
+9:52:56 PM [vite] (client) Pre-transform error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+9:52:56 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+9:52:56 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/ObjectivePlot.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/ObjectivePlot.tsx:2:20
+  17 |  var _s = $RefreshSig$();
+  18 |  import { useState, useEffect, useRef } from "react";
+  19 |  import * as d3 from "d3";
+     |                       ^
+  20 |  import config from "../../config";
+  21 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 4)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+9:53:05 PM [vite] (client) ✨ new dependencies optimized: @mui/material/TextField
+9:53:05 PM [vite] (client) ✨ optimized dependencies changed. reloading
+9:53:07 PM [vite] (client) Pre-transform error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+9:53:07 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+9:55:51 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+9:59:12 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+10:02:33 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+10:03:08 PM [vite] Internal server error: Failed to resolve import "d3" from "src/components/OffshoreWindfarmPlots/DualRadarChart.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/DualRadarChart.tsx:3:20
+  18 |  import { useState, useEffect } from "react";
+  19 |  import RadarChart from "./RadarChart";
+  20 |  import * as d3 from "d3";
+     |                       ^
+  21 |  import config from "../../config";
+  22 |  const { API_BASE_URL } = config;
+      at TransformPluginContext._formatLog (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42425:41)
+      at TransformPluginContext.error (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42422:16)
+      at normalizeUrl (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40401:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40520:37
+      at async Promise.all (index 5)
+      at async TransformPluginContext.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:40447:7)
+      at async EnvironmentPluginContainer.transform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42220:18)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35678:27)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+10:06:42 PM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@mui/material/esm/index.js'
+    at async open (node:internal/fs/promises:634:25)
+    at async Object.readFile (node:internal/fs/promises:1238:14)
+    at async extractExportsData (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15343:24)
+    at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15089:27
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15086:3)
+
+> pymoods-react@0.0.0 dev
+> vite
+
+Port 8080 is in use, trying another one...
+
+  VITE v6.3.5  ready in 235 ms
+
+  ➜  Local:   http://localhost:8081/
+  ➜  Network: http://172.20.226.20:8081/
+12:08:16 PM [vite] (client) page reload sample_radial/radial-chart-demo/index.html
+12:08:18 PM [vite] (client) page reload sample_radial/radial-chart-demo/index.html
+12:08:19 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/DualRadarChart.tsx
+12:08:19 PM [vite] (client) page reload examples/radial-chart-demo/index.html
+12:08:19 PM [vite] (client) page reload examples/radial-chart-demo/index.html
+12:08:19 PM [vite] (client) page reload examples/vtlite-ts-visualizer/public/index.html
+12:08:19 PM [vite] (client) page reload examples/vtlite-ts-visualizer/public/index.html
+12:08:23 PM [vite] (client) hmr update /src/App.tsx
+12:08:23 PM [vite] (client) hmr update /src/components/MainGrid.tsx
+12:08:23 PM [vite] (client) hmr update /src/components/AppNavbar.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/ClusterScatterPlot.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/DualRadarChart.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/RadarChart.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/LMPPlot.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/Summary.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/SideMenu.tsx
+12:08:24 PM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/Summary.tsx
+12:10:21 PM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@mui/material/esm/index.js'
+    at async open (node:internal/fs/promises:634:25)
+    at async Object.readFile (node:internal/fs/promises:1238:14)
+    at async extractExportsData (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15343:24)
+    at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15089:27
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15086:3)
+
+> pymoods-react@0.0.0 dev
+> vite
+
+Port 8080 is in use, trying another one...
+Port 8081 is in use, trying another one...
+
+  VITE v6.3.5  ready in 333 ms
+
+  ➜  Local:   http://localhost:8082/
+  ➜  Network: http://172.20.226.20:8082/
+11:10:07 AM [vite] (client) hmr update /src/App.tsx
+11:10:07 AM [vite] (client) page reload examples/scatterplot-viz/index.html
+11:10:08 AM [vite] (client) hmr update /src/components/AppNavbar.tsx
+11:10:08 AM [vite] changed tsconfig file detected: /home/matt412/moods/pymoods-react/examples/scatterplot-viz/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+11:10:08 AM [vite] (client) hmr update /src/components/MainGrid.tsx
+11:10:08 AM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/ClusterScatterPlot.tsx
+11:10:08 AM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/DualRadarChart.tsx
+11:10:08 AM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/LMPPlot.tsx
+11:10:08 AM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/RadarChart.tsx
+11:10:08 AM [vite] (client) hmr update /src/components/OffshoreWindfarmPlots/Summary.tsx
+11:10:08 AM [vite] (client) hmr update /src/components/SideMenu.tsx
+11:10:08 AM [vite] (client) page reload examples/scatterplot-viz/index.html
+11:10:08 AM [vite] changed tsconfig file detected: /home/matt412/moods/pymoods-react/examples/scatterplot-viz/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+11:11:15 AM [vite] Internal server error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+      at readFileSync (node:fs:443:20)
+      at LoadPluginContext.load (file:///home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/index.mjs:281:16)
+      at EnvironmentPluginContainer.load (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42191:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35612:22)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:16 AM [vite] (client) Pre-transform error: Failed to resolve import "recharts" from "src/components/OffshoreWindfarmPlots/ScatterPlot.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/matt412/moods/pymoods-react/src/components/OffshoreWindfarmPlots/ScatterPlot.tsx:12:7
+  25 |    CartesianGrid,
+  26 |    ResponsiveContainer
+  27 |  } from "recharts";
+     |          ^
+  28 |  const ScatterPlot = ({
+  29 |    useCase,
+11:11:16 AM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@mui/material/esm/index.js'
+    at async open (node:internal/fs/promises:634:25)
+    at async Object.readFile (node:internal/fs/promises:1238:14)
+    at async extractExportsData (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15343:24)
+    at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15089:27
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15086:3)
+11:11:16 AM [vite] (client) Pre-transform error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+11:11:17 AM [vite] (client) error while updating dependencies:
+Error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@mui/material/esm/index.js'
+    at async open (node:internal/fs/promises:634:25)
+    at async Object.readFile (node:internal/fs/promises:1238:14)
+    at async extractExportsData (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15343:24)
+    at async file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15089:27
+    at async Promise.all (index 4)
+    at async prepareEsbuildOptimizerRun (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:15086:3)
+11:13:13 AM [vite] Internal server error: ENOENT: no such file or directory, open '/home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/refresh-runtime.js'
+      at readFileSync (node:fs:443:20)
+      at LoadPluginContext.load (file:///home/matt412/moods/pymoods-react/node_modules/@vitejs/plugin-react/dist/index.mjs:281:16)
+      at EnvironmentPluginContainer.load (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:42191:17)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async loadAndTransform (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:35612:22)
+      at async viteTransformMiddleware (file:///home/matt412/moods/pymoods-react/node_modules/vite/dist/node/chunks/dep-DG3BLbPj.js:37176:24)

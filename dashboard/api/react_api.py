@@ -438,6 +438,69 @@ def get_init_data():
 #         app.logger.error(f"Error fetching file data: {str(e)}")
 #         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/project', methods=['POST'])
+def get_projection_data():
+    """Receive solution IDs and color_by field, return 2D projection"""
+    try:
+        payload = request.get_json()
+        if not payload:
+            return jsonify({"error": "No JSON payload received"}), 400
+
+        # Get required fields
+        use_case = payload.get('use_case')
+        if not use_case:
+            return jsonify({"error": "Missing query param: use_case"}), 400
+
+        solution_ids = payload.get("solution_ids")
+        color_by = payload.get("color_by", None)
+        
+        if not solution_ids:
+            return jsonify({"error": "Missing 'solution_ids' in request"}), 400
+
+        # Get data from cache
+        if use_case not in USE_CASE_CACHE:
+            return jsonify({"error": f"Unknown use_case: {use_case}"}), 400
+
+        # Filter dataset to selected solutions
+        filtered_data = pd.DataFrame(solution_ids)
+        
+        # Extract objective functions
+        objective_keys = list(USE_CASE_CACHE[use_case]["objective_functions"].keys())
+        decision_keys = list(USE_CASE_CACHE[use_case]["decision_variables"].keys())
+        
+        # Initialize Visualizer
+        vis_obj = Visualizer(
+            data=filtered_data,
+            data_ovars=objective_keys,
+            data_dvars=decision_keys
+        )
+        
+        # Get joint XY coordinates
+        points = vis_obj.joint_xy
+        updated_points = points.loc[filtered_data.index]
+        updated_points.columns = ["x_coord", "y_coord"]
+
+        # Get clusters for filtered data
+        clusters = vis_obj.df_clustered.loc[filtered_data.index, ["label"]]
+        print("Data:::::", updated_points, clusters, filtered_data)
+        pd.concat([updated_points, clusters, filtered_data], axis=1).to_csv("test.csv")
+        
+        # Prepare response
+        result = {
+            "x": updated_points[0].tolist(),
+            "y": updated_points[1].tolist()
+        }
+
+        # Optional color values
+        if color_by and color_by in filtered_data.columns:
+            result["colorValues"] = filtered_data[color_by].fillna("Unknown").tolist()
+
+        return jsonify(result)
+
+    except Exception as e:
+        app.logger.error(f"Error generating projections: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
 @app.route('/api/scatterplot', methods=['GET'])
 def get_scatterplot():
     """Get scatterplot data with optimized filtering and parameter handling"""

@@ -35,7 +35,7 @@ function App() {
   }, [filters, weights]);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minWidth: "100%", minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Sidebar */}
       <Box
         sx={{
@@ -60,6 +60,8 @@ function App() {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
+          width: '100%',
+          maxWidth: '100%',
         }}
       >
         <Box sx={{ mb: 0, mt: 0, ml: 1, pl: 1 }}>
@@ -68,17 +70,19 @@ function App() {
 
         {selectedUseCase ? (
           <>
-            {!isDataLoaded ? (
-              <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography variant="h6">Loading Use Case Data...</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Please wait while we load filters and objective weights.
-                </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <CircularProgress size={24} />
-                </Box>
-              </Box>
-            ) : (
+            {
+            // !isDataLoaded ? (
+            //   <Box sx={{ textAlign: 'center', mt: 12 }}>
+            //     <Typography variant="h6">Loading Use Case Data...</Typography>
+            //     <Typography variant="body2" color="textSecondary">
+            //       Please wait while we load filters and objective weights.
+            //     </Typography>
+            //     <Box sx={{ mt: 12 }}>
+            //       <CircularProgress size={24} />
+            //     </Box>
+            //   </Box>
+            // ) : 
+            (
               <Box sx={{ textAlign: 'center', pl: 3, pt: 0 }}>
                 <MainGrid
                   selectedUseCase={selectedUseCase}

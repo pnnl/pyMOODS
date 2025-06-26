@@ -10,7 +10,8 @@ import InputLabel from '@mui/material/InputLabel';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
-
+import Stack from "@mui/material/Stack";
+import pyMOODSLogo from "../assets/pymoods-logo-updated.svg";
 import config from '../config';
 const { API_BASE_URL } = config;
 
@@ -208,12 +209,18 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
       <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
         {/* Base container with consistent top/bottom padding */}
         <Box sx={{ p: 2 }}>
-
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <img
+            src={pyMOODSLogo}
+            alt="pyMOODS Logo"
+            style={{ height: "110px", width:"110px", objectFit:"contain",alignItems: "center", backgroundColor:"white"}}
+          /></Box>
           {/* Use Case Section */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500, mb: 1.5 }}>
+          <Box sx={{ mb: 3, mt: 6.2 }}>
+            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500}}>
               Use Case
             </Typography>
+            <Box sx={{ borderBottom: '1px solid', borderColor: 'white', width: '100%',  mb: 1.5 }} />
             <FormControl fullWidth size="small">
               <SidebarInputLabel>Select Use Case</SidebarInputLabel>
               <SidebarSelect
@@ -246,9 +253,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
 
           {/* Filters Section */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500, mb: 1.5 }}>
+            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500 }}>
               Filters
             </Typography>
+            <Box sx={{ borderBottom: '1px solid', borderColor: 'white', width: '100%',  mb: 1.5 }} />
             {loading && filterOptions.length === 0 ? (
               <Box sx={{ my: 1.5, display: 'flex', justifyContent: 'center' }}>
                 <CircularProgress size={20} sx={{ color: 'white' }} />
@@ -311,9 +319,10 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
 
           {/* Objective Weights Section */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500, mb: 1.5 }}>
+            <Typography variant="body1" sx={{ color: 'white', fontWeight: 500}}>
               Objective Weights
             </Typography>
+            <Box sx={{ borderBottom: '1px solid', borderColor: 'white', width: '100%',  mb: 1.5 }} />
             {objectiveWeights.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No objectives found.</Typography>
             ) : (
