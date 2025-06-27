@@ -105,12 +105,12 @@ interface ScatterPlotProps {
   </div>
 
   {/* Scatter Chart with Adjustments */}
-  <ResponsiveContainer width="100%" height={400}>
+  <ResponsiveContainer width="100%" height={500}>
     <ScatterChart
       margin={{
         top: 20,
         right: 0,
-        bottom: 20,
+        bottom: 0,
         left: 0 // Reduced left margin to remove white space
       }}
     >

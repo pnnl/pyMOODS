@@ -104,8 +104,9 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
           size="small"
           sx={{
             tableLayout: 'fixed',
-            minWidth: 300,
+            minWidth: 280,
             maxWidth: '95%',
+            maxHeight: '250px',
             margin: '0 auto',
             width: 'max-content',
           }}

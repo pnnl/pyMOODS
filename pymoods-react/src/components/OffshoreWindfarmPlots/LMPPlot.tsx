@@ -154,76 +154,50 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
 
   // Draw chart on filtered data change
   useEffect(() => {
-    drawChart();
-  }, [filteredData, selectedColumn]);
+    const resizeObserver = new ResizeObserver(() => drawChart());
+    if (svgRef.current?.parentElement) {
+      resizeObserver.observe(svgRef.current.parentElement);
+    }
+    return () => resizeObserver.disconnect();
+  }, [filteredData, selectedColumn]);  
 
   const drawChart = () => {
     const svgElement = svgRef.current;
     if (!svgElement) return;
-
-    const containerWidth = svgElement.parentElement?.clientWidth || 800;
-    const containerHeight = svgElement.parentElement?.clientHeight || 400;
-    const width = Math.max(containerWidth, 600);
-    const height = Math.max(containerHeight, 300);
-    const margin = { top: 20, right: 30, bottom: 40, left: 80 };
+  
+    const container = svgElement.parentElement;
+    if (!container) return;
+  
+    const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
+    const margin = { top: 10, right: 10, bottom: 30, left: 10 }; // minimized margins
+    const width = containerWidth;
+    const height = containerHeight;
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
-
-    if (!svgRef.current) return;
-
+  
     const svg = d3.select(svgElement);
     svg.selectAll("*").remove(); // Clear previous chart
-
-    const allTimes = Object.values(groupedBySim).flatMap((series) =>
-      series.map((d) => d.time)
-    );
-    const xDomain = d3.extent(allTimes) as [number, number]; // X-axis = time
-
+  
+    const allTimes = Object.values(groupedBySim).flatMap((series) => series.map((d) => d.time));
+    const xDomain = d3.extent(allTimes) as [number, number];
+  
     const yDomain = [
       0,
-      d3.max(
-        Object.values(groupedBySim).flatMap((arr) => arr.map((d) => d.value))
-      ) || 100,
+      d3.max(Object.values(groupedBySim).flatMap((arr) => arr.map((d) => d.value))) || 100,
     ];
-
-    const x = d3
-      .scaleTime()
-      .domain(xDomain)
-      .range([margin.left, innerWidth - margin.right]);
-
-    const y = d3
-      .scaleLinear()
-      .domain(yDomain)
-      .range([innerHeight - margin.bottom, margin.top]);
-
+  
+    const x = d3.scaleTime().domain(xDomain).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain(yDomain).range([height - margin.bottom, margin.top]);
+  
     const xAxis = (g: any) =>
       g
-        .attr("transform", `translate(0,${innerHeight - margin.bottom})`)
+        .attr("transform", `translate(0,${height - margin.bottom})`)
         .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%H:%M")))
         .selectAll("text")
         .attr("font-size", "12px");
-
-    const yAxis = (g: any) =>
-      g
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y))
-        .selectAll("text")
-        .attr("font-size", "12px");
-
-    // svg.append('g').call(xAxis);
-    svg.append("g").call(yAxis);
-
-    // Axis label
-    svg
-      .append("text")
-      .attr("x", -innerHeight / 2)
-      .attr("y", margin.left - 69)
-      .attr("text-anchor", "middle")
-      .attr("transform", "rotate(-90)")
-      .attr("font-size", "14px")
-      .text(selectedColumn);
-
-    // Draw lines
+  
+    svg.append("g").call(xAxis);
+  
     Object.entries(groupedBySim).forEach(([sim, values], i) => {
       svg
         .append("path")
@@ -234,21 +208,18 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
         .attr(
           "d",
           d3
-            .line()
+            .line<{ time: number; value: number }>()
             .x((d) => x(d.time))
             .y((d) => y(d.value))
         )
         .on("mouseover", function (event, d) {
           d3.select(this).raise().attr("stroke", "steelblue");
-
           const [mouseX, mouseY] = d3.pointer(event, svgRef.current);
           const invertX = x.invert(mouseX);
           const closest = d.reduce((a, b) => {
-            return Math.abs(a.time - invertX) < Math.abs(b.time - invertX)
-              ? a
-              : b;
+            return Math.abs(a.time - invertX) < Math.abs(b.time - invertX) ? a : b;
           });
-
+  
           setTooltipData({
             x: mouseX,
             y: mouseY,
@@ -272,6 +243,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
         });
     });
   };
+  
 
   return (
     <Box sx={{ p: 2, width: "100%", flexWrap: "wrap" }}>
@@ -279,7 +251,6 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
         sx={{
           display: "flex",
           justifyContent: "space-around",
-          mb: 2,
           width: "100%",
         }}
       >
@@ -292,14 +263,14 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
           size="small"
           variant="outlined"
           sx={{
-            maxWidth: 150,
+            maxWidth: 250,
             marginRight: "30px",
           }}
         >
           <InputLabel
             id="column-select-label"
             style={{
-              fontSize: "1.1rem",
+              fontSize: "1rem",
               fontFamily:
                 "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
               color: "#213547",
@@ -312,6 +283,9 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
             value={selectedColumn}
             onChange={(e) => setSelectedColumn(e.target.value)}
             label="Column"
+            sx={{
+              fontSize: "0.85rem", // <-- controls selected value font size
+            }}
           >
             {numericColumns.map((col) => (
               <MenuItem key={col} value={col}>
@@ -341,19 +315,11 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
       </Box>
 
       <Box sx={{ width: '100%', overflow: 'hidden' }}>
-  <Box
-    sx={{
-      minWidth: 1000,
-      height: 500,
-      position: 'relative',
-    }}
-  >
+      <Box sx={{ width: '100%', height: '300px', position: 'relative' }}>
         <svg
           ref={svgRef}
-          style={{ width: "100%", height: "100%" }}
-          preserveAspectRatio="xMidYMid meet"
-          viewBox="0 0 1000 500"
-        ></svg>
+          style={{ width: "100%", height: "100%", display: "block" }}
+        />
         {tooltipVisible && (
           <div
             ref={tooltipRef}

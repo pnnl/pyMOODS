@@ -55,7 +55,7 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
 
     const margin = { top: 20, right: 0, bottom: 30, left: 0 };
     const width = containerWidth - margin.left - margin.right;
-    const height = 250 - margin.top - margin.bottom;
+    const height = 240 - margin.top - margin.bottom;
 
     const g = svg.append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
@@ -221,58 +221,43 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
   const styles = {
     container: {
       display: 'flex',
-      alignItems: 'center',
+      flexDirection: 'column',
+      alignItems: 'stretch', // Full width
       width: '100%',
-      minHeight: '300px',
-      position: 'relative' as const,
+      minHeight: '280px',
+      position: 'relative',
+    },
+    sliderContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '4px'
     },
     chart: {
       flexGrow: 1,
       height: 'auto',
-      minHeight: '300px',
-    },
-    sliderContainer: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginLeft: '10px',
-      height: '100%',
-      maxHeight: '300px',
-      position: 'relative' as const,
-    },
-    sliderLabel: {
-      writingMode: 'vertical-rl' as const,
-      transform: 'rotate(-180deg)',
-      fontSize: '14px',
-      fontWeight: 500,
-      textAlign: 'center' as const,
-      whiteSpace: 'nowrap' as const,
-      userSelect: 'none',
-      cursor: 'default',
+      minHeight: '280px',
     },
   };
 
   return (
     <Box sx={styles.container}>
+      {/* Horizontal Slider with Label on the Right */}
+      <Box sx={styles.sliderContainer}>
+        {/* Horizontal Slider Component */}
+        <HorizontalSlider
+          min={1}
+          max={10}
+          step={1}
+          onChange={handleSliderChange}
+        />
+      </Box>
+  
       {/* Chart SVG */}
       <svg
         ref={ref}
         style={styles.chart}
       />
-
-      {/* Vertical Slider with Label on the Right */}
-      <Box sx={styles.sliderContainer}>
-        {/* Rotated Label */}
-        <Box sx={styles.sliderLabel}>Number of Specializers</Box>
-
-        {/* Vertical Slider Component */}
-        <VerticalSlider
-          min={0}
-          max={1}
-          step={0.1}
-          onChange={handleSliderChange}
-        />
-      </Box>
     </Box>
   );
 };
@@ -280,18 +265,18 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
 export default ParallelCoordinatesChart;
 
 // Inline VerticalSlider Component
-const VerticalSlider: React.FC<{
+const HorizontalSlider: React.FC<{
   min?: number;
   max?: number;
   step?: number;
   onChange?: (value: number) => void;
 }> = ({
-  min = 0,
-  max = 1,
-  step = 0.1,
+  min = 1,
+  max = 10,
+  step = 1,
   onChange,
 }) => {
-  const [value, setValue] = useState<number>((min + max) / 2);
+  const [value, setValue] = useState<number>(Math.round((min + max) / 2));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value);
@@ -300,13 +285,27 @@ const VerticalSlider: React.FC<{
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      fontFamily: 'Inter, Roboto, sans-serif',
-      padding: '10px 0',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        fontFamily: 'Inter, Roboto, sans-serif',
+        width: '90%',
+        padding: 0,
+        margin: 0,
+      }}
+    >
+      <div
+        style={{
+          marginTop: 0,
+          fontSize: '13px',
+          fontWeight: 500,
+          color: '#3f3f3f',
+        }}
+      >
+        Minimum Number of Specializers: {value.toFixed(0)}
+      </div>
       <input
         type="range"
         min={min}
@@ -314,30 +313,19 @@ const VerticalSlider: React.FC<{
         step={step}
         value={value}
         onChange={handleChange}
-        className="clean-vertical-slider"
+        className="clean-horizontal-slider"
         style={{
-          writingMode: 'bt-lr',
-          WebkitAppearance: 'slider-vertical',
-          appearance: 'slider-vertical',
-          height: '100%',
-          width: '28px',
+          width: '90%',
+          height: '28px',
           background: 'transparent',
           margin: 0,
           padding: 0,
         }}
       />
-      <div style={{
-        marginTop: '10px',
-        fontSize: '13px',
-        fontWeight: 500,
-        color: '#3f3f3f',
-      }}>
-        {value.toFixed(1)}
-      </div>
+      
 
-      {/* CSS inside JSX for demo purposes */}
       <style>{`
-        .clean-vertical-slider::-webkit-slider-thumb {
+        .clean-horizontal-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           height: 16px;
           width: 16px;
@@ -345,17 +333,17 @@ const VerticalSlider: React.FC<{
           background: transparent;
           border: 2px solid #3f51b5;
           box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
-          margin-left: -6px;
           cursor: pointer;
+          margin-top: -6px; /* Align thumb */
         }
 
-        .clean-vertical-slider::-webkit-slider-runnable-track {
-          width: 4px;
+        .clean-horizontal-slider::-webkit-slider-runnable-track {
+          height: 4px;
           background: #e0e0e0;
           border-radius: 2px;
         }
 
-        .clean-vertical-slider::-moz-range-thumb {
+        .clean-horizontal-slider::-moz-range-thumb {
           height: 16px;
           width: 16px;
           border-radius: 50%;
@@ -364,8 +352,8 @@ const VerticalSlider: React.FC<{
           cursor: pointer;
         }
 
-        .clean-vertical-slider::-moz-range-track {
-          width: 4px;
+        .clean-horizontal-slider::-moz-range-track {
+          height: 4px;
           background: #e0e0e0;
           border-radius: 2px;
         }
@@ -373,3 +361,4 @@ const VerticalSlider: React.FC<{
     </div>
   );
 };
+

@@ -244,7 +244,7 @@ const MainGrid: React.FC<MainGridProps> = ({
         <Box sx={{ width: "100%", ml: 0}}>
           {/* First Row - Charts */}
           <Grid container spacing={0} sx={{ width: '100%' }}>
-            <Grid item xs={12} md={6} sx={{ px: 4, mx: 0}}>
+            <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
             {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Space
                 </Typography> */}
@@ -256,14 +256,14 @@ const MainGrid: React.FC<MainGridProps> = ({
                 />
               </Box>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={6} sx={{ px: 3, mx: 0}}>
             {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
             Specializers and Generalizers
                 </Typography> */}
               <Box sx={{ width: "100%" }}>
                 <ParallelCoordinatesChart ranks={rankData} />
               </Box>
-              <Box sx={{ width: "100%", mt: 4 }}>
+              <Box sx={{ width: "100%", mt: 0 }}>
               {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Ranking
                 </Typography> */}
@@ -277,9 +277,9 @@ const MainGrid: React.FC<MainGridProps> = ({
           </Grid>
 
           {/* Second Row - Summary & LMP */}
-          <Grid container spacing={2} sx={{ width: '100%' }}>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, mt:"-80px" }}>
+          <Grid container spacing={0} sx={{ width: '100%' }}>
+            <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
+              <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, height: '600px'}}>
                 <LMPPlot 
                   useCase={selectedUseCase} 
                   filters={filters} 
@@ -287,7 +287,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                 />
               </Box>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
               <Box>
                 <DualRadarChart
                   objectives={radarData.objectives}
@@ -295,18 +295,6 @@ const MainGrid: React.FC<MainGridProps> = ({
                   loading={radarLoading}
                 />
               </Box>
-            </Grid>
-          </Grid>
-
-          {/* Third Row - Charts */}
-          <Grid container spacing={2} sx={{ width: "100%" }}>
-            <Grid item xs={12} md={12}>
-              <DecisionPlot
-                useCase={selectedUseCase}
-                filters={filters}
-                weights={weights}
-                clusterBy={clusterBy}
-              />
             </Grid>
           </Grid>
         </Box>
