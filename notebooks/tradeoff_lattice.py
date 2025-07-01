@@ -332,9 +332,31 @@ class TradeoffLattice:
             .format_index(get_index_label)\
             .background_gradient(axis=None, cmap=cmap)
 
-    def plot_ovars_parallel_coords(self, reorder=True, use_rank=True, x_label_format=None, facets=None, include_all_generalizers=False):
+    def plot_ovars_parallel_coords(
+        self, 
+        reorder=True, 
+        use_rank=True, 
+        x_label_format=None, 
+        facets=None, 
+        include_all_generalizers=False,
+        highlight_generalizers=False,
+        ax = None
+    ):
         
         data = self.rank
+        cmap = plt.get_cmap('tab10')
+        categories = set(data.index.values)
+        color_map = {cat: cmap(i / len(categories)) for i, cat in enumerate(categories)}
+
+        sel_index = self.specializers.index
+        other_group = self.generalizers
+        lw_highlight = 1
+        lw_others = 5
+        if highlight_generalizers:
+            sel_index = self.generalizers
+            other_group = self.specializers.index
+            lw_highlight = 3
+            lw_others = 1
 
         if not use_rank:        
             X = self.df[self.ovars]*self.scale
@@ -348,7 +370,7 @@ class TradeoffLattice:
             A = nx.from_pandas_adjacency(C)
             order = nx.spectral_ordering(A)
             data = data[order]
-            S = self.specializers[order]
+            S = sel_index[order]
 
             self.C = C
             self.order = order
@@ -369,7 +391,8 @@ class TradeoffLattice:
             if include_all_generalizers:
                 data_k = pd.concat((data.iloc[:n], data_k))
 
-            ax = plt.subplot(len(grouped), 1, i + 1)
+            if ax is None:
+                ax = plt.subplot(len(grouped), 1, i + 1)
             ax.set_title(k)
 
             if use_rank:
@@ -377,13 +400,18 @@ class TradeoffLattice:
 
             for name, y in data_k.iterrows():
                 s = None
-                if name in self.specializers.index:
+                if name in sel_index:
                     kwargs=dict()
-                    ax.scatter(x, y, marker='o', s=S.loc[name, ]*50)
+                    if not highlight_generalizers:
+                        s = self.specializers.loc[name, ]*50
+                    else:
+                        s = 50
+                    ax.scatter(x, y, marker='o', s=s, zorder=10, color=color_map[name])
+                    kwargs=dict(linewidth=lw_highlight, color=color_map[name], zorder=8)
                     s = name
-                elif name in self.generalizers:
-                    kwargs=dict(linewidth=5, color='lightgray')
-                    s = name
+                elif name in other_group:
+                    kwargs=dict(linewidth=lw_others, color='lightgray')
+                    # s = name
                 else:
                     kwargs=dict(linewidth=.5, color='lightgray')
             
@@ -398,7 +426,7 @@ class TradeoffLattice:
             
                 ax.plot(x, y, **kwargs)
             
-            ax.yaxis.set_label('Rank' if use_rank else 'Z-score')
+            # ax.yaxis.set_label_text('Rank' if use_rank else 'Z-score')
             ax.xaxis.set_ticks(
                 x, 
                 data.columns if x_label_format is None else map(x_label_format, data.columns),
