@@ -43,6 +43,8 @@ const MainGrid: React.FC<MainGridProps> = ({
 
   // State for Summary
   const [completeData, setCompleteData] = useState<Solution[]>([]);
+  const [decisionKeys, setDecisionKeys] = useState<string[]>([]);
+  const [objectiveKeys, setObjectiveKeys] = useState<string[]>([]); 
   const [summaryData, setSummaryData] = useState<Solution[]>([]);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(
@@ -141,7 +143,9 @@ const MainGrid: React.FC<MainGridProps> = ({
         const result = await response.json();
         console.log("Fetched unified data:", result.solutions);
         setCompleteData(result.solutions);
-  
+        setDecisionKeys(result.decision_keys || []);
+        setObjectiveKeys(result.objective_keys || []);
+        
         // Process summary data
         const orderedColumns = [
           ...(result.index_keys || []),
@@ -243,7 +247,7 @@ const MainGrid: React.FC<MainGridProps> = ({
       {tabIndex === 0 && (
         <Box sx={{ width: "100%", ml: 0}}>
           {/* First Row - Charts */}
-          <Grid container spacing={0} sx={{ width: '100%' }}>
+          <Grid container spacing={0} sx={{ width: '100%', pt: 2 }}>
             <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
             {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Space
@@ -251,7 +255,9 @@ const MainGrid: React.FC<MainGridProps> = ({
               <Box sx={{ position: 'relative', zIndex: 10, width:"100%" }}>
                 <ScatterPlot
                   useCase={selectedUseCase} 
-                  solutionsData={completeData} 
+                  solutionsData={completeData}
+                  decision_keys={decisionKeys}
+                  objective_keys={objectiveKeys} 
                   onClusterByChange={setClusterBy}
                 />
               </Box>
@@ -277,7 +283,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           </Grid>
 
           {/* Second Row - Summary & LMP */}
-          <Grid container spacing={0} sx={{ width: '100%' }}>
+          <Grid container spacing={0} sx={{ width: '100%', pt: 4 }}>
             <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
               <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, height: '600px'}}>
                 <LMPPlot 

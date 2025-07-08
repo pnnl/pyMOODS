@@ -53,7 +53,7 @@ export default function AppNavbar() {
       lineHeight: 1.3,
     }}
   >
-    Visual Analytics &lt;&gt; Co-Design
+    Visual Reasoning for Decision Making
   </Typography>
   <Typography
     variant="subtitle2"
@@ -67,7 +67,7 @@ export default function AppNavbar() {
       lineHeight: 1.6,
     }}
   >
-    Decision Support System for Large Scale Electricity Infrastructure Planning
+    Integrated AI-Enabled Platform for Large Scale Electricity Infrastructure Planning
   </Typography>
 </Box>
 

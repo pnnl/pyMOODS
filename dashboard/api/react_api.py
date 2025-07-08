@@ -17,6 +17,8 @@ from scipy.spatial.qhull import QhullError
 from sklearn.cluster import HDBSCAN
 from plotly.subplots import make_subplots
 
+import matplotlib.pyplot as plt
+
 # Add dashboard directory to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -633,10 +635,12 @@ def get_weighted_solutions():
         return jsonify({"error": "Missing query param: use_case"}), 400
     try:
         data = USE_CASE_CACHE[case_study]
+        
+        # read hyperparameters and csv_data from the cached data
         hyperparameters = data["hyperparameters"]
         csv_data = data["csv_data"]
         
-        # Parse filters
+        # apply filters
         query_params = {key: request.args.getlist(key) for key in hyperparameters}
         filtered_data = csv_data.copy()
         for key, values in query_params.items():
@@ -644,10 +648,26 @@ def get_weighted_solutions():
                 filtered_data = filtered_data[filtered_data[key].isin(values)]
         
         # Get objective columns
-        objective_cols = list(data["objective_functions"].keys())
-        decision_cols = list(data["decision_variables"].keys())
+        ovars = list(data["objective_functions"].keys())
+        dvars = list(data["decision_variables"].keys())
+
+        # Initialize Visualizer
+        vis_obj = Visualizer(
+            data=csv_data,
+            data_ovars=ovars,
+            data_dvars=dvars
+        )
         
-        # Parse weights from query params
+        # get projections and clusters for filtered data indices
+        points = vis_obj.joint_xy.loc[filtered_data.index]
+        # get clusters for filtered data
+        clusters = vis_obj.df_clustered.loc[filtered_data.index, ["label"]]
+        
+        # merge projections and clusters with filtered data
+        filtered_data = pd.concat([filtered_data, points, clusters], axis=1)
+        filtered_data = filtered_data.rename(columns={0: 'x_coord', 1: 'y_coord'})
+        
+        # parse weights from query params
         weights = {}
         for key in request.args:
             if key.startswith("weight_"):
@@ -658,53 +678,53 @@ def get_weighted_solutions():
                     weights[obj_name] = 1.0
         
         # Default weights for missing objectives
-        for obj in objective_cols:
+        for obj in ovars:
             if obj not in weights:
                 weights[obj] = 1.0
 
         # Compute weighted score
-        filtered_data['Weighted Sum'] = sum(filtered_data[col] * weights[col] for col in objective_cols)
+        filtered_data['Weighted Sum'] = sum(filtered_data[col] * weights[col] for col in ovars)
 
         # Sort by weighted score descending and take top 5
-        top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)
-        print(top_solutions.iloc[0])
+        # top_solutions = filtered_data.sort_values(by='Weighted Sum', ascending=False)
+        # print(top_solutions.iloc[0])
         #     list(hyperparameters.keys()) + decision_cols + ['Weighted Sum']
         # ]
 
         # Scale the objective columns for ranking
-        scale = {
-            'Cable Material Cost($M)': -1,
-            'Battery Cost($M)': -1,
-            'Day-Ahead Revenue ($k)': 1,
-            'Real-Time Revenue ($k)': 1,
-            'Reserve WF Revenue ($k)': 1,
-            'Reserve ESS Revenue ($k)': 1
-        }
-        scale_series = pd.Series(scale)
-        rank_frame = filtered_data.head(5).copy()
-        print(rank_frame)
-        rank_frame.index = (rank_frame["Case Study"] + "," + rank_frame["Location"])
-        rank_frame = rank_frame[objective_cols]
+        # scale = {
+        #     'Cable Material Cost($M)': -1,
+        #     'Battery Cost($M)': -1,
+        #     'Day-Ahead Revenue ($k)': 1,
+        #     'Real-Time Revenue ($k)': 1,
+        #     'Reserve WF Revenue ($k)': 1,
+        #     'Reserve ESS Revenue ($k)': 1
+        # }
+        # scale_series = pd.Series(scale)
+        # rank_frame = filtered_data.head(5).copy()
+        # print(rank_frame)
+        # rank_frame.index = (rank_frame["Case Study"] + "," + rank_frame["Location"])
+        # rank_frame = rank_frame[ovars]
         
         # Apply scaling and rank
         # rank_frame = rank_frame * scale_series
         # rank_frame = rank_frame.rank(ascending=False)
-        print(rank_frame.to_dict(orient='index'))
+        # print(rank_frame.to_dict(orient='index'))
         
         # Convert to dict for JSON response
-        solution_dicts = [
-            OrderedDict([(col, row[col]) for col in top_solutions.columns])
-            for _, row in top_solutions.iterrows()
+        solution_dict = [
+            OrderedDict([(col, row[col]) for col in filtered_data.columns])
+            for _, row in filtered_data.iterrows()
         ]
         
         return Response(
             json.dumps({
-                "solutions": solution_dicts,
-                "ranks": rank_frame.to_dict(orient='index'),
+                "solutions": solution_dict,
+                "ranks": filtered_data[ovars].to_dict(orient='index'),
                 "weights_used": weights,
                 "index_keys": ['Solution ID'],
-                "objective_keys": objective_cols,
-                "decision_keys": decision_cols,
+                "objective_keys": ovars,
+                "decision_keys": dvars,
                 "hyperparameter_keys": list(hyperparameters.keys()),
                 "additional_cols": ['Weighted Sum']
             }, sort_keys=False),

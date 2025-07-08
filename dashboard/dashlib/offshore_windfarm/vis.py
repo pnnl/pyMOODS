@@ -438,38 +438,39 @@ class Visualizer(Loader):
 
         df = pd.DataFrame(self.right_xy.values, columns=['x', 'y'], index=self.df.index)\
             .assign(label=label.values, is_solution=self.solution_mask)
+        # print("In the clustering frame", df)
 
-        clu = HDBSCAN(min_cluster_size=2, 
-                n_jobs=1)
+        # clu = HDBSCAN(min_cluster_size=2, 
+        #         n_jobs=1)
         
-        def apply_clustering_to_solutions(df):
-            X = df.loc[df.is_solution, ['x', 'y']]
-            y = pd.Series(clu.fit_predict(X), index=X.index)\
-                .reindex(df.index)\
-                .fillna(-1)\
-                .astype('int')
+        # def apply_clustering_to_solutions(df):
+        #     X = df.loc[df.is_solution, ['x', 'y']]
+        #     y = pd.Series(clu.fit_predict(X), index=X.index)\
+        #         .reindex(df.index)\
+        #         .fillna(-1)\
+        #         .astype('int')
             
-            return df.assign(cluster=y)
+        #     return df.assign(cluster=y)
 
-        df_clustered = df.groupby('label')\
-            .apply(apply_clustering_to_solutions, include_groups=False)\
-            .reset_index('label')\
-            .sort_index()
+        # df_clustered = df.groupby('label')\
+        #     .apply(apply_clustering_to_solutions, include_groups=False)\
+        #     .reset_index('label')\
+        #     .sort_index()
         
-        # update the name of the cluster and 
-        mask = (df_clustered.cluster == -1) | (rank > top_k)
-        letters = ['i','ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
-        def get_letters(i):
-            if i >= len(letters):
-                return str(i)
-            return letters[i]
+        # # update the name of the cluster and 
+        # mask = (df_clustered.cluster == -1) | (rank > top_k)
+        # letters = ['i','ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
+        # def get_letters(i):
+        #     if i >= len(letters):
+        #         return str(i)
+        #     return letters[i]
 
-        df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.map(get_letters) + ')'
-        df_clustered.loc[mask, 'cluster'] = None
-        self.df_clustered = df_clustered
+        # df_clustered.cluster = df_clustered.label + ' (' + df_clustered.cluster.map(get_letters) + ')'
+        # df_clustered.loc[mask, 'cluster'] = None
+        self.df_clustered = df
 
-        print(df_clustered)
-        print(df_clustered.columns)
+        # print(df_clustered)
+        # print(df_clustered.columns)
 
 
     def get_overlapping_clusters(self, clu, threshold=1.0, drop_intermediate=False, use_joint_embedding=True):
