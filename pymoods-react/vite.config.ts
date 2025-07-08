@@ -7,6 +7,5 @@ export default defineConfig({
   server:{
     port: 8080,
     host: '0.0.0.0',
-    allowedHosts: ['moods-dev' , 'moods-dev.pnl.gov'],
   },
 })
