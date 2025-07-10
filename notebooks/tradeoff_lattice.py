@@ -6,6 +6,8 @@ from scipy.spatial.distance import cdist, pdist, squareform
 import networkx as nx
 from scipy.stats import mannwhitneyu
 
+import hypernetx as hnx # pip install hypernetx
+
 import vis
 
 def test_all(X, Y):
@@ -397,7 +399,6 @@ class TradeoffLattice:
             ax.set_title(k)
 
             if use_rank:
-                print('inverting axis')
                 ax.invert_yaxis()
 
             for name, y in data_k.iterrows():
@@ -485,8 +486,55 @@ class TradeoffLattice:
                     for u, v, d in G.edges(data=True)
                 },
                 **edge_labels_kwargs
-            )        
-        
+            )
+
+    def draw_specializers_as_hypergraph(self, subset=None, **kwargs):
+        df = self.specializers
+        if subset is not None:
+            df = self.specializers.loc[subset]
+            
+        incidence_dict = df\
+            .apply(lambda ser: ser.index[ser].tolist(), axis=0)\
+            .to_dict()
+
+        H = hnx.Hypergraph(incidence_dict)
+        hnx.draw(H, **kwargs)
+
+        return H
+    
+    @property
+    def specializer_cover(self):
+        cover = greedy_set_cover(self.specializers.values)
+        return self.specializers.index[cover]
+
+def greedy_set_cover(subsets_data):
+    _, universe_size = subsets_data.shape
+    
+    uncovered_elements = np.ones(universe_size, dtype=bool)
+    chosen_subsets = []
+    
+    while np.any(uncovered_elements):
+        best_subset_idx = -1
+        max_newly_covered = -1
+    
+        for i, subset in enumerate(subsets_data):
+            # Calculate newly covered elements for this subset
+            newly_covered = np.sum(subset[uncovered_elements])
+    
+            if newly_covered > max_newly_covered:
+                max_newly_covered = newly_covered
+                best_subset_idx = i
+    
+        if best_subset_idx != -1:
+            chosen_subsets.append(best_subset_idx)
+            # Update uncovered elements
+            uncovered_elements[subsets_data[best_subset_idx] == 1] = False
+        else:
+            # No subset can cover remaining elements (shouldn't happen with valid input)
+            break
+    
+    return chosen_subsets
+
 def knn_graph(X, n_neighbors=3, max_distance=1, connected=False, **kwargs):
 
     D = squareform(pdist(X, **kwargs))
