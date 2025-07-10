@@ -370,9 +370,11 @@ class TradeoffLattice:
             A = nx.from_pandas_adjacency(C)
             order = nx.spectral_ordering(A)
             data = data[order]
-            S = sel_index[order]
-
+            # S = sel_index[order]
             self.C = C
+        else:
+            order = data.columns
+
             self.order = order
         
         x = np.arange(len(data.columns))
@@ -391,11 +393,11 @@ class TradeoffLattice:
             if include_all_generalizers:
                 data_k = pd.concat((data.iloc[:n], data_k))
 
-            if ax is None:
-                ax = plt.subplot(len(grouped), 1, i + 1)
+            ax = plt.subplot(len(grouped), 1, i + 1)
             ax.set_title(k)
 
             if use_rank:
+                print('inverting axis')
                 ax.invert_yaxis()
 
             for name, y in data_k.iterrows():
@@ -403,7 +405,7 @@ class TradeoffLattice:
                 if name in sel_index:
                     kwargs=dict()
                     if not highlight_generalizers:
-                        s = self.specializers.loc[name, ]*50
+                        s = self.specializers.loc[name, order]*50
                     else:
                         s = 50
                     ax.scatter(x, y, marker='o', s=s, zorder=10, color=color_map[name])
