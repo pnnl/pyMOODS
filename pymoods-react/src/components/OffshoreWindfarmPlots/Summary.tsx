@@ -118,7 +118,8 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
                   key={`col-${key}`}
                   align={key === 'Weighted Sum' ? 'right' : 'left'}
                   sx={{
-                    fontWeight: 'bold',
+                    fontWeight: 500,
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
                     whiteSpace: 'normal',
                     wordWrap: 'break-word',
                     overflow: 'hidden',
