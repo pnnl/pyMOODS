@@ -345,6 +345,8 @@ class TradeoffLattice:
         ax = None
     ):
         
+        assert ax is None or facets is None, "When passing an axis, facets=None is required"
+
         data = self.rank
         cmap = plt.get_cmap('tab10')
         categories = set(data.index.values)
