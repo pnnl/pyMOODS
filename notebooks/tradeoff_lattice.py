@@ -395,11 +395,11 @@ class TradeoffLattice:
             if include_all_generalizers:
                 data_k = pd.concat((data.iloc[:n], data_k))
 
-            ax = plt.subplot(len(grouped), 1, i + 1)
-            ax.set_title(k)
+            axi = ax or plt.subplot(len(grouped), 1, i + 1)
+            axi.set_title(k)
 
             if use_rank:
-                ax.invert_yaxis()
+                axi.invert_yaxis()
 
             for name, y in data_k.iterrows():
                 s = None
@@ -409,7 +409,7 @@ class TradeoffLattice:
                         s = self.specializers.loc[name, order]*50
                     else:
                         s = 50
-                    ax.scatter(x, y, marker='o', s=s, zorder=10, color=color_map[name])
+                    axi.scatter(x, y, marker='o', s=s, zorder=10, color=color_map[name])
                     kwargs=dict(linewidth=lw_highlight, color=color_map[name], zorder=8)
                     s = name
                 elif name in other_group:
@@ -419,7 +419,7 @@ class TradeoffLattice:
                     kwargs=dict(linewidth=.5, color='lightgray')
             
                 if s is not None:
-                    ax.annotate(
+                    axi.annotate(
                         s, (x[-1], y.iloc[-1]),
                         va='center',
                         ha='left',
@@ -427,16 +427,16 @@ class TradeoffLattice:
                         textcoords='offset points'
                     )
             
-                ax.plot(x, y, **kwargs)
+                axi.plot(x, y, **kwargs)
             
             # ax.yaxis.set_label_text('Rank' if use_rank else 'Z-score')
-            ax.xaxis.set_ticks(
+            axi.xaxis.set_ticks(
                 x, 
                 data.columns if x_label_format is None else map(x_label_format, data.columns),
             )
 
             for s in ('right', 'top'):
-                ax.spines[s].set_visible(False)
+                axi.spines[s].set_visible(False)
 
     def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_negative=False, show_positive=True, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
         G = self.G
