@@ -14,7 +14,6 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.2",
     "@mui/material": "^6.4.2",
-    "@rollup/rollup-darwin-arm64": "^4.37.0",
     "d3": "^7.9.0",
     "d3-scale": "^4.0.2",
     "papaparse": "^5.5.2",
