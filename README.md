@@ -61,7 +61,7 @@ npm run dev
 1. In the `dashboard` directory, create or activate a virtual environment. If you are using `venv`, run the following command:
 
 ```bash
-source ./venv/bin/activate
+source venv/bin/activate
 ```
 
 2. Install the dependencies for your venv:
