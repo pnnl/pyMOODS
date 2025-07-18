@@ -255,6 +255,8 @@ const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => 
       .selectAll("text")
       .style("text-anchor", "end")
       .attr("dy", ".35em")
+      .style('font-family', 'Inter, Roboto, sans-serif')
+      .style('font-weight', '500')
       .style("font-size", "16px");
 
     // // Add X-axis (values)

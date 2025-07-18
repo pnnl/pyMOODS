@@ -247,6 +247,10 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
 
   return (
     <Box sx={{ p: 2, width: "100%", flexWrap: "wrap" }}>
+      {!loading && !error && (!data || !Array.isArray(data) || data.length === 0) ? (
+        <Typography sx={{ textAlign: "center", minHeight: "200px", fontSize: "18px", marginTop:"5em" }}>No scenario data available for this use case.</Typography>
+    ) : (
+      <>
       <Box
         sx={{
           display: "flex",
@@ -270,10 +274,9 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
           <InputLabel
             id="column-select-label"
             style={{
-              fontSize: "1rem",
-              fontFamily:
-                "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-              color: "#213547",
+              // fontSize:"1em",
+              fontSize: '16px', fontWeight: 500, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
             }}
           >
             Column
@@ -284,7 +287,9 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
             onChange={(e) => setSelectedColumn(e.target.value)}
             label="Column"
             sx={{
-              fontSize: "0.85rem", // <-- controls selected value font size
+              // fontSize: "0.85rem", // <-- controls selected value font size
+              fontSize: '16px', fontWeight: 500, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
             }}
           >
             {numericColumns.map((col) => (
@@ -378,8 +383,8 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
       {loading && !data.length && <Typography>Loading LMP data...</Typography>}
 
       {error && <Typography color="error">{error}</Typography>}
+     </>
+      )}
     </Box>
-  );
-};
-
+  )};
 export default LMPPlot;

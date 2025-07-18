@@ -63,20 +63,27 @@ def load_case_study_data(case_study_name):
 
     # Load corresponding Scenarios
     scenario_filename = mocodo_data.get("scenariofile", None)
-    if not scenario_filename:
-        raise ValueError(f"'scenariofile' not defined in {case_study_name}.json")
-
-    scenariofile_path = os.path.join(
+    if scenario_filename:
+        scenariofile_path = os.path.join(
         os.path.dirname(
             os.path.dirname(__file__)
         ), 
         "demo_data", 
         scenario_filename
     )
-    if not os.path.exists(scenariofile_path):
-        raise FileNotFoundError(f"Scenario file not found: {scenariofile_path}")
+        if not os.path.exists(scenariofile_path):
+            raise FileNotFoundError(f"Scenario file not found: {scenariofile_path}")
+        scenario_data = pd.read_csv(scenariofile_path)
+    
+    else:
+        scenario_data = None
+    # if not scenario_filename:
+    #     raise ValueError(f"'scenariofile' not defined in {case_study_name}.json")
 
-    scenario_data = pd.read_csv(scenariofile_path)
+    
+    
+
+    # scenario_data = pd.read_csv(scenariofile_path)
 
     result = {
         "hyperparameters": hyperparameters,
@@ -666,6 +673,8 @@ def get_weighted_solutions():
         # merge projections and clusters with filtered data
         filtered_data = pd.concat([filtered_data, points, clusters], axis=1)
         filtered_data = filtered_data.rename(columns={0: 'x_coord', 1: 'y_coord'})
+        print("Duplicate Solution IDs - backend",filtered_data['Solution ID'].value_counts()[filtered_data['Solution ID'].value_counts() > 1])
+
         
         # parse weights from query params
         weights = {}
@@ -909,7 +918,9 @@ def get_lmp_data():
     try:
         data = USE_CASE_CACHE[case_study]
         hyperparameters = data["hyperparameters"]
-        scenario_data = data["scenario_data"]
+        scenario_data = data.get("scenario_data", None)
+        if scenario_data is None:
+            return jsonify({"data": []})
         print(scenario_data)
 
         query_params = {key: request.args.getlist(key) for key in hyperparameters}

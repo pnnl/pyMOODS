@@ -28,6 +28,7 @@ interface ScatterPlotProps {
   decision_keys?: string[];   
   objective_keys?: string[];  
   onColorByChange?: (colorBy: string) => void;
+  objectiveColorMap: Record<string, string>;
 }
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A', '#8FBC8F'];
@@ -37,7 +38,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   solutionsData,
   decision_keys,
   objective_keys,
-  onColorByChange 
+  onColorByChange,
+  objectiveColorMap 
 }) => {
 
   // Ensure there's data before extracting fields
@@ -205,7 +207,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
         marginBottom: '10px',
         flexWrap: 'wrap'
       }}>
-        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '14px',
+        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
           minWidth: '200px',
           flex: 1,
           maxWidth: '250px' }}>
@@ -213,7 +216,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <select
             value={xAxis}
             onChange={(e) => setXAxis(e.target.value)}
-            style={{ width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
+            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
+            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
               textAlign: 'center',
               textAlignLast: 'center' }}
           >
@@ -225,7 +229,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           </select>
         </label>
 
-        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '14px',
+        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
           minWidth: '200px',
           flex: 1,
           maxWidth: '250px' }}>
@@ -233,7 +238,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <select
             value={yAxis}
             onChange={(e) => setYAxis(e.target.value)}
-            style={{ width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
+            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
+            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
               textAlign: 'center',
               textAlignLast: 'center' }}
           >
@@ -297,15 +303,31 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           ))}
 
           {/* Legend at the bottom */}
-          <Legend
+          {/* <Legend
             layout="horizontal"
             verticalAlign="bottom"
             align="center"
             wrapperStyle={{ fontSize: '12px', bottom: -10}}
             // textStyle={{ fontSize: 2 }}
-          />
+          /> */}
         </ScatterChart>
       </ResponsiveContainer>
+      {objective_keys && (
+        <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginTop:'14px',flexWrap:'wrap', width: '100%'}}>
+          {objective_keys.map((obj) =>(
+            <span key={obj} style={{display:'flex', alignItems:'center', gap:'6px'}}>
+              <span style={{
+                width: '14px',
+                height: '14px',
+                backgroundColor: objectiveColorMap[obj] || '#8884d8',
+                borderRadius: '50%',
+                display: 'inline-block',
+              }}/>
+              <span style={{fontSize:'11px', color: objectiveColorMap[obj] || '#8884d8', letterSpacing:0.1, fontWeight:500}}>{obj}</span>
+            </span>
+          ))}
+        </div>
+      )}
 </div>
   );
 };

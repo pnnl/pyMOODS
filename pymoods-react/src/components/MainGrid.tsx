@@ -16,6 +16,7 @@ import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import Summary from './OffshoreWindfarmPlots/Summary';
 import ParallelCoordinatesChart from './OffshoreWindfarmPlots/ParallelCoordinatesChart';
+import { buildObjectiveColorMap } from "../utils/objectiveColorMap";
 
 import config from "../config";
 const { API_BASE_URL } = config;
@@ -40,7 +41,7 @@ const MainGrid: React.FC<MainGridProps> = ({
   const [tabIndex, setTabIndex] = useState(0);
   const [clusterBy, setClusterBy] = useState<string>("AI-Generated");
   const [objectiveNames, setObjectiveNames] = useState<string[]>([]);
-
+  const [objectiveColorMap, setObjectiveColorMap] = useState<Record<string, string>>({});
   // State for Summary
   const [completeData, setCompleteData] = useState<Solution[]>([]);
   const [decisionKeys, setDecisionKeys] = useState<string[]>([]);
@@ -84,6 +85,7 @@ const MainGrid: React.FC<MainGridProps> = ({
 
         const objNames = Object.keys(data.weights_used || {});
         setObjectiveNames(objNames);
+        setObjectiveColorMap(buildObjectiveColorMap(objNames));
       } catch (err) {
         console.error("Error fetching objectives:", err);
       }
@@ -257,7 +259,8 @@ const MainGrid: React.FC<MainGridProps> = ({
                   useCase={selectedUseCase} 
                   solutionsData={completeData}
                   decision_keys={decisionKeys}
-                  objective_keys={objectiveKeys} 
+                  objective_keys={objectiveKeys}
+                  objectiveColorMap={objectiveColorMap} 
                   onClusterByChange={setClusterBy}
                 />
               </Box>
@@ -267,7 +270,7 @@ const MainGrid: React.FC<MainGridProps> = ({
             Specializers and Generalizers
                 </Typography> */}
               <Box sx={{ width: "100%" }}>
-                <ParallelCoordinatesChart ranks={rankData} />
+                <ParallelCoordinatesChart ranks={rankData} objectiveColorMap={objectiveColorMap}/>
               </Box>
               <Box sx={{ width: "100%", mt: 0 }}>
               {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
