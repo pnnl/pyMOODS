@@ -9,9 +9,10 @@ interface RankDict {
 
 interface ParallelCoordinatesChartProps {
   ranks: RankDict;
+  objectiveColorMap: Record<string, string>;
 }
 
-const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ranks }) => {
+const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ranks, objectiveColorMap }) => {
   const ref = useRef<SVGSVGElement | null>(null);
   const [sliderValue, setSliderValue] = useState<number>(0.5);
 
@@ -186,7 +187,9 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       .attr('y', height + 20)
       .attr('text-anchor', 'middle')
       .style('font-size', '11px')
-      .style('fill', '#213547')
+      .style('font-family', 'Inter, Roboto, sans-serif')
+      .style('font-weight', '500')
+      .style('fill',(d,i) => objectiveColorMap[numericColumns[i]] || '#213547')
       .text((d, i) => numericColumns[i])
       .call(wrapText, 60);
   };
@@ -299,9 +302,8 @@ const HorizontalSlider: React.FC<{
       <div
         style={{
           marginTop: 0,
-          fontSize: '13px',
-          fontWeight: 500,
-          color: '#3f3f3f',
+          fontSize: '16px', fontWeight: 500, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
         }}
       >
         Minimum Number of Specializers: {value.toFixed(0)}

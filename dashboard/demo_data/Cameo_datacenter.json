@@ -2,40 +2,37 @@
   "datafile": "parsed_datacenter_data.csv",
   "input_parameters": {},
   "hyperparameters": {
-    "location_scenario": {
-      "name": "location_scenario",
-      "values": ["rural_tech_hub", "industrial_park", "urban_edge"]
+    "Location Scenario": {
+      "name": "Location Scenario", "values": ["rural_tech_hub", "industrial_park", "urban_edge"]
     },
-    "operation_model": {
-      "name": "operation_model",
-      "values": ["AIML_focused", "standard", "high_redundancy"]
+    "Operation Model": {
+      "name": "Operation Model", "values": ["AIML_focused", "standard", "high_redundancy"]
     },
-    "parameter_set": {
-      "name": "parameter_set",
-      "values": ["param1", "param2", "param3"]
+    "Parameter Set": {
+      "name": "Parameter Set", "values": ["param1", "param2", "param3"]
     },
-    "reliability_weight": { "name": "reliability_weight" },
-    "cost_weight": { "name": "cost_weight" },
-    "reliability_index": { "name": "reliability_index" }
+    "Reliability Weight": { "name": "Reliability Weight" },
+    "Cost Weight": { "name": "Cost Weight" },
+    "Reliability Index": { "name": "Reliability Index" },
+    "N Contingencies": { "name": "N Contingencies" },
+    "Expansion Budget Cap": { "name": "Expansion Budget Cap" },
+    "Minimum Reliability Index": {"name": "Minimum Reliability Index"},
+    "Voltage Deviation Limit": {"name": "Voltage Deviation Limit"}
   },
   "decision_variables": {
-    "capacity_mva": { "name": "capacity_mva", "description": "" },
-    "length_km": {
-      "name": "length_km",
-      "description": ""
-    },
-    "construction_cost": {
-      "name": "construction_cost",
-      "description": ""
-    }
+    "Line Id": { "name": "Line Id", "description": "" }
   },
   "objective_functions": {
-    "expansion_cost": {
-      "name": "expansion_cost",
+    "Expansion Cost": {
+      "name": "Expansion Cost",
       "description": ""
     },
-    "expected_datacenter_load_shed": {
-      "name": "expected_datacenter_load_shed",
+    "Expected Datacenter Load Shed": {
+      "name": "Expected Datacenter Load Shed",
+      "description": ""
+    },
+    "Expected Total Load Shed": {
+      "name": "Expected Total Load Shed",
       "description": ""
     }
   }
