@@ -1895,4 +1895,4 @@ def update_mop_graphs(test_selection, tab):
     return blank_figure(), blank_figure()
 
 if __name__ == "__main__":
-    app.run_server(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, host="0.0.0.0", port=5001)
