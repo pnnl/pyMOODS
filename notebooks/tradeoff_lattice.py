@@ -263,9 +263,14 @@ class TradeoffLattice:
 
         self.scale = pd.Series(1, index=ovars)
         self.scale[ascending] = -1
+
         self.rank = (self.df[ovars] * self.scale).rank(ascending=False)
+        self.rank_order = self.rank.apply(
+            lambda row: tuple(sorted(row, reverse=True)), axis=1
+        ).sort_values()
+        self.rank = self.rank.loc[self.rank_order.index]
+
         self.score = self.rank.max(axis=1) if score is None else score
-        self.rank = self.rank.loc[self.score.sort_values().index]
 
         iis = list(
             range(1, len(self.rank) if max_generalizers is None else max_generalizers)
