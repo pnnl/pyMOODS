@@ -228,13 +228,8 @@ class TradeoffLattice:
         return B[B.any(axis=1)]
 
     def get_full_specialization(self, drop=True):
-        df = self.rank
-
-        result = pd.DataFrame(
-            [df.iloc[i] < df.iloc[:i].min() for i in range(len(df))],
-            index=df.index,
-            columns=df.columns,
-        )
+        result = self.rank == self.rank.cummin()
+        result.iloc[0, :] = False
 
         if drop:
             return result[result.any(axis=1)]
