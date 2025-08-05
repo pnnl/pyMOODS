@@ -304,6 +304,7 @@ class TradeoffLattice:
 
         self.generalizers = self.rank.index[: self.n_generalizers]
         self.specializers = self.get_specializers(self.n_generalizers)
+        self.full_specialization = self.get_full_specialization()
         self.anti_specializers = self.get_anti_specializers(self.n_generalizers)
 
         # assign exactly one ovar to each specializer
@@ -563,17 +564,18 @@ class TradeoffLattice:
             )
 
     def specializers_as_hypergraph(self, subset=None):
-        df = self.specializers
+        df = self.full_specialization
+
         if subset is not None:
-            df = self.specializers.loc[subset]
+            df = df.loc[subset]
 
         incidence_dict = {c: df.index[df[c]] for c in df}
 
         return hnx.Hypergraph(incidence_dict)
 
     def specializer_cover(self):
-        cover = greedy_set_cover(self.specializers.values)
-        return self.specializers.index[cover]
+        cover = greedy_set_cover(self.full_specialization.values)
+        return self.full_specialization.index[cover]
 
 
 def greedy_set_cover(subsets_data):
