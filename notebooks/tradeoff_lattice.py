@@ -213,15 +213,33 @@ class TradeoffLattice:
             columns=self.df.index,
         )
 
-    def get_specializers(self, i):
+    def get_specializers(self, i, drop=True):
         # boolean mask of rows better than all generalizers
-        B = self.rank.iloc[i:] < self.rank.iloc[:i].min(axis=0)
-        return B[B.any(axis=1)]
+        B = self.rank < self.rank.iloc[:i].min(axis=0)
+
+        if drop:
+            return B[B.any(axis=1)]
+
+        return B
 
     def get_anti_specializers(self, i):
         # boolean mask of rows worse than all generalizers
         B = self.rank.iloc[i:] > self.rank.iloc[:i].max(axis=0)
         return B[B.any(axis=1)]
+
+    def get_full_specialization(self, drop=True):
+        df = self.rank
+
+        result = pd.DataFrame(
+            [df.iloc[i] < df.iloc[:i].min() for i in range(len(df))],
+            index=df.index,
+            columns=df.columns,
+        )
+
+        if drop:
+            return result[result.any(axis=1)]
+
+        return result
 
     def __init__(
         self,
