@@ -229,7 +229,7 @@ class TradeoffLattice:
 
     def get_full_specialization(self, drop=True):
         result = self.rank == self.rank.cummin()
-        result.iloc[0, :] = False
+        # result.iloc[0, :] = False
 
         if drop:
             return result[result.any(axis=1)]
@@ -569,8 +569,8 @@ class TradeoffLattice:
         return hnx.Hypergraph(incidence_dict)
 
     def specializer_cover(self):
-        cover = greedy_set_cover(self.full_specialization.values)
-        return self.full_specialization.index[cover]
+        cover = greedy_set_cover(self.full_specialization.values[1:])
+        return self.full_specialization.index[1:][cover]
 
 
 def greedy_set_cover(subsets_data):
