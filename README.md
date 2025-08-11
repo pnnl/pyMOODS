@@ -90,7 +90,7 @@ yarn install
 2. Run the following to start the development server:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 You can now access the React app on `http://localhost:8081`.
