@@ -52,6 +52,11 @@ class TradeoffLattice:
 
         return R_str.fillna('').to_latex(index=True)
 
+    def specialization_at_k(self, k):
+        S = self.rank < self.rank.iloc[:k].min(axis=0)
+        S.iloc[:k] = self.specialization.iloc[:k]
+        return S[S.any(axis=1)]
+
     @property
     def generalizers(self):
         return self.specialization.index[:1]
