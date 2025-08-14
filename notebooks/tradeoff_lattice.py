@@ -182,6 +182,7 @@ class TradeoffLattice:
         ax=None,
         reorder=True,
         use_rank=True,
+        subset=None,
         colors=None,
         specialization=None,
         specializer_size=75,
@@ -202,7 +203,9 @@ class TradeoffLattice:
 
         x = np.arange(len(order))
 
-        df = (self.rank if use_rank else self.df)[order]
+        if subset is None:
+            subset = self.rank.index
+        df = (self.rank if use_rank else self.df).loc[subset, order]
 
         if colors is None:
             colors = {name: plt.cm.tab10(i % 10) for i, name in enumerate(df.index)}
