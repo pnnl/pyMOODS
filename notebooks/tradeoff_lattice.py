@@ -70,6 +70,7 @@ class TradeoffLattice:
         ax=None,
         reorder=True,
         use_rank=True,
+        show_generalizability_as='Generalizability',
         subset=None,
         colors=None,
         generalizers=None,
@@ -81,7 +82,7 @@ class TradeoffLattice:
         specializer_linestyle='-',
         default_linestyle=':',
         labels={},
-        x_label_format=None,
+        x_labels={},
     ):
         ax = ax or plt.gca()
 
@@ -89,15 +90,20 @@ class TradeoffLattice:
             generalizers = self.generalizers
 
         if specialization is None:
-            specialization = self.specialization
+            specialization = self.specialization.copy()
 
         order = self.optimal_ovar_order() if reorder else specialization.columns
-
-        x = np.arange(len(order))
 
         if subset is None:
             subset = self.rank.index
         df = (self.rank if use_rank else self.df).loc[subset, order]
+
+        if show_generalizability_as is not None:
+            df[show_generalizability_as] = np.arange(len(df)) + 1
+            specialization[show_generalizability_as] = False
+            order.append(show_generalizability_as)
+
+        x = np.arange(len(order))
 
         if colors is None:
             colors = {name: plt.cm.tab10(i % 10) for i, name in enumerate(df.index)}
@@ -129,7 +135,7 @@ class TradeoffLattice:
                 zorder=n - i,
             )
 
-            if name in self.specializers:
+            if name in specialization.index:
                 marker_size = specializer_size * specialization.loc[name, order]
                 ax.scatter(
                     x,
@@ -152,7 +158,7 @@ class TradeoffLattice:
 
         ax.xaxis.set_ticks(
             x,
-            (df.columns if x_label_format is None else map(x_label_format, df.columns)),
+            [x_labels.get(s, s) for s in df.columns],
         )
 
         if use_rank:
