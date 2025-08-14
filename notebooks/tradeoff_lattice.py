@@ -54,7 +54,7 @@ class TradeoffLattice:
 
     @property
     def generalizers(self):
-        return set([self.specialization.index[0]])
+        return self.specialization.index[:1]
 
     @property
     def specializers(self):
@@ -184,6 +184,7 @@ class TradeoffLattice:
         use_rank=True,
         subset=None,
         colors=None,
+        generalizers=None,
         specialization=None,
         specializer_size=75,
         generalizer_linewidth=4,
@@ -195,6 +196,9 @@ class TradeoffLattice:
         x_label_format=None,
     ):
         ax = ax or plt.gca()
+
+        if generalizers is None:
+            generalizers = self.generalizers
 
         if specialization is None:
             specialization = self.specialization
@@ -223,7 +227,7 @@ class TradeoffLattice:
                 facecolor = color
                 edgecolor = color
 
-            if name == specialization.index[0]:
+            if name in generalizers:
                 linewidth = generalizer_linewidth
                 facecolor = 'white'
                 edgecolor = color
