@@ -245,17 +245,19 @@ class TradeoffLattice:
         for s in ('right', 'top'):
             ax.spines[s].set_visible(False)
 
-    def plot_heatmap(self, cmap=plt.cm.bwr_r, vmin=-1.5, vmax=1.5, **kwargs):
-
+    @property
+    def specialization_and_tradeoff(self):
         index = self.specialization.index.union(self.tradeoff.index)
 
         def reindex(df):
             return df.astype(int).reindex(index, fill_value=0)
 
-        data = reindex(self.specialization) - reindex(self.tradeoff)
+        return reindex(self.specialization) - reindex(self.tradeoff)
+
+    def plot_heatmap(self, cmap=plt.cm.bwr_r, vmin=-1.5, vmax=1.5, **kwargs):
 
         cm = sns.clustermap(
-            data,
+            self.specialization_and_tradeoff,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
@@ -309,6 +311,84 @@ class TradeoffLattice:
             edge_order=order,
             edge_labels_kwargs=dict(va='top', ha='left', rotation=-45),
         )
+
+    @property
+    def bipartite(self):
+        G = nx.Graph()
+
+        data = self.specialization_and_tradeoff
+
+        ser = data.unstack()
+
+        for (source, target), weight in ser[ser != 0].items():
+            G.add_edge(source, target, direction=weight)
+
+        return G
+
+    def plot_tradeoff_lattice(
+        self,
+        pos=None,
+        layout=None,
+        layout_kwargs={},
+        labels={},
+        cmap=plt.cm.bwr_r,
+        vmin=-1.5,
+        vmax=1.5,
+        width=2,
+        small_font=8,
+        large_font=10,
+        ax=None,
+    ):
+        ax = ax or plt.gca()
+
+        G = self.bipartite
+
+        if pos is None:
+            if layout is None:
+                try:
+                    pos = nx.nx_agraph.graphviz_layout(G, **layout_kwargs)
+                except:
+                    print('Graphviz failed, using nx.kamada_kawai_layout')
+                    pos = nx.kamada_kawai_layout(G)
+            else:
+                pos = layout(G, **layout_kwargs)
+
+        draw_kwargs = dict(G=G, pos=pos, ax=ax)
+
+        for v, xy in pos.items():
+            s = labels.get(v, v)
+
+            c1 = 'black'
+            c2 = 'white'
+            fontweight = None
+            fontsize = small_font
+
+            if v not in self.rank.index:
+                c1, c2 = c2, c1
+                fontweight = 'bold'
+                fontsize = large_font
+
+            ax.annotate(
+                s,
+                xy,
+                ha='center',
+                va='center',
+                color=c1,
+                fontweight=fontweight,
+                fontsize=fontsize,
+                bbox=dict(edgecolor=c1, facecolor=c2, alpha=0.85),
+            )
+
+        norm = plt.Normalize(vmin, vmax)
+        color = [cmap(norm(d['direction'])) for u, v, d in G.edges(data=True)]
+
+        nx.draw_networkx_edges(
+            **draw_kwargs,
+            edge_color=color,
+            width=width,
+        )
+
+        ax.axis('off')
 
     def optimal_ovar_order(self, method='corr'):
         if method == 'corr':
