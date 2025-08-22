@@ -7,22 +7,6 @@ import hypernetx as hnx  # pip install hypernetx
 
 
 class TradeoffLattice:
-    def get_rank(self):
-        rank = (self.df[self.ovars] * self.scale).rank(ascending=False)
-        rank_order = rank.apply(
-            lambda row: tuple(sorted(row, reverse=True)), axis=1
-        ).sort_values()
-
-        return rank.loc[rank_order.index].astype(int)
-
-    def get_full_specialization(self, drop=True):
-        result = self.rank == self.rank.cummin()
-
-        if drop:
-            return result[result.any(axis=1)]
-
-        return result
-
     def __init__(self, df, ovars, dvars, ascending=[]):
         self.df = df
         self.ovars = ovars
@@ -31,24 +15,98 @@ class TradeoffLattice:
         self.scale = pd.Series(1, index=ovars)
         self.scale[ascending] = -1
 
-        self.rank = self.get_rank()
-        self.specialization = self.get_full_specialization()
+        self.rank, self.rank_order = self._get_rank()
 
-    def to_latex(self, highlight='\\hi', show_score=True, columns=None, index=None):
-        R = self.rank
-        mask = self.specialization
+    def _get_rank(self):
+        rank = (self.df[self.ovars] * self.scale).rank(ascending=False)
+        rank_order = rank.apply(
+            lambda row: tuple(sorted(row, reverse=True)), axis=1
+        ).sort_values()
 
-        R_str = R.map(lambda s: f'{highlight}{{{s}}}')
-        R_str[~mask] = (R.astype(str))[~mask]
+        return rank.loc[rank_order.index].astype(int), rank_order
+
+    def _get_generalizability_str(self):
+        X = np.vstack(self.rank_order.values)
+
+        r, c = X.shape
+        f = np.ones((1, c), dtype='bool')
+        B = X[:-1, :] != X[1:, :]
+
+        Ba = np.vstack((f, B))
+        Bb = np.vstack((B, f))
+
+        depth = np.logical_and(Ba, Bb).argmax(axis=1) + 1
+
+        return pd.Series(
+            [
+                ','.join(str(int(s)) for s in v[:d])
+                for v, d in zip(self.rank_order.values, depth)
+            ],
+            index=self.rank_order.index,
+        )
+
+    def _rank_compare(self, other, drop=True):
+        result = self.rank == other
+        result.iloc[0, :] = False
+
+        if drop:
+            return result[result.any(axis=1)]
+
+        return result
+
+    @property
+    def specialization(self):
+        return self._rank_compare(self.rank.cummin())
+
+    @property
+    def tradeoff(self):
+        return self._rank_compare(self.rank.cummax())
+
+    @property
+    def generalizers(self):
+        return self.rank.index[:1]
+
+    @property
+    def specializers(self):
+        return self.specialization.index
+
+    def to_latex(
+        self,
+        special='\\cir',
+        trade='\\sqr',
+        show_score=True,
+        columns=None,
+        index=None,
+        notes=None,
+        reorder='corr',
+    ):
+        order = (
+            self.rank.columns if reorder is False else self.optimal_ovar_order(reorder)
+        )
+
+        R = self.rank[order]
+        R_str = R.astype(str)
+
+        # fill in specializers
+        mask = self.specialization[order].reindex(R.index, fill_value=False)
+        R_str[mask] = R.map(lambda s: f'{special}{{{s}}}')[mask]
+
+        # fill in tradeoffs
+        mask = self.tradeoff[order].reindex(R.index, fill_value=False)
+        R_str[mask] = R.map(lambda s: f'{trade}{{{s}}}')[mask]
 
         if columns is not None:
             R_str.columns = columns
 
         if index is not None:
+            R.index = index
             R_str.index = index
 
         if show_score:
-            R_str['$g$'] = R.max(axis=1).astype(str)
+            R_str['$g$'] = self._get_generalizability_str().tolist()
+
+        if notes is not None:
+            R_str = R_str.assign(notes=notes)
 
         return R_str.fillna('').to_latex(index=True)
 
@@ -57,30 +115,27 @@ class TradeoffLattice:
         S.iloc[:k] = self.specialization.iloc[:k]
         return S[S.any(axis=1)]
 
-    @property
-    def generalizers(self):
-        return self.specialization.index[:1]
-
-    @property
-    def specializers(self):
-        return self.specialization.index
-
     def plot_pcp(
         self,
         ax=None,
-        reorder=True,
+        reorder='corr',
         use_rank=True,
         show_generalizability_as='Generalizability',
         subset=None,
         colors=None,
+        specialization_marker='o',
+        tradeoff_marker='s',
         generalizers=None,
         specialization=None,
+        tradeoff=None,
+        show_tradeoff=True,
         specializer_size=75,
-        generalizer_linewidth=4,
-        specializer_linewidth=2,
+        generalizer_linewidth=3,
+        specializer_linewidth=3,
         default_linewidth=1,
+        generalizer_linestyle='--',
         specializer_linestyle='-',
-        default_linestyle=':',
+        default_linestyle='-',
         labels={},
         x_labels={},
     ):
@@ -92,7 +147,14 @@ class TradeoffLattice:
         if specialization is None:
             specialization = self.specialization.copy()
 
-        order = self.optimal_ovar_order() if reorder else specialization.columns
+        if tradeoff is None:
+            tradeoff = self.tradeoff.copy()
+
+        order = (
+            self.optimal_ovar_order(reorder)
+            if reorder is not None
+            else specialization.columns
+        )
 
         if subset is None:
             subset = self.rank.index
@@ -101,6 +163,7 @@ class TradeoffLattice:
         if show_generalizability_as is not None:
             df[show_generalizability_as] = np.arange(len(df)) + 1
             specialization[show_generalizability_as] = False
+            tradeoff[show_generalizability_as] = False
             order.append(show_generalizability_as)
 
         x = np.arange(len(order))
@@ -110,7 +173,7 @@ class TradeoffLattice:
 
         n = len(df)
         for i, (name, y) in enumerate(df.iterrows()):
-            color = colors[name]
+            facecolor = edgecolor = color = colors[name]
 
             linewidth = default_linewidth
             linestyle = default_linestyle
@@ -118,13 +181,12 @@ class TradeoffLattice:
             if name in specialization.index:
                 linewidth = specializer_linewidth
                 linestyle = specializer_linestyle
-                facecolor = color
-                edgecolor = color
 
             if name in generalizers:
+                linestyle = generalizer_linestyle
                 linewidth = generalizer_linewidth
-                facecolor = 'white'
-                edgecolor = color
+                facecolor = 'none'
+                edgecolor = 'none'
 
             ax.plot(
                 x,
@@ -140,9 +202,23 @@ class TradeoffLattice:
                 ax.scatter(
                     x,
                     y,
+                    marker=specialization_marker,
                     facecolor=facecolor,
                     edgecolor=edgecolor,
                     s=marker_size,
+                    linewidth=generalizer_linewidth / 2,
+                    zorder=n - i,
+                )
+
+            if show_tradeoff and name in tradeoff.index:
+                marker_size = specializer_size * tradeoff.loc[name, order]
+                ax.scatter(
+                    x,
+                    y,
+                    marker=tradeoff_marker,
+                    facecolor=facecolor,
+                    edgecolor=edgecolor,
+                    s=marker_size / 2,
                     linewidth=generalizer_linewidth / 2,
                     zorder=n - i,
                 )
@@ -178,7 +254,7 @@ class TradeoffLattice:
         return hnx.Hypergraph(incidence_dict)
 
     def specializer_cover(self):
-        cover = greedy_set_cover(self.specialization.values[1:])
+        cover = greedy_set_cover(self.specialization.values)
         return self.specialization.index[1:][cover]
 
     def optimal_ovar_order(self, method='corr'):
