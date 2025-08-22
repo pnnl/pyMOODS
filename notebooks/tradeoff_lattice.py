@@ -1,6 +1,8 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 import networkx as nx
 import hypernetx as hnx  # pip install hypernetx
@@ -243,19 +245,70 @@ class TradeoffLattice:
         for s in ('right', 'top'):
             ax.spines[s].set_visible(False)
 
-    def specializers_as_hypergraph(self, subset=None):
-        df = self.specialization
+    def plot_heatmap(self, cmap=plt.cm.bwr_r, vmin=-1.5, vmax=1.5, **kwargs):
 
-        if subset is not None:
-            df = df.loc[subset]
+        index = self.specialization.index.union(self.tradeoff.index)
 
-        incidence_dict = {c: df.index[df[c]] for c in df}
+        def reindex(df):
+            return df.astype(int).reindex(index, fill_value=0)
+
+        data = reindex(self.specialization) - reindex(self.tradeoff)
+
+        cm = sns.clustermap(
+            data,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            cbar=False,
+            **kwargs,
+        )
+
+        norm = plt.Normalize(vmin, vmax)
+
+        cm.ax_heatmap.legend(
+            [
+                plt.Rectangle((0, 0), 0, 0, color=cmap(norm(1))),
+                plt.Rectangle((0, 0), 0, 0, color=cmap(norm(-1))),
+            ],
+            [
+                'Specialization',
+                'Tradeoff',
+            ],
+            loc='lower left',
+            bbox_to_anchor=(1, 1),
+        )
+
+        cm.cax.set_visible(False)
+
+        return cm
+
+    def specializers_as_hypergraph(self, specialization=None, cover=False):
+        if specialization is None:
+            specialization = self.specialization
+
+        if cover:
+            specialization = specialization.iloc[
+                greedy_set_cover(specialization.values)
+            ]
+
+        incidence_dict = {
+            c: specialization.index[specialization[c]] for c in specialization
+        }
 
         return hnx.Hypergraph(incidence_dict)
 
-    def specializer_cover(self):
-        cover = greedy_set_cover(self.specialization.values)
-        return self.specialization.index[1:][cover]
+    def plot_hypergraph_euler(self, cover=False, **kwargs):
+        H = self.specializers_as_hypergraph(cover=cover)
+        return hnx.draw(H, **kwargs)
+
+    def plot_hypergraph_upset(self, cover=False, order=None, **kwargs):
+        H = self.specializers_as_hypergraph(cover=cover).dual()
+
+        hnx.draw_incidence_upset(
+            H,
+            edge_order=order,
+            edge_labels_kwargs=dict(va='top', ha='left', rotation=-45),
+        )
 
     def optimal_ovar_order(self, method='corr'):
         if method == 'corr':
