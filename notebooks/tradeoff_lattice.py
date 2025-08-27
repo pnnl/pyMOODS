@@ -254,14 +254,28 @@ class TradeoffLattice:
 
         return reindex(self.specialization) - reindex(self.tradeoff)
 
-    def plot_heatmap(self, cmap=plt.cm.bwr_r, vmin=-1.5, vmax=1.5, **kwargs):
+    def plot_heatmap(
+        self,
+        cmap=plt.cm.bwr_r,
+        vmin=-1,
+        vmax=1,
+        show_ranks=True,
+        **kwargs,
+    ):
+
+        n = len(self.rank)
+        index = self.specialization.index
+        R = self.rank.loc[index]
+
+        data = (((n + 1 - R) * self.specialization) - R * self.tradeoff.loc[index]) / 10
 
         cm = sns.clustermap(
-            self.specialization_and_tradeoff,
+            data,
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
             cbar=False,
+            annot=R if show_ranks else None,
             **kwargs,
         )
 
