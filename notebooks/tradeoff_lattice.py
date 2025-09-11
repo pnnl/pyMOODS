@@ -9,7 +9,7 @@ import hypernetx as hnx  # pip install hypernetx
 
 
 class TradeoffLattice:
-    def __init__(self, df, ovars, dvars, ascending=[]):
+    def __init__(self, df, ovars, dvars, ascending=[], reorder='corr'):
         self.df = df
         self.ovars = ovars
         self.dvars = dvars
@@ -18,6 +18,8 @@ class TradeoffLattice:
         self.scale[ascending] = -1
 
         self.rank, self.rank_order = self._get_rank()
+
+        self.reorder_rank_columns(reorder)
 
     def _get_rank(self):
         rank = (self.df[self.ovars] * self.scale).rank(ascending=False)
@@ -80,11 +82,8 @@ class TradeoffLattice:
         columns=None,
         index=None,
         notes=None,
-        reorder='corr',
     ):
-        order = (
-            self.rank.columns if reorder is False else self.optimal_ovar_order(reorder)
-        )
+        order = list(self.rank.columns)
 
         R = self.rank[order]
         R_str = R.astype(str)
@@ -120,7 +119,6 @@ class TradeoffLattice:
     def plot_pcp(
         self,
         ax=None,
-        reorder='corr',
         use_rank=True,
         show_generalizability_as='Generalizability',
         subset=None,
@@ -152,11 +150,7 @@ class TradeoffLattice:
         if tradeoff is None:
             tradeoff = self.tradeoff.copy()
 
-        order = (
-            self.optimal_ovar_order(reorder)
-            if reorder is not None
-            else specialization.columns
-        )
+        order = list(specialization.columns)
 
         if subset is None:
             subset = self.rank.index
@@ -404,21 +398,25 @@ class TradeoffLattice:
 
         ax.axis('off')
 
-    def optimal_ovar_order(self, method='corr'):
+    def reorder_rank_columns(self, method='corr'):
+        order = self.rank.columns
+
         if method == 'corr':
             rows = list(self.specializers)
             C = self.rank.loc[rows].corr()
             C[C < 0] = 0
 
             A = nx.from_pandas_adjacency(C)
-            return nx.spectral_ordering(A)
+            order = nx.spectral_ordering(A)
 
         if method == 'hypergraph':
             G = self.specializers_as_hypergraph().bipartite()
 
-            return [
+            order = [
                 s for s in nx.spectral_ordering(G) if s in self.specialization.columns
             ]
+
+        self.rank = self.rank[order]
 
 
 def greedy_set_cover(subsets_data):
