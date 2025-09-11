@@ -318,6 +318,7 @@ class TradeoffLattice:
             H,
             edge_order=order,
             edge_labels_kwargs=dict(va='top', ha='left', rotation=-45),
+            **kwargs
         )
 
     @property
@@ -397,6 +398,36 @@ class TradeoffLattice:
         )
 
         ax.axis('off')
+
+    def plot_specializers_and_tradeoff_as_hypergraph(self, node_labels={}, edge_labels={}, cmap=plt.cm.bwr_r, **kwargs):
+        edges = []
+        def add_edge(*args):
+            edges.append(args)
+            return len(edges) - 1
+            
+        def get_incidence(df, s=1):
+            return {
+                add_edge(c, s): df.index[df[c]].tolist()
+                for c in df
+            }
+            
+        H = hnx.Hypergraph({
+            **get_incidence(self.specialization),
+            **get_incidence(self.tradeoff.loc[self.specialization.index], -1)
+        })
+
+        norm = plt.Normalize(-1, 1)
+        
+        hnx.draw(
+            H,
+            node_labels=lambda v: node_labels.get(v, v),
+            edge_labels=lambda v: edge_labels.get(edges[v][0], edges[v][0]),
+            edges_kwargs=dict(
+                edgecolor=lambda v: cmap(norm(edges[v][1])),
+                facecolor=lambda v: cmap(norm(edges[v][1])) + np.array([0, 0, 0, -.75 if edges[v][1] == 1 else -1]),
+            ),
+            **kwargs
+        )
 
     def reorder_rank_columns(self, method='corr'):
         order = self.rank.columns
