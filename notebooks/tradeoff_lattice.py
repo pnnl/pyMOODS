@@ -399,7 +399,19 @@ class TradeoffLattice:
 
         ax.axis('off')
 
-    def plot_specializers_and_tradeoff_as_hypergraph(self, node_labels={}, edge_labels={}, cmap=plt.cm.bwr_r, **kwargs):
+    def plot_specializers_and_tradeoff_as_hypergraph(
+        self,
+        node_labels={},
+        edge_labels={},
+        node_color_by=None,
+        node_cmap=plt.cm.viridis,
+        node_size_by=None,
+        node_size_scale=2,
+        smin=None,
+        smax=None,
+        cmap=plt.cm.bwr_r,
+        **kwargs,
+    ):
         edges = []
         def add_edge(*args):
             edges.append(args)
@@ -416,8 +428,19 @@ class TradeoffLattice:
             **get_incidence(self.tradeoff.loc[self.specialization.index], -1)
         })
 
+        def scale(by, vmin=None, vmax=None, alpha=1, beta=1):
+            s = self.df.loc[H.nodes(), by]
+            vmin = s.min() if vmin is None else vmin
+            vmax = s.max() if vmax is None else vmax
+
+            return (alpha*(((s - vmin)/(vmax - vmin))**beta))
+
         norm = plt.Normalize(-1, 1)
-        
+
+        nodes_kwargs = {}
+        if node_color_by is not None:
+            nodes_kwargs['facecolor'] = node_cmap(scale(node_color_by)) if node_color_by is not None else None
+
         hnx.draw(
             H,
             node_labels=lambda v: node_labels.get(v, v),
@@ -426,6 +449,8 @@ class TradeoffLattice:
                 edgecolor=lambda v: cmap(norm(edges[v][1])),
                 facecolor=lambda v: cmap(norm(edges[v][1])) + np.array([0, 0, 0, -.75 if edges[v][1] == 1 else -1]),
             ),
+            node_radius=scale(node_size_by, smin, smax, node_size_scale, .5).to_dict() if node_size_by is not None else None,
+            nodes_kwargs=nodes_kwargs,
             **kwargs
         )
 
