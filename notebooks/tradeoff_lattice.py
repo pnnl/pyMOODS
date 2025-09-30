@@ -10,6 +10,26 @@ import hypernetx as hnx  # pip install hypernetx
 
 class TradeoffLattice:
     def __init__(self, df, ovars, dvars, ascending=[], reorder='corr'):
+        """
+        Create a tradeoff lattice object
+
+        This will compute and reorder the columns of the rank matrix, which is
+        then used for computing generalization, specializers, and tradeoffs.
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            DataFrame containing objective and decision variables
+        ovars: list
+            list of objective variable names (subset of df.columns)
+        dvars: list
+            list of decision variable names (subset of df.columns)
+        ascending: list
+            list of objective variable names where larger values are better
+        reorder: str
+            name of approach to reorder the rank matrix columns, defaults to rank matrix correlation 
+        """
+
         self.df = df
         self.ovars = ovars
         self.dvars = dvars
@@ -22,6 +42,21 @@ class TradeoffLattice:
         self.reorder_rank_columns(reorder)
 
     def _get_rank(self):
+        """
+        Compute the rank matrix of the input DataFrame
+
+        After the ranking of the input DataFrame is computed, the sorted rank
+        tuples are used to break rank ties and sort the rank matrix by
+        generalizability.
+
+        Returns
+        -------
+        pandas.DataFrame
+            rank matrix sorted by generalizability
+        pandas.Series
+            mapping of self.df.index -> sorted rank tuples (used to compute generalizability)
+        """
+
         rank = (self.df[self.ovars] * self.scale).rank(ascending=False)
         rank_order = rank.apply(
             lambda row: tuple(sorted(row, reverse=True)), axis=1
@@ -60,18 +95,57 @@ class TradeoffLattice:
 
     @property
     def specialization(self):
+        """
+        Finds the specializers.
+
+        Specialzers are solutions (rows) where an objective is ranked *better*
+        than all solutions it is less general than. Not all solutions are 
+        specializers--these will be omitted from the returned DataFrame.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Boolean DataFrame where cell (i, j) is True if solution i specializes in objective variable j
+        """
         return self._rank_compare(self.rank.cummin())
 
     @property
     def tradeoff(self):
+        """
+        Finds the tradeoffs.
+
+        Tradeoffs are solutions (rows) where an objective is ranked *worse*
+        than all solutions it is less general than.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Boolean DataFrame where cell (i, j) is true if solution i specializes in objective variable j
+        """
         return self._rank_compare(self.rank.cummax())
 
     @property
     def generalizers(self):
+        """
+        The solutions considered to be generalizers (legacy)
+
+        Returns
+        -------
+        list
+            The most general solution is the only generalizer in this implementation
+        """
         return self.rank.index[:1]
 
     @property
     def specializers(self):
+        """
+        The set of solutions having a specialization in at least one objective
+
+        Returns
+        -------
+        list
+            list of specializers
+        """
         return self.specialization.index
 
     def to_latex(
@@ -112,6 +186,23 @@ class TradeoffLattice:
         return R_str.fillna('').to_latex(index=True)
 
     def specialization_at_k(self, k):
+        """
+        Alternative implementation of specialization (legacy)
+
+        This approach defines specialization as a solution performing better
+        than the k most general solutions in a particular objective.
+
+        Parameters
+        ----------
+        k : int
+            the number of generalizers to consider
+
+        Returns
+        -------
+        pandas.DataFrame
+            Boolean DataFrame where cell (i, j) is true if solution i specializes in objective variable j
+        """
+
         S = self.rank < self.rank.iloc[:k].min(axis=0)
         S.iloc[:k] = self.specialization.iloc[:k]
         return S[S.any(axis=1)]
@@ -139,6 +230,53 @@ class TradeoffLattice:
         labels={},
         x_labels={},
     ):
+        """
+        Parallel coordinates plot of objectives including encodings generalzers, specialzers, and tradeoffs
+
+        Parameters
+        ----------
+        ax : matplotlib Axis
+            axis to render plot. Uses current axis by default
+        use_rank : bool
+            Encode y-axis using rankings; if False, uses original values from input DataFrame
+        show_generalizability_as : str
+            Label for right most column showing generalizability; if None, do not show this column
+        subset : list
+            subset of solutions to show
+        colors : dict
+            mapping of solution to color; if None assigns each solution one of 10 unique colors
+        specialization_marker : str
+            matplotlib marker character to indicate specialization
+        tradeoff_marker : str
+            matplotlib marker character to indicate tradeoff
+        generalizers : list
+            solutions to be encoded as generalizers; if None, uses the single the most general solution 
+        specialization : pandas.DataFrame
+            custom specialization DataFrmae, if None, uses self.specialization
+        tradeoff : pandas.DataFrame
+            custom tradeoff DataFrame, if None, uses self.tradeoff
+        show_tradeoff : bool
+            if False, will not show tradeoffs markers in the visualization
+        specializer_size : int
+            size of specialization and tradeoff marker
+        generalizer_linewidth : int
+            width of lines for solutions that are generalizers
+        specializer_linewidth : int
+            width of lines for solutions that are specializers
+        default_linewidth : int
+            width of lines for solutions that are neither specializers nor generalizers
+        generalizer_linestyle : str
+            style of lines for solutions that are generalizers (defaults to dashed)
+        specializer_linestyle : str
+            style of lines for solutions that are specializers (defaults to solid)
+        default_linestyle : str
+            style of lines for solutions that are neither specializers nor generalizers
+        labels : dict
+            mapping of DataFrame index -> human readable string in visualization
+        x_labels : dict
+            mapping of DataFrame column -> human readable string in visualization
+        """
+
         ax = ax or plt.gca()
 
         if generalizers is None:
@@ -241,6 +379,15 @@ class TradeoffLattice:
 
     @property
     def specialization_and_tradeoff(self):
+        """
+        Combined matrix of specializers with their tradeoffs
+
+        Returns
+        -------
+        pandas.DataFrame
+            integer DataFrame where specialization is +1 and tradeoff is -1 and 0 otherwise
+        """
+
         index = self.specialization.index.union(self.tradeoff.index)
 
         def reindex(df):
@@ -256,6 +403,22 @@ class TradeoffLattice:
         show_ranks=True,
         **kwargs,
     ):
+        """
+        Heatmap visualization colored according to specialization versus tradeoff
+
+        Parameters
+        ----------
+        cmap : matplotlib colormap
+            ideally a divergent color scale
+        vmin : float
+            normalized beginning of color scale; e.g. set to -1.5 to not use some of the colors
+        vmax : float
+            normalized ending of color scale; e.g. set to 1.5 to not use some of the colors
+        show_ranks : bool
+            if false, does not annotate each cell with its rank
+        **kwargs : dict
+            additional keyword arguments passed through to seaborn.clustermap
+        """
 
         n = len(self.rank)
         index = self.specialization.index
@@ -293,6 +456,23 @@ class TradeoffLattice:
         return cm
 
     def specializers_as_hypergraph(self, specialization=None, cover=False):
+        """
+        Hypergraph representation of specialization DataFrame
+
+        Treats the specialization DataFrame as an incidence matrix
+
+        Parameters
+        ----------
+        specialization : pandas.DataFrame
+            provide a custom specialization; if None uses self.specialization
+        cover : bool
+            if True, reduces the number of nodes in the hypergraph via greedy set cover
+
+        Returns
+        -------
+        hypernetx.Hypergraph
+        """
+
         if specialization is None:
             specialization = self.specialization
 
@@ -308,10 +488,33 @@ class TradeoffLattice:
         return hnx.Hypergraph(incidence_dict)
 
     def plot_hypergraph_euler(self, cover=False, **kwargs):
+        """
+        Draw the specialization DataFrame as an Euler diagram
+
+        Parameters
+        ----------
+        cover : bool
+            if True, reduces the number of nodes in the hypergraph via greedy set cover
+        **kwargs : dict
+            arguments passed through to the hypernetx.draw method
+        """
+
         H = self.specializers_as_hypergraph(cover=cover)
         return hnx.draw(H, **kwargs)
 
     def plot_hypergraph_upset(self, cover=False, order=None, **kwargs):
+        """
+        Draw the specialization DataFrame as an UpSet like diagram
+
+        Parameters
+        ----------
+        cover : bool
+            if True, reduces the number of nodes in the hypergraph via greedy set cover
+        order : list
+            specify the x-axis ordering of ovars
+        **kwargs : dict
+            arguments passed through to the hypernetx.draw method
+        """
         H = self.specializers_as_hypergraph(cover=cover).dual()
 
         hnx.draw_incidence_upset(
@@ -323,6 +526,14 @@ class TradeoffLattice:
 
     @property
     def bipartite(self):
+        """
+        Bipartite graph representation of specialization and tradeoff
+
+        Returns
+        -------
+        networkx.Graph
+            A bipartite graph G=(V, E) where edge (u, v) is in E if solution u specializes or trades off ovar v
+        """
         G = nx.Graph()
 
         data = self.specialization_and_tradeoff
@@ -348,6 +559,37 @@ class TradeoffLattice:
         large_font=10,
         ax=None,
     ):
+        """
+        Tradeoff Lattice bipartite visualization
+
+        Node-link visualization of bipartite tradeoff lattice with color to indicate specialization or tradeoff
+
+        Parameters
+        ----------
+
+        pos : dict
+            xy coordinates of graph nodes (solutions and ovars)
+        layout : func
+            function to map graph to xy coordinates if pos is None
+        layout_kwargs : dict
+            arguments passed to layout function
+        labels : dict
+            mapping of solution or ovar to string label
+        cmap : matplotlib color scale
+            color scale to use for edges (tradeoffs and specializers)
+        vmin : float
+            custom normalized color scale starting point
+        vmax : float
+            custom normalized color scale ending point
+        width : float
+            edge width
+        small_font : int
+            small font size used for solution node labels
+        large_font : int
+            large font size used for ovar node labels
+        ax : matplotlib Axis
+            axis for drawing; defaults to current axis
+        """
         ax = ax or plt.gca()
 
         G = self.bipartite
@@ -412,6 +654,36 @@ class TradeoffLattice:
         cmap=plt.cm.bwr_r,
         **kwargs,
     ):
+        """
+        Tradeoff Lattice Euler visualization
+
+        Euler visualization (generalization of a "Venn diagram") of the
+        specializers and tradeoffs as a hypergraph. Solutions are represented
+        as nodes and ovar specialization or tradeoff are reprseneted as hyper
+        edges.
+
+        Parameters
+        ----------
+        node_labels : dict
+            mapping of solution to string label
+        edge_labels : dict
+            mapping of ovar to string label
+        node_color_by : str
+            name of column in input DataFrame to color nodes by
+        node_cmap : matplotlib color scale
+            color maping for nodes
+        node_size_by : str
+            name of column in input DataFrame to size nodes by
+        node_size_scale : float
+            constant that affects the size of the nodes relative to the area of the plot
+        smin : float
+            lower endpoint of the size scale--useful to set to zero to prevent nodes of zero size
+        smax : float
+            upper endpoint of the size scale
+        cmap : matplotlib color scale
+            color mapping for edges; ideally a divergent color scale
+        """
+        
         edges = []
         def add_edge(*args):
             edges.append(args)
@@ -455,6 +727,28 @@ class TradeoffLattice:
         )
 
     def reorder_rank_columns(self, method='corr'):
+        """
+        Reorder the rank matrix
+
+        The columns of the rank matrix can be reoredered to help reveal
+        patterns in the rankings or specialization/tradeoff. Two methods are
+        implemented here: 'corr' and 'hypergraph'.
+
+        The 'corr' (rank correlation) approach finds the correlation between
+        the columns of the rank matrix and constructs a graph where edges
+        correspond to positive correlation. The new rank order is found from
+        the spectral order of this graph.
+
+        The 'hypergraph' approach represents the specialization matrix as a
+        bipartite graph, then finds the new rank order from the spectral order
+        of this graph.
+
+        Parameters
+        ----------
+        method : str
+            name of method used to reorder the rank matrix
+        """
+
         order = self.rank.columns
 
         if method == 'corr':
@@ -476,6 +770,14 @@ class TradeoffLattice:
 
 
 def greedy_set_cover(subsets_data):
+    """
+    Approximation of the greedy set cover problem using numpy
+
+    Parameters
+    ----------
+    subsets_data : 2-d numpy array
+        representation of set memberships (rows denote sets, columns denote the "universe" to be covered)
+    """
     _, universe_size = subsets_data.shape
 
     uncovered_elements = np.ones(universe_size, dtype=bool)
