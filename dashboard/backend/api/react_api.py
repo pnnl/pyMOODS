@@ -20,7 +20,7 @@ from plotly.subplots import make_subplots
 import matplotlib.pyplot as plt
 
 # Add dashboard directory to Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
@@ -33,7 +33,7 @@ USE_CASE_CACHE = {}
 
 # Helper function to load case study data
 def load_case_study_data(case_study_name):
-    case_study_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_data")
+    case_study_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "demo_data")
     json_path = os.path.join(case_study_dir, f"{case_study_name}.json")
 
     if not os.path.exists(json_path):
@@ -52,7 +52,7 @@ def load_case_study_data(case_study_name):
     if not csv_file_name:
         raise ValueError(f"'datafile' not defined in {case_study_name}.json")
 
-    csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_data", csv_file_name)
+    csv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "demo_data", csv_file_name)
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
@@ -64,10 +64,7 @@ def load_case_study_data(case_study_name):
     # Load corresponding Scenarios
     scenario_filename = mocodo_data.get("scenariofile", None)
     if scenario_filename:
-        scenariofile_path = os.path.join(
-        os.path.dirname(
-            os.path.dirname(__file__)
-        ), 
+        scenariofile_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 
         "demo_data", 
         scenario_filename
     )
@@ -390,7 +387,7 @@ def distplot_new(with_clusters, dvars, selected_info=[]):
 # API Routes
 @app.route('/api/case-studies', methods=['GET'])
 def get_case_studies():
-    case_study_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_data")
+    case_study_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "demo_data")
     files = [f.split(".")[0] for f in os.listdir(case_study_dir) if f.endswith('.json')]
     return jsonify({"files": files})
 
