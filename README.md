@@ -79,7 +79,7 @@ cd api
 python react_api.py
 ```
 
-The API should be running on `http://localhost:8081`
+The API should be running on `http://localhost:8080`
 
 #### Starting the React App (Client)
 
