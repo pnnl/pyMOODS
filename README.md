@@ -54,7 +54,7 @@ Work in progress.
 ```python
 npm run dev
 ```
-## Running Locally
+## Running React Dashboard Locally
 
 ### Starting the API Server
 
@@ -75,7 +75,7 @@ pip install -r requirements.txt
 3. Run the following command to start the API server:
 
 ```bash
-cd api
+cd dashboard/backend/api
 python react_api.py
 ```
 
@@ -83,7 +83,13 @@ The API should be running on `http://localhost:8080`
 
 #### Starting the React App (Client)
 
-1. In the `pymoods-react` directory, run the following to install the dependencies:
+1. Navigate to the frontend directory
+
+```bash
+cd dashboard/frontend
+```
+
+2. Run the following to install the dependencies:
 
 ```bash
 yarn install
@@ -92,7 +98,7 @@ yarn install
 2. Run the following to start the development server:
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 You can now access the React app on `http://localhost:8081`.
