@@ -69,8 +69,42 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const [xAxis, setXAxis] = React.useState('x_coord');
   const [yAxis, setYAxis] = React.useState('y_coord');
 
-  // Use the colorByField prop, with "label" as fallback
-  const labelField = colorByField;
+  const labelField = "label";
+
+  // const formattedData = solutionsData.map(datum => ({
+  //   ...datum,
+  //   x: datum[xAxis],
+  //   y: datum[yAxis]
+  // }));
+
+  // Helper function to format dollar amounts
+  const formatDollarValue = (key: string, value: any) => {
+    const stringValue = String(value);
+    
+    // Check if the key indicates a dollar amount (contains $, cost, price, revenue, etc.)
+    const isDollarField = /(\$|cost|price|revenue|budget|capex|opex|lcoe|npv|profit|income|expense)/i.test(key);
+    
+    if (isDollarField && typeof value === 'number') {
+      // Round to nearest hundredth for currency display
+      return `$${value.toFixed(2)}`;
+    } else if (isDollarField && typeof value === 'string') {
+      // Try to parse as number if it's a string representation of a number
+      const numValue = parseFloat(stringValue);
+      if (!isNaN(numValue)) {
+        return `$${numValue.toFixed(2)}`;
+      }
+    }
+    
+    // For non-dollar numeric values, check if they're very long decimals and round appropriately
+    if (typeof value === 'number' && !Number.isInteger(value)) {
+      const decimalPlaces = stringValue.split('.')[1]?.length || 0;
+      if (decimalPlaces > 4) {
+        return value.toFixed(2);
+      }
+    }
+    
+    return stringValue;
+  };
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -87,15 +121,17 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           lineHeight: '1.4em',
           borderRadius: '4px',
           textAlign: 'left',
-          minWidth: '200px'
+          minWidth: '200px',
+          color: '#000',
+          colorScheme: 'light'
         }}>
           {/* Basic Info */}
           <div>
-            <strong>Basic Info:</strong>
+            <strong style={{ color: '#000' }}>Basic Info:</strong>
             {['Solution ID', 'Case Study', 'Location'].map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -103,11 +139,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Decision Variables */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Decision Variables:</strong>
+            <strong style={{ color: '#000' }}>Decision Variables:</strong>
             {decision_keys?.map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -115,11 +151,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Objective Values */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Objectives:</strong>
+            <strong style={{ color: '#000' }}>Objectives:</strong>
             {objective_keys?.map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -127,11 +163,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Weighted Sum and Label */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Miscellaneous:</strong>
+            <strong style={{ color: '#000' }}>Miscellaneous:</strong>
             {['Weighted Sum', 'label'].map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -213,13 +249,24 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <select
             value={xAxis}
             onChange={(e) => setXAxis(e.target.value)}
-            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '220px', padding: '5px', marginTop: '4px',
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color:'#213547',
+              backgroundColor: '#ffffff',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+              width: '100%', 
+              maxWidth: '220px', 
+              padding: '5px', 
+              marginTop: '4px',
               textAlign: 'center',
-              textAlignLast: 'center' }}
+              textAlignLast: 'center',
+            }}
           >
             {numericFields.map((field) => (
-              <option key={field} value={field}>
+              <option key={field} value={field} style={{ backgroundColor: '#ffffff', color: '#213547' }}>
                 {field}
               </option>
             ))}
@@ -235,13 +282,25 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <select
             value={yAxis}
             onChange={(e) => setYAxis(e.target.value)}
-            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '220px', padding: '5px', marginTop: '4px',
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color:'#213547',
+              backgroundColor: '#ffffff',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+              width: '100%', 
+              maxWidth: '220px', 
+              padding: '5px', 
+              marginTop: '4px',
               textAlign: 'center',
-              textAlignLast: 'center' }}
+              textAlignLast: 'center',
+              colorScheme: 'light'
+            }}
           >
             {numericFields.map((field) => (
-              <option key={field} value={field}>
+              <option key={field} value={field} style={{ backgroundColor: '#ffffff', color: '#213547' }}>
                 {field}
               </option>
             ))}
@@ -262,10 +321,22 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 onColorByChange(newColorBy);
               }
             }}
-            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '220px', padding: '5px', marginTop: '4px',
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color:'#213547',
+              backgroundColor: '#ffffff',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+              width: '100%', 
+              maxWidth: '220px', 
+              padding: '5px', 
+              marginTop: '4px',
               textAlign: 'center',
-              textAlignLast: 'center' }}
+              textAlignLast: 'center',
+              colorScheme: 'light'
+            }}
           >
             {/* Add common categorical fields for coloring */}
             {hasData && Object.keys(solutionsData[0]).filter(key => 
@@ -274,7 +345,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
               key !== 'sim' && 
               key !== 'time'
             ).map((field) => (
-              <option key={field} value={field}>
+              <option key={field} value={field} style={{ backgroundColor: '#ffffff', color: '#213547' }}>
                 {field}
               </option>
             ))}

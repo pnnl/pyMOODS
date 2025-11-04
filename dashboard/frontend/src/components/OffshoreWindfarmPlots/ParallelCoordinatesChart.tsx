@@ -97,7 +97,9 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       .style('background', 'white')
       .style('border', '1px solid #ccc')
       .style('border-radius', '4px')
-      .style('opacity', 0);
+      .style('opacity', 0)
+      .style('color', '#000')
+      .style('color-scheme', 'light');
 
     // Draw lines
     g.selectAll('.line')
@@ -117,7 +119,7 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       .on('mouseover', function(event, d) {
         d3.select(this).attr('stroke-width', 4);
         tooltip.transition().duration(200).style('opacity', .9);
-        tooltip.html(`${d.config} - ${d.site}`)
+        tooltip.html(`<span style="color: #000;">${d.config} - ${d.site}</span>`)
                  .style('left', (event.pageX + 10) + 'px')
                  .style('top', (event.pageY - 28) + 'px');
       })
@@ -210,6 +212,8 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       if (ref.current) {
         resizeObserver.unobserve(ref.current);
       }
+      // Clean up any existing tooltips
+      d3.selectAll('.tooltip').remove();
     };
   }, [ranks]);
 
@@ -302,8 +306,11 @@ const HorizontalSlider: React.FC<{
       <div
         style={{
           marginTop: 0,
-          fontSize: '16px', fontWeight: 500, color:'#213547',
-        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          fontSize: '16px', 
+          fontWeight: 500, 
+          color:'#213547',
+          fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          colorScheme: 'light',
         }}
       >
         Minimum Number of Specializers: {value.toFixed(0)}

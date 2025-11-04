@@ -56,6 +56,30 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
 
+  // Helper function to format dollar amounts
+  const formatDollarValue = (columnName: string, value: number) => {
+    // Check if the column name indicates a dollar amount
+    const isDollarField = /(\$|cost|price|revenue|budget|capex|opex|lcoe|npv|profit|income|expense|lmp)/i.test(columnName);
+    
+    if (isDollarField) {
+      // Round to nearest hundredth for currency display
+      return `$${value.toFixed(2)}`;
+    }
+    
+    // For non-dollar numeric values, check if they have many decimal places and round appropriately
+    if (!Number.isInteger(value)) {
+      const stringValue = value.toString();
+      const decimalPlaces = stringValue.split('.')[1]?.length || 0;
+      if (decimalPlaces > 4) {
+        return value.toFixed(2);
+      } else if (decimalPlaces > 2) {
+        return value.toFixed(4);
+      }
+    }
+    
+    return value.toString();
+  };
+
   // Fetch LMP data
   useEffect(() => {
     if (!useCase) return;
@@ -222,7 +246,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
             x: mouseX,
             y: mouseY,
             sim: sim,
-            value: closest.value.toFixed(4),
+            value: formatDollarValue(selectedColumn, closest.value),
             time: closest.time.toFixed(2),
           });
           setTooltipVisible(true);
@@ -345,13 +369,15 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
               whiteSpace: "nowrap",
               textAlign: "left",
               maxWidth: "300px",
+              color: "#000",
+              colorScheme: "light",
             }}
           >
-            <strong>Scenario:</strong> {tooltipData.sim}
+            <strong style={{ color: "#000" }}>Scenario:</strong> {tooltipData.sim}
             <br />
-            <strong>Time:</strong> {tooltipData.time}
+            <strong style={{ color: "#000" }}>Time:</strong> {tooltipData.time}
             <br />
-            <strong>{selectedColumn}:</strong> {tooltipData.value}
+            <strong style={{ color: "#000" }}>{selectedColumn}:</strong> {tooltipData.value}
           </div>
         )}
 
