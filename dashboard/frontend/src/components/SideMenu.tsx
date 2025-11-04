@@ -294,7 +294,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
                     <SidebarSelect
                       multiple
                       value={selectedFilters[filter.key] || []}
-                      onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                      onChange={(e) => handleFilterChange(filter.key, e.target.value as string[])}
                       input={<Select native={false} />}
                       renderValue={() => null}
                       disabled={!selectedCaseStudy || loading}

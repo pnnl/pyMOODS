@@ -157,7 +157,7 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
 
       // Check if cleaned string is a valid number
       val =
-        cleaned && !isNaN(cleaned) && isFinite(cleaned)
+        cleaned && !isNaN(parseFloat(cleaned)) && isFinite(parseFloat(cleaned))
           ? parseFloat(cleaned)
           : NaN;
     } else if (typeof rawValue === "number") {

@@ -27,7 +27,7 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
         site,
         ...values,
       };
-    });
+    }) as Array<{ config: string; site: string; [key: string]: any }>;
 
     const numericColumns = Object.keys(flatData[0]).filter(
       key => typeof flatData[0][key] === 'number'
@@ -112,9 +112,14 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       .attr('stroke-width', 2)
       .attr('d', d =>
         d3.line()
-          .x(p => xScale(p[0]))
-          .y(p => yScales[p[0]](d[p[0]]))
-          (rankColumns.map(dim => [dim, d[dim]]))
+          // .x(p => xScale(p[0]))
+          // .y(p => yScales[p[0]](d[p[0]]))
+          // (rankColumns.map(dim => [dim, d[dim]]))
+
+          // fixing typescript errors
+          .x((_, i) => xScale(rankColumns[i]) || 0)
+          .y((_, i) => yScales[rankColumns[i]](d[rankColumns[i]]))
+          (rankColumns.map(dim => [xScale(dim) || 0, yScales[dim](d[dim])]))
       )
       .on('mouseover', function(event, d) {
         d3.select(this).attr('stroke-width', 4);

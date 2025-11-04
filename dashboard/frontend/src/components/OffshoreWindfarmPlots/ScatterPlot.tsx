@@ -41,7 +41,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   objective_keys,
   onColorByChange,
   objectiveColorMap,
-  colorByField = "label"
 }) => {
 
   // Ensure there's data before extracting fields
