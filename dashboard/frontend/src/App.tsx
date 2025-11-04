@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 import AppNavbar from './components/AppNavbar';
 import SideMenu from './components/SideMenu';
 import MainGrid from './components/MainGrid';
