@@ -163,8 +163,8 @@ LOCALREADME.md
 .DS_Store
 
 # pyMOODS React App Redesign
-pymoods-react/node_modules
-pymoods-react/yarn.lock
+dashboard/frontend/node_modules
+dashboard/frontend/yarn.lock
 
 # data files used by notebooks
 notebooks/input_cameo
@@ -175,3 +175,5 @@ notebooks/output_cameo
 *.pdf
 *.jld2
 
+VS Code settings
+.vscode/
