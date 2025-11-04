@@ -69,11 +69,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
   const labelField = "label";
 
-  const formattedData = solutionsData.map(datum => ({
-    ...datum,
-    x: datum[xAxis],
-    y: datum[yAxis]
-  }));
+  // const formattedData = solutionsData.map(datum => ({
+  //   ...datum,
+  //   x: datum[xAxis],
+  //   y: datum[yAxis]
+  // }));
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
