@@ -290,7 +290,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                 <LMPPlot 
                   useCase={selectedUseCase} 
                   filters={filters} 
-                  selectedSolution={selectedSolution}
+                  selectedSolution={selectedSolution || undefined}
                 />
               </Box>
             </Grid>
