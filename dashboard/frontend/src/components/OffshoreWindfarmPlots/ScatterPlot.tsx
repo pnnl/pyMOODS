@@ -29,6 +29,7 @@ interface ScatterPlotProps {
   objective_keys?: string[];  
   onColorByChange?: (colorBy: string) => void;
   objectiveColorMap: Record<string, string>;
+  colorByField?: string;
 }
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A', '#8FBC8F'];
@@ -39,7 +40,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   decision_keys,
   objective_keys,
   onColorByChange,
-  objectiveColorMap 
+  objectiveColorMap,
 }) => {
 
   // Ensure there's data before extracting fields
@@ -240,9 +241,9 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       }}>
         <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
         fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '200px',
+          minWidth: '180px',
           flex: 1,
-          maxWidth: '250px' }}>
+          maxWidth: '220px' }}>
           X-axis:
           <select
             value={xAxis}
@@ -273,9 +274,9 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
         <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
         fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '200px',
+          minWidth: '180px',
           flex: 1,
-          maxWidth: '250px' }}>
+          maxWidth: '220px' }}>
           Y-axis:
           <select
             value={yAxis}

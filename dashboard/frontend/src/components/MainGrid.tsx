@@ -36,7 +36,7 @@ const MainGrid: React.FC<MainGridProps> = ({
   selectedUseCase,
   filters,
   weights,
-  onWeightsChange,
+  // onWeightsChange,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [clusterBy, setClusterBy] = useState<string>("AI-Generated");
@@ -155,7 +155,7 @@ const MainGrid: React.FC<MainGridProps> = ({
           ...(result.decision_keys || []),
           ...(result.additional_cols || []),
         ];
-        const processedSolutions = result.solutions.map((solution) => {
+        const processedSolutions = result.solutions.map((solution: { [x: string]: any; hasOwnProperty: (arg0: any) => any; }) => {
           const orderedSolution: Record<string, any> = {};
           orderedColumns.forEach((key) => {
             if (solution.hasOwnProperty(key)) {
@@ -174,7 +174,7 @@ const MainGrid: React.FC<MainGridProps> = ({
         const computeChartData = (keys: string[]) => {
           return keys.map((key) => {
             const values = result.solutions.map(
-              (row) => parseFloat(row[key]) || 0
+              (row: { [x: string]: string; }) => parseFloat(row[key]) || 0
             );
             const min = Math.min(...values);
             const max = Math.max(...values);
@@ -251,9 +251,6 @@ const MainGrid: React.FC<MainGridProps> = ({
           {/* First Row - Charts */}
           <Grid container spacing={2} sx={{ width: '100%', pt: 2, px: 2 }}>
             <Grid item xs={12} md={6}>
-            {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
-              Solution Space
-                </Typography> */}
               <Box sx={{ position: 'relative', zIndex: 10, width:"100%" }}>
                 <ScatterPlot
                   useCase={selectedUseCase} 
@@ -261,7 +258,8 @@ const MainGrid: React.FC<MainGridProps> = ({
                   decision_keys={decisionKeys}
                   objective_keys={objectiveKeys}
                   objectiveColorMap={objectiveColorMap} 
-                  onClusterByChange={setClusterBy}
+                  onColorByChange={setClusterBy}
+                  colorByField={clusterBy}
                 />
               </Box>
             </Grid>
@@ -292,7 +290,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                 <LMPPlot 
                   useCase={selectedUseCase} 
                   filters={filters} 
-                  selectedSolution={selectedSolution}
+                  selectedSolution={selectedSolution || undefined}
                 />
               </Box>
             </Grid>

@@ -10,7 +10,6 @@ import InputLabel from '@mui/material/InputLabel';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import TextField from '@mui/material/TextField';
-import Stack from "@mui/material/Stack";
 import pyMOODSLogo from "../assets/pymoods-logo-updated.svg";
 import config from '../config';
 const { API_BASE_URL } = config;
@@ -295,7 +294,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
                     <SidebarSelect
                       multiple
                       value={selectedFilters[filter.key] || []}
-                      onChange={(e) => handleFilterChange(filter.key, e.target.value)}
+                      onChange={(e) => handleFilterChange(filter.key, e.target.value as string[])}
                       input={<Select native={false} />}
                       renderValue={() => null}
                       disabled={!selectedCaseStudy || loading}
