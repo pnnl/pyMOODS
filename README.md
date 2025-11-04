@@ -24,45 +24,20 @@ An AI-enabled visualization capability for power systems planning that integrate
 ✅ Pre-Integrated Real-World Use Cases\
 🚀 Coming Soon: Generative AI-Powered Interaction
 
-## Installation
-
-Install pyMOODS via pip:
-
-```bash
-# Coming soon on pip
-```
-
-For development installation:
-
-```bash
-git clone https://github.com/pymoods/pymoods.git
-cd pymoods
-pip install -e .
-```
-
-## Documentation
-Work in progress.
-<!-- Full documentation is available at [https://pymoods.readthedocs.io](https://pymoods.readthedocs.io), including:
-
-- API reference
-- Tutorials and examples
-- Contribution guidelines
-- Theory and methodology -->
-
 ## Quick Start
 
-```python
-npm run dev
-```
-## Running React Dashboard Locally
+### Prerequisites
+- python
+- venv
+- yarn
+- node
 
 ### Starting the API Server
 
-1. In the `dashboard` directory, create or activate a virtual environment. If you are using `venv`, run the following command:
+1. Create a virtual environment if this is your first time running. Activate your virtual environment using the following command:
 
 ```bash
 cd dashboard
-
 ./venv/Scripts/activate
 ```
 
@@ -105,7 +80,7 @@ You can now access the React app on `http://localhost:8081`.
 
 ## Contributing
 
-We welcome contributions from the community! Please see our [Contribution Guidelines](CONTRIBUTING.md) for details on how to:
+We welcome contributions from the community! Please see our [Contribution Guidelines](docs/CONTRIBUTING.md) for details on how to:
 
 - Report issues
 - Submit pull requests
@@ -114,7 +89,7 @@ We welcome contributions from the community! Please see our [Contribution Guidel
 
 ## License
 
-pyMOODS is released under the MIT License. See [LICENSE](LICENSE) for full details.
+pyMOODS is released under the MIT License. See [LICENSE](docs/LICENSE) for full details.
 
 ## Citation
 
@@ -132,4 +107,4 @@ If you use pyMOODS in your research, please cite:
 
 ## Contact
 
-For questions or support, please open an issue on GitHub or contact the project PI Dr. Milan Jain at [milan.jain@pnnl.gov](mailto:milan.jain@pnnl.gov).
+For questions or support, please open an issue on GitLab or contact the project PI Dr. Milan Jain at [milan.jain@pnnl.gov](mailto:milan.jain@pnnl.gov).
