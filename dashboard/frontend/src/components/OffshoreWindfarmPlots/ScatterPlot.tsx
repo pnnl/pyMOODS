@@ -75,6 +75,35 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   //   y: datum[yAxis]
   // }));
 
+  // Helper function to format dollar amounts
+  const formatDollarValue = (key: string, value: any) => {
+    const stringValue = String(value);
+    
+    // Check if the key indicates a dollar amount (contains $, cost, price, revenue, etc.)
+    const isDollarField = /(\$|cost|price|revenue|budget|capex|opex|lcoe|npv|profit|income|expense)/i.test(key);
+    
+    if (isDollarField && typeof value === 'number') {
+      // Round to nearest hundredth for currency display
+      return `$${value.toFixed(2)}`;
+    } else if (isDollarField && typeof value === 'string') {
+      // Try to parse as number if it's a string representation of a number
+      const numValue = parseFloat(stringValue);
+      if (!isNaN(numValue)) {
+        return `$${numValue.toFixed(2)}`;
+      }
+    }
+    
+    // For non-dollar numeric values, check if they're very long decimals and round appropriately
+    if (typeof value === 'number' && !Number.isInteger(value)) {
+      const decimalPlaces = stringValue.split('.')[1]?.length || 0;
+      if (decimalPlaces > 4) {
+        return value.toFixed(2);
+      }
+    }
+    
+    return stringValue;
+  };
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       console.log('Tooltip Payload:', payload); // Log the tooltip payload for debugging
@@ -100,7 +129,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             {['Solution ID', 'Case Study', 'Location'].map(key => (
               data[key] !== undefined ? (
                 <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -112,7 +141,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             {decision_keys?.map(key => (
               data[key] !== undefined ? (
                 <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -124,7 +153,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             {objective_keys?.map(key => (
               data[key] !== undefined ? (
                 <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -136,7 +165,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
             {['Weighted Sum', 'label'].map(key => (
               data[key] !== undefined ? (
                 <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
                 </p>
               ) : null
             ))}
