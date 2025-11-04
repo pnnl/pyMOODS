@@ -90,15 +90,17 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           lineHeight: '1.4em',
           borderRadius: '4px',
           textAlign: 'left',
-          minWidth: '200px'
+          minWidth: '200px',
+          color: '#000',
+          colorScheme: 'light'
         }}>
           {/* Basic Info */}
           <div>
-            <strong>Basic Info:</strong>
+            <strong style={{ color: '#000' }}>Basic Info:</strong>
             {['Solution ID', 'Case Study', 'Location'].map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -106,11 +108,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Decision Variables */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Decision Variables:</strong>
+            <strong style={{ color: '#000' }}>Decision Variables:</strong>
             {decision_keys?.map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -118,11 +120,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Objective Values */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Objectives:</strong>
+            <strong style={{ color: '#000' }}>Objectives:</strong>
             {objective_keys?.map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -130,11 +132,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Weighted Sum and Label */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Miscellaneous:</strong>
+            <strong style={{ color: '#000' }}>Miscellaneous:</strong>
             {['Weighted Sum', 'label'].map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -216,13 +218,24 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <select
             value={xAxis}
             onChange={(e) => setXAxis(e.target.value)}
-            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color:'#213547',
+              backgroundColor: '#ffffff',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+              width: '100%', 
+              maxWidth: '220px', 
+              padding: '5px', 
+              marginTop: '4px',
               textAlign: 'center',
-              textAlignLast: 'center' }}
+              textAlignLast: 'center',
+            }}
           >
             {numericFields.map((field) => (
-              <option key={field} value={field}>
+              <option key={field} value={field} style={{ backgroundColor: '#ffffff', color: '#213547' }}>
                 {field}
               </option>
             ))}
@@ -238,13 +251,70 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           <select
             value={yAxis}
             onChange={(e) => setYAxis(e.target.value)}
-            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color:'#213547',
+              backgroundColor: '#ffffff',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+              width: '100%', 
+              maxWidth: '220px', 
+              padding: '5px', 
+              marginTop: '4px',
               textAlign: 'center',
-              textAlignLast: 'center' }}
+              textAlignLast: 'center',
+              colorScheme: 'light'
+            }}
           >
             {numericFields.map((field) => (
-              <option key={field} value={field}>
+              <option key={field} value={field} style={{ backgroundColor: '#ffffff', color: '#213547' }}>
+                {field}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          minWidth: '180px',
+          flex: 1,
+          maxWidth: '220px' }}>
+          Color by:
+          <select
+            value={labelField}
+            onChange={(e) => {
+              const newColorBy = e.target.value;
+              if (onColorByChange) {
+                onColorByChange(newColorBy);
+              }
+            }}
+            style={{ 
+              fontSize: '16px', 
+              fontWeight: 500, 
+              color:'#213547',
+              backgroundColor: '#ffffff',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+              width: '100%', 
+              maxWidth: '220px', 
+              padding: '5px', 
+              marginTop: '4px',
+              textAlign: 'center',
+              textAlignLast: 'center',
+              colorScheme: 'light'
+            }}
+          >
+            {/* Add common categorical fields for coloring */}
+            {hasData && Object.keys(solutionsData[0]).filter(key => 
+              key !== 'x_coord' && 
+              key !== 'y_coord' && 
+              key !== 'sim' && 
+              key !== 'time'
+            ).map((field) => (
+              <option key={field} value={field} style={{ backgroundColor: '#ffffff', color: '#213547' }}>
                 {field}
               </option>
             ))}
