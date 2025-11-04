@@ -35,7 +35,7 @@ function App() {
   }, [filters, weights]);
 
   return (
-    <Box sx={{ display: 'flex', minWidth: "100%", minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', width: "100%", minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Sidebar */}
       <Box
         sx={{
@@ -60,8 +60,8 @@ function App() {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          width: '100%',
-          maxWidth: '100%',
+          width: 'calc(100% - 240px)',  // Account for sidebar width
+          maxWidth: 'none',
         }}
       >
         <Box sx={{ mb: 0, mt: 0, ml: 1, pl: 1 }}>
@@ -83,7 +83,7 @@ function App() {
             //   </Box>
             // ) : 
             (
-              <Box sx={{ textAlign: 'center', ml: 2, mr:0, pl: 0, pr: 0, pt: 0 }}>
+              <Box sx={{ textAlign: 'center', ml: 0, mr: 0, pl: 0, pr: 0, pt: 0, width: '100%' }}>
                 <MainGrid
                   selectedUseCase={selectedUseCase}
                   filters={filters}
