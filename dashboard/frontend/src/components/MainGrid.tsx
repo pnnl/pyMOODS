@@ -12,7 +12,7 @@ import {
 import ScatterPlot from './OffshoreWindfarmPlots/ScatterPlot';
 // import ClusterScatterPlot from './OffshoreWindfarmPlots/ClusterScatterPlot';
 import DualRadarChart, { RadarData } from './OffshoreWindfarmPlots/DualRadarChart';
-import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
+// import DecisionPlot from './OffshoreWindfarmPlots/DecisionPlot';
 import LMPPlot from './OffshoreWindfarmPlots/LMPPlot';
 import Summary from './OffshoreWindfarmPlots/Summary';
 import ParallelCoordinatesChart from './OffshoreWindfarmPlots/ParallelCoordinatesChart';
@@ -206,11 +206,11 @@ const MainGrid: React.FC<MainGridProps> = ({
     fetchData();
   }, [selectedUseCase, JSON.stringify(filters), JSON.stringify(weights)]);
 
-  const handleWeightChange = (newWeights: Record<string, number>) => {
-    if (onWeightsChange) {
-      onWeightsChange(newWeights);
-    }
-  };
+  // const handleWeightChange = (newWeights: Record<string, number>) => {
+  //   if (onWeightsChange) {
+  //     onWeightsChange(newWeights);
+  //   }
+  // };
 
   if (summaryLoading || radarLoading) {
     return (
@@ -230,9 +230,9 @@ const MainGrid: React.FC<MainGridProps> = ({
   }
 
   return (
-    <Box sx={{ width: "100%", px: { xs: 0, sm: 0 }, py: 0 }}>
+    <Box sx={{ width: "100%", px: 0, py: 0 }}>
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1, mr: 0, mt:1 }}>
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1, mx: 2, mt: 1 }}>
         <Tabs
           value={tabIndex}
           onChange={(_, v) => setTabIndex(v)}
@@ -247,10 +247,10 @@ const MainGrid: React.FC<MainGridProps> = ({
 
       {/* Tab Content */}
       {tabIndex === 0 && (
-        <Box sx={{ width: "100%", ml: 0}}>
+        <Box sx={{ width: "100%" }}>
           {/* First Row - Charts */}
-          <Grid container spacing={0} sx={{ width: '100%', pt: 2 }}>
-            <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
+          <Grid container spacing={2} sx={{ width: '100%', pt: 2, px: 2 }}>
+            <Grid item xs={12} md={6}>
             {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Space
                 </Typography> */}
@@ -265,7 +265,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                 />
               </Box>
             </Grid>
-            <Grid item xs={12} sm={6} sx={{ px: 3, mx: 0}}>
+            <Grid item xs={12} sm={6}>
             {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
             Specializers and Generalizers
                 </Typography> */}
@@ -286,8 +286,8 @@ const MainGrid: React.FC<MainGridProps> = ({
           </Grid>
 
           {/* Second Row - Summary & LMP */}
-          <Grid container spacing={0} sx={{ width: '100%', pt: 4 }}>
-            <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
+          <Grid container spacing={2} sx={{ width: '100%', pt: 4, px: 2 }}>
+            <Grid item xs={12} md={6}>
               <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, height: '600px'}}>
                 <LMPPlot 
                   useCase={selectedUseCase} 
@@ -296,7 +296,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                 />
               </Box>
             </Grid>
-            <Grid item xs={12} md={6} sx={{ px: 3, mx: 0}}>
+            <Grid item xs={12} md={6}>
               <Box>
                 <DualRadarChart
                   objectives={radarData.objectives}

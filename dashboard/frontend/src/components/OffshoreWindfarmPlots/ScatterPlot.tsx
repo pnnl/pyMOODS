@@ -4,13 +4,13 @@ import {
   ScatterChart,
   XAxis,
   YAxis,
-  ZAxis,
+  // ZAxis,
   Tooltip,
   Scatter,
   CartesianGrid,
   ResponsiveContainer,
-  Legend,
-  Dot,
+  // Legend,
+  // Dot,
   DotProps
 } from 'recharts';
 
@@ -34,7 +34,7 @@ interface ScatterPlotProps {
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A', '#8FBC8F'];
   
 const ScatterPlot: React.FC<ScatterPlotProps> = ({ 
-  useCase,
+  // useCase,
   solutionsData,
   decision_keys,
   objective_keys,
