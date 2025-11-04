@@ -29,6 +29,7 @@ interface ScatterPlotProps {
   objective_keys?: string[];  
   onColorByChange?: (colorBy: string) => void;
   objectiveColorMap: Record<string, string>;
+  colorByField?: string;
 }
 
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A', '#8FBC8F'];
@@ -39,7 +40,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   decision_keys,
   objective_keys,
   onColorByChange,
-  objectiveColorMap 
+  objectiveColorMap,
+  colorByField = "label"
 }) => {
 
   // Ensure there's data before extracting fields
@@ -67,13 +69,8 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const [xAxis, setXAxis] = React.useState('x_coord');
   const [yAxis, setYAxis] = React.useState('y_coord');
 
-  const labelField = "label";
-
-  const formattedData = solutionsData.map(datum => ({
-    ...datum,
-    x: datum[xAxis],
-    y: datum[yAxis]
-  }));
+  // Use the colorByField prop, with "label" as fallback
+  const labelField = colorByField;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -209,15 +206,15 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       }}>
         <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
         fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '200px',
+          minWidth: '180px',
           flex: 1,
-          maxWidth: '250px' }}>
+          maxWidth: '220px' }}>
           X-axis:
           <select
             value={xAxis}
             onChange={(e) => setXAxis(e.target.value)}
             style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
+            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '220px', padding: '5px', marginTop: '4px',
               textAlign: 'center',
               textAlignLast: 'center' }}
           >
@@ -231,19 +228,52 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
         <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
         fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '200px',
+          minWidth: '180px',
           flex: 1,
-          maxWidth: '250px' }}>
+          maxWidth: '220px' }}>
           Y-axis:
           <select
             value={yAxis}
             onChange={(e) => setYAxis(e.target.value)}
             style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
-            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '250px', padding: '5px', marginTop: '4px',
+            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '220px', padding: '5px', marginTop: '4px',
               textAlign: 'center',
               textAlignLast: 'center' }}
           >
             {numericFields.map((field) => (
+              <option key={field} value={field}>
+                {field}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
+        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          minWidth: '180px',
+          flex: 1,
+          maxWidth: '220px' }}>
+          Color by:
+          <select
+            value={labelField}
+            onChange={(e) => {
+              const newColorBy = e.target.value;
+              if (onColorByChange) {
+                onColorByChange(newColorBy);
+              }
+            }}
+            style={{ fontSize: '16px', fontWeight: 500, color:'#213547',
+            fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',width: '100%', maxWidth: '220px', padding: '5px', marginTop: '4px',
+              textAlign: 'center',
+              textAlignLast: 'center' }}
+          >
+            {/* Add common categorical fields for coloring */}
+            {hasData && Object.keys(solutionsData[0]).filter(key => 
+              key !== 'x_coord' && 
+              key !== 'y_coord' && 
+              key !== 'sim' && 
+              key !== 'time'
+            ).map((field) => (
               <option key={field} value={field}>
                 {field}
               </option>
