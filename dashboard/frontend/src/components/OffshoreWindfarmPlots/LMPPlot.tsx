@@ -351,13 +351,15 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
               whiteSpace: "nowrap",
               textAlign: "left",
               maxWidth: "300px",
+              color: "#000",
+              colorScheme: "light",
             }}
           >
-            <strong>Scenario:</strong> {tooltipData.sim}
+            <strong style={{ color: "#000" }}>Scenario:</strong> {tooltipData.sim}
             <br />
-            <strong>Time:</strong> {tooltipData.time}
+            <strong style={{ color: "#000" }}>Time:</strong> {tooltipData.time}
             <br />
-            <strong>{selectedColumn}:</strong> {tooltipData.value}
+            <strong style={{ color: "#000" }}>{selectedColumn}:</strong> {tooltipData.value}
           </div>
         )}
 

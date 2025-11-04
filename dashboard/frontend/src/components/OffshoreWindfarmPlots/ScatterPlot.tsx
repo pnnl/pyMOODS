@@ -90,15 +90,17 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           lineHeight: '1.4em',
           borderRadius: '4px',
           textAlign: 'left',
-          minWidth: '200px'
+          minWidth: '200px',
+          color: '#000',
+          colorScheme: 'light'
         }}>
           {/* Basic Info */}
           <div>
-            <strong>Basic Info:</strong>
+            <strong style={{ color: '#000' }}>Basic Info:</strong>
             {['Solution ID', 'Case Study', 'Location'].map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -106,11 +108,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Decision Variables */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Decision Variables:</strong>
+            <strong style={{ color: '#000' }}>Decision Variables:</strong>
             {decision_keys?.map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -118,11 +120,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Objective Values */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Objectives:</strong>
+            <strong style={{ color: '#000' }}>Objectives:</strong>
             {objective_keys?.map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
@@ -130,11 +132,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   
           {/* Weighted Sum and Label */}
           <div style={{ marginTop: '8px' }}>
-            <strong>Miscellaneous:</strong>
+            <strong style={{ color: '#000' }}>Miscellaneous:</strong>
             {['Weighted Sum', 'label'].map(key => (
               data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px' }}>
-                  {key}: <span style={{ fontWeight: 'normal' }}>{String(data[key])}</span>
+                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
+                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{String(data[key])}</span>
                 </p>
               ) : null
             ))}
