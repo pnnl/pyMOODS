@@ -172,8 +172,6 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
     const margin = { top: 10, right: 10, bottom: 30, left: 10 }; // minimized margins
     const width = containerWidth;
     const height = containerHeight;
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
   
     const svg = d3.select(svgElement);
     svg.selectAll("*").remove(); // Clear previous chart
@@ -258,10 +256,6 @@ const LMPPlot: React.FC<LMPPlotProps> = ({
           width: "100%",
         }}
       >
-        {/* <Box sx={{ flex: 1, textAlign: "center" }}>
-          <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>Scenario Data</Typography>
-        </Box> */}
-        {/* <Box sx={{ width: '50%', maxWidth: 400 }}> */}
         <FormControl
           fullWidth
           size="small"
