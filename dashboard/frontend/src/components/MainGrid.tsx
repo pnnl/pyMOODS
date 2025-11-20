@@ -249,7 +249,7 @@ const MainGrid: React.FC<MainGridProps> = ({
       {tabIndex === 0 && (
         <Box sx={{ width: "100%" }}>
           {/* First Row - Charts */}
-          <Grid container spacing={2} sx={{ width: '100%', pt: 2, px: 2 }}>
+          <Grid container spacing={2} sx={{ width: '100%', pt: 3, px: 2 }}>
             <Grid item xs={12} md={6}>
               <Box sx={{ position: 'relative', zIndex: 10, width:"100%" }}>
                 <ScatterPlot
@@ -270,7 +270,7 @@ const MainGrid: React.FC<MainGridProps> = ({
               <Box sx={{ width: "100%" }}>
                 <ParallelCoordinatesChart ranks={rankData} objectiveColorMap={objectiveColorMap}/>
               </Box>
-              <Box sx={{ width: "100%", mt: 0 }}>
+              <Box sx={{ width: "100%", mt: 2 }}>
               {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
               Solution Ranking
                 </Typography> */}
@@ -284,9 +284,9 @@ const MainGrid: React.FC<MainGridProps> = ({
           </Grid>
 
           {/* Second Row - Summary & LMP */}
-          <Grid container spacing={2} sx={{ width: '100%', pt: 4, px: 2 }}>
+          <Grid container spacing={2} sx={{ width: '100%', pt: 3, px: 2 }}>
             <Grid item xs={12} md={6}>
-              <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, height: '600px'}}>
+              <Box sx={{ overflow: 'hidden', position: 'relative', zIndex: 1}}>
                 <LMPPlot 
                   useCase={selectedUseCase} 
                   filters={filters} 
