@@ -264,16 +264,10 @@ const MainGrid: React.FC<MainGridProps> = ({
               </Box>
             </Grid>
             <Grid item xs={12} sm={6}>
-            {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
-            Specializers and Generalizers
-                </Typography> */}
               <Box sx={{ width: "100%" }}>
                 <ParallelCoordinatesChart ranks={rankData} objectiveColorMap={objectiveColorMap}/>
               </Box>
               <Box sx={{ width: "100%", mt: 2 }}>
-              {/* <Typography sx={{ fontSize: '15px', mb: '10px', mt:0,fontWeight: 500, fontFamily: "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif", color: "rgb(33, 53, 71)" }}>
-              Solution Ranking
-                </Typography> */}
                 <Summary
                   data={summaryData}
                   loading={summaryLoading}
