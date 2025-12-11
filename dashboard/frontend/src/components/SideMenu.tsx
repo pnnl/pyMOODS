@@ -82,9 +82,10 @@ interface SideMenuProps {
   onFiltersChange?: (filters: Record<string, string[]>) => void;
   onSelectUseCase?: (useCase: string) => void;
   onWeightsChange?: (weights: Record<string, number>) => void;
+  filters?: Record<string, string[]>; // Current filters from parent
 }
 
-const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, onWeightsChange }) => {
+const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, onWeightsChange, filters }) => {
   const [caseStudies, setCaseStudies] = useState<string[]>([]);
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<string>('');
   const [filterOptions, setFilterOptions] = useState<FilterOption[]>([]);
@@ -167,6 +168,13 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
         setLoading(false);
       });
   }, [selectedCaseStudy]);
+
+  // Sync with external filter changes (e.g., from summary table clicks)
+  useEffect(() => {
+    if (filters) {
+      setSelectedFilters(filters);
+    }
+  }, [filters]);
 
   // Notify parent whenever weights change
   useEffect(() => {

@@ -22,9 +22,10 @@ interface SummaryProps {
   loading: boolean;
   filters?: Record<string, string[]>; // Filters from sidebar
   onRowSelect?: (solution: Solution) => void;
+  onLocationSelect?: (location: string) => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect }) => {
+const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
 
@@ -208,6 +209,16 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect }
                 key={`solution-${index}`}
                 sx={{
                   backgroundColor: getRowColor(index, sortedData.length),
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: getRowColor(index, sortedData.length).replace('0.3', '0.5'),
+                  },
+                }}
+                onClick={() => {
+                  const solutionLocation = solution.Location || solution.location || solution.LOCATION;
+                  if (solutionLocation && onLocationSelect) {
+                    onLocationSelect(solutionLocation);
+                  }
                 }}
               >
                 {allKeys.map((key) => (

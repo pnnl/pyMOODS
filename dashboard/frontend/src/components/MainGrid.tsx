@@ -26,6 +26,7 @@ interface MainGridProps {
   filters: Record<string, string[]>;
   weights: Record<string, number>;
   onWeightsChange?: (weights: Record<string, number>) => void;
+  onLocationSelect?: (location: string) => void;
 }
 
 interface Solution {
@@ -37,6 +38,7 @@ const MainGrid: React.FC<MainGridProps> = ({
   filters,
   weights,
   // onWeightsChange,
+  onLocationSelect,
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [clusterBy, setClusterBy] = useState<string>("AI-Generated");
@@ -273,6 +275,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                   loading={summaryLoading}
                   filters={filters}
                   onRowSelect={(solution) => setSelectedSolution(solution)}
+                  onLocationSelect={onLocationSelect}
                 />
               </Box>
             </Grid>
