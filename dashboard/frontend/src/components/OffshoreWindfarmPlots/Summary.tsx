@@ -193,30 +193,6 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect }
                 key={`solution-${index}`}
                 sx={{
                   backgroundColor: getRowColor(index, sortedData.length),
-                  transition: 'transform 0.4s ease-in-out, box-shadow 0.3s ease',
-                  ...(index === 0 && {
-                    transform: 'scale3d(1.05, 1.05, 1)',
-                    zIndex: 2,
-                    boxShadow: 4,
-                    '&:hover': {
-                      transform: 'scale3d(1.08, 1.08, 1)',
-                      boxShadow: 6,
-                    },
-                    animation: 'bounceIn 0.6s ease',
-                    '@keyframes bounceIn': {
-                      '0%': {
-                        transform: 'scale3d(0.9, 0.9, 1)',
-                        opacity: 0,
-                      },
-                      '60%': {
-                        transform: 'scale3d(1.08, 1.08, 1)',
-                        opacity: 1,
-                      },
-                      '100%': {
-                        transform: 'scale3d(1.05, 1.05, 1)',
-                      },
-                    },
-                  }),
                 }}
               >
                 {allKeys.map((key) => (
