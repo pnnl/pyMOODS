@@ -8,9 +8,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   LinearProgress,
-  IconButton,
 } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -22,10 +20,12 @@ interface Solution {
 interface SummaryProps {
   data: Solution[]; // Data passed from MainGrid
   loading: boolean;
+  filters?: Record<string, string[]>; // Filters from sidebar
   onRowSelect?: (solution: Solution) => void;
+  onLocationSelect?: (location: string) => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
+const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
 
@@ -33,7 +33,24 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
   if (!data || data.length === 0)
     return <Typography>No solutions found.</Typography>;
 
-  const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+  // Filter data based on Location selections
+  const filteredData = React.useMemo(() => {
+    if (!filters || !filters.Location || filters.Location.length === 0) {
+      return data; // Return all data if no Location filter is selected
+    }
+    
+    return data.filter((solution) => {
+      // Check for Location field with different case variations
+      const solutionLocation = solution.Location || solution.location || solution.LOCATION;
+      return solutionLocation && filters.Location.includes(solutionLocation);
+    });
+  }, [data, filters]);
+
+  if (filteredData.length === 0) {
+    return <Typography>No solutions found for the selected location(s).</Typography>;
+  }
+
+  const allKeys = Array.from(new Set(filteredData.flatMap(Object.keys)));
 
   // State for sorting
   const [sortConfig, setSortConfig] = useState<{
@@ -46,7 +63,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
 
   // Determine if a column is numeric
   const isNumericColumn = (key: string) =>
-    data.every((item) => typeof item[key] === 'number');
+    filteredData.every((item) => typeof item[key] === 'number');
 
   // Handle sort toggle
   const handleSort = (key: string) => {
@@ -63,7 +80,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
   };
 
   // Sorted data
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig.key) return 0;
 
     const aValue = a[sortConfig.key];
@@ -77,7 +94,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
   });
 
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    if (!filteredData || filteredData.length === 0) return;
 
     const index = selectedRowIndex ?? 0;
     const solution = sortedData[Math.min(index, sortedData.length - 1)];
@@ -86,7 +103,14 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
     if (onRowSelect) {
       onRowSelect(solution);
     }
-  }, [data, sortedData, selectedRowIndex]);
+  }, [filteredData, sortedData, selectedRowIndex]);
+
+  // Reset selection when filteredData changes (new Location filter applied)
+  useEffect(() => {
+    if (filteredData.length > 0) {
+      setSelectedRowIndex(0);
+    }
+  }, [filteredData.length]);
 
   // Gradient: dark green (best) to light red (worst)
   const getRowColor = (index: number, total: number) => {
@@ -99,19 +123,35 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <TableContainer sx={{ overflowX: 'auto' }}>
+      <TableContainer sx={{ 
+        overflowX: 'auto',
+        overflowY: 'auto',
+        maxHeight: '250px',
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+        '&': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+        },
+      }}>
         <Table
           size="small"
           sx={{
             tableLayout: 'fixed',
             minWidth: 280,
             maxWidth: '95%',
-            maxHeight: '250px',
             margin: '0 auto',
             width: 'max-content',
           }}
         >
-          <TableHead>
+          <TableHead
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+            }}
+          >
             <TableRow>
               {allKeys.map((key) => (
                 <TableCell
@@ -163,35 +203,22 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
           </TableHead>
 
           <TableBody>
-            {sortedData.slice(0, 5).map((solution, index) => (
+            {/* Add .slice(0, 5) if you want to limit to top 5 rows */}
+            {sortedData.map((solution, index) => (
               <TableRow
                 key={`solution-${index}`}
                 sx={{
                   backgroundColor: getRowColor(index, sortedData.length),
-                  transition: 'transform 0.4s ease-in-out, box-shadow 0.3s ease',
-                  ...(index === 0 && {
-                    transform: 'scale3d(1.05, 1.05, 1)',
-                    zIndex: 2,
-                    boxShadow: 4,
-                    '&:hover': {
-                      transform: 'scale3d(1.08, 1.08, 1)',
-                      boxShadow: 6,
-                    },
-                    animation: 'bounceIn 0.6s ease',
-                    '@keyframes bounceIn': {
-                      '0%': {
-                        transform: 'scale3d(0.9, 0.9, 1)',
-                        opacity: 0,
-                      },
-                      '60%': {
-                        transform: 'scale3d(1.08, 1.08, 1)',
-                        opacity: 1,
-                      },
-                      '100%': {
-                        transform: 'scale3d(1.05, 1.05, 1)',
-                      },
-                    },
-                  }),
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: getRowColor(index, sortedData.length).replace('0.3', '0.5'),
+                  },
+                }}
+                onClick={() => {
+                  const solutionLocation = solution.Location || solution.location || solution.LOCATION;
+                  if (solutionLocation && onLocationSelect) {
+                    onLocationSelect(solutionLocation);
+                  }
                 }}
               >
                 {allKeys.map((key) => (

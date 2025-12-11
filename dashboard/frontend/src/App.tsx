@@ -20,6 +20,13 @@ function App() {
     setFilters(newFilters);
   };
 
+  const handleLocationSelect = (location: string) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      Location: [location]
+    }));
+  };
+
   // Load default use case
   useEffect(() => {
     setSelectedUseCase('MoCoDo_v3');
@@ -50,6 +57,7 @@ function App() {
           onFiltersChange={handleFiltersChange}
           onSelectUseCase={(useCase) => setSelectedUseCase(useCase)}
           onWeightsChange={handleWeightsChange}
+          filters={filters}
         />
       </Box>
 
@@ -89,6 +97,7 @@ function App() {
                   filters={filters}
                   weights={weights}
                   onWeightsChange={handleWeightsChange}
+                  onLocationSelect={handleLocationSelect}
                 />
               </Box>
             )}
