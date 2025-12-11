@@ -22,10 +22,11 @@ interface Solution {
 interface SummaryProps {
   data: Solution[]; // Data passed from MainGrid
   loading: boolean;
+  filters?: Record<string, string[]>; // Filters from sidebar
   onRowSelect?: (solution: Solution) => void;
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
+const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
   const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
 
@@ -33,7 +34,24 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
   if (!data || data.length === 0)
     return <Typography>No solutions found.</Typography>;
 
-  const allKeys = Array.from(new Set(data.flatMap(Object.keys)));
+  // Filter data based on Location selections
+  const filteredData = React.useMemo(() => {
+    if (!filters || !filters.Location || filters.Location.length === 0) {
+      return data; // Return all data if no Location filter is selected
+    }
+    
+    return data.filter((solution) => {
+      // Check for Location field with different case variations
+      const solutionLocation = solution.Location || solution.location || solution.LOCATION;
+      return solutionLocation && filters.Location.includes(solutionLocation);
+    });
+  }, [data, filters]);
+
+  if (filteredData.length === 0) {
+    return <Typography>No solutions found for the selected location(s).</Typography>;
+  }
+
+  const allKeys = Array.from(new Set(filteredData.flatMap(Object.keys)));
 
   // State for sorting
   const [sortConfig, setSortConfig] = useState<{
@@ -46,7 +64,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
 
   // Determine if a column is numeric
   const isNumericColumn = (key: string) =>
-    data.every((item) => typeof item[key] === 'number');
+    filteredData.every((item) => typeof item[key] === 'number');
 
   // Handle sort toggle
   const handleSort = (key: string) => {
@@ -63,7 +81,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
   };
 
   // Sorted data
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig.key) return 0;
 
     const aValue = a[sortConfig.key];
@@ -77,7 +95,7 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
   });
 
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    if (!filteredData || filteredData.length === 0) return;
 
     const index = selectedRowIndex ?? 0;
     const solution = sortedData[Math.min(index, sortedData.length - 1)];
@@ -86,7 +104,14 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, onRowSelect }) => {
     if (onRowSelect) {
       onRowSelect(solution);
     }
-  }, [data, sortedData, selectedRowIndex]);
+  }, [filteredData, sortedData, selectedRowIndex]);
+
+  // Reset selection when filteredData changes (new Location filter applied)
+  useEffect(() => {
+    if (filteredData.length > 0) {
+      setSelectedRowIndex(0);
+    }
+  }, [filteredData.length]);
 
   // Gradient: dark green (best) to light red (worst)
   const getRowColor = (index: number, total: number) => {

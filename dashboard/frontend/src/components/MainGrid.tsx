@@ -271,6 +271,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                 <Summary
                   data={summaryData}
                   loading={summaryLoading}
+                  filters={filters}
                   onRowSelect={(solution) => setSelectedSolution(solution)}
                 />
               </Box>
