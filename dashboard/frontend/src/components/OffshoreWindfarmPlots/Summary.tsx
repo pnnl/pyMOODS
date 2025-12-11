@@ -8,9 +8,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   LinearProgress,
-  IconButton,
 } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -124,19 +122,35 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect }
 
   return (
     <Box sx={{ width: '100%' }}>
-      <TableContainer sx={{ overflowX: 'auto' }}>
+      <TableContainer sx={{ 
+        overflowX: 'auto',
+        overflowY: 'auto',
+        maxHeight: '250px',
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+        '&': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+        },
+      }}>
         <Table
           size="small"
           sx={{
             tableLayout: 'fixed',
             minWidth: 280,
             maxWidth: '95%',
-            maxHeight: '250px',
             margin: '0 auto',
             width: 'max-content',
           }}
         >
-          <TableHead>
+          <TableHead
+            sx={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 1,
+            }}
+          >
             <TableRow>
               {allKeys.map((key) => (
                 <TableCell
@@ -188,7 +202,8 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect }
           </TableHead>
 
           <TableBody>
-            {sortedData.slice(0, 5).map((solution, index) => (
+            {/* Add .slice(0, 5) if you want to limit to top 5 rows */}
+            {sortedData.map((solution, index) => (
               <TableRow
                 key={`solution-${index}`}
                 sx={{
