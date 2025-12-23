@@ -156,11 +156,13 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
       title: xAxis,
       showgrid: true,
       zeroline: false,
+      showticklabels: false,
     },
     yaxis: {
       title: yAxis,
       showgrid: true,
       zeroline: false,
+      showticklabels: false,
     },
     hovermode: 'closest' as const,
     showlegend: true,
