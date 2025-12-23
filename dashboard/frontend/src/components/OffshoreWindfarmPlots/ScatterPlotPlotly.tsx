@@ -167,14 +167,17 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
     hovermode: 'closest' as const,
     showlegend: true,
     legend: {
-      x: 1,
-      y: 1,
-      xanchor: 'left' as const,
+      x: 0.98,
+      y: 0.98,
+      xanchor: 'right' as const,
       yanchor: 'top' as const,
+      bgcolor: 'rgba(255,255,255,0.8)',
+      bordercolor: 'rgba(0,0,0,0.1)',
+      borderwidth: 1,
     },
     margin: {
       l: 50,
-      r: 150,
+      r: 20,
       t: 20,
       b: 50,
     },
@@ -190,7 +193,7 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '900px', height: '100%', margin: '5px auto', padding: '0px' }}>
+    <div style={{ width: '100%', height: '100%', margin: '0px', padding: '0px' }}>
       {/* Stacked Form Controls */}
       <div style={{
         display: 'flex',
