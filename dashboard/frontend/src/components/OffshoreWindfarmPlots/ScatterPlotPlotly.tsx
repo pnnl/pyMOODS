@@ -167,13 +167,18 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
     hovermode: 'closest' as const,
     showlegend: true,
     legend: {
-      x: 0.98,
-      y: 0.98,
+      x: 1,
+      y: 1,
       xanchor: 'right' as const,
       yanchor: 'top' as const,
       bgcolor: 'rgba(255,255,255,0.8)',
       bordercolor: 'rgba(0,0,0,0.1)',
       borderwidth: 1,
+      font: {
+        size: 10,
+      },
+      itemsizing: 'constant',
+      itemwidth: 30,
     },
     margin: {
       l: 50,
