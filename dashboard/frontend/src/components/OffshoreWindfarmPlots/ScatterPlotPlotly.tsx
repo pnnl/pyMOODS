@@ -203,27 +203,27 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        gap: '10px',
-        marginBottom: '10px',
+        gap: '6px',
+        marginBottom: '8px',
         flexWrap: 'wrap'
       }}>
         <label style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          fontSize: '16px', 
+          fontSize: '14px', 
           fontWeight: 400, 
           color:'#213547',
           fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '180px',
+          minWidth: '120px',
           flex: 1,
-          maxWidth: '220px' 
+          maxWidth: '160px' 
         }}>
           X-axis:
           <select
             value={xAxis}
             onChange={(e) => setXAxis(e.target.value)}
             style={{ 
-              fontSize: '16px', 
+              fontSize: '14px', 
               fontWeight: 500, 
               color:'#213547',
               backgroundColor: '#ffffff',
@@ -231,9 +231,9 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
               borderRadius: '4px',
               fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
               width: '100%', 
-              maxWidth: '220px', 
-              padding: '5px', 
-              marginTop: '4px',
+              maxWidth: '160px', 
+              padding: '4px', 
+              marginTop: '3px',
               textAlign: 'center',
               textAlignLast: 'center',
             }}
@@ -249,20 +249,20 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
         <label style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          fontSize: '16px', 
+          fontSize: '14px', 
           fontWeight: 400, 
           color:'#213547',
           fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '180px',
+          minWidth: '120px',
           flex: 1,
-          maxWidth: '220px' 
+          maxWidth: '160px' 
         }}>
           Y-axis:
           <select
             value={yAxis}
             onChange={(e) => setYAxis(e.target.value)}
             style={{ 
-              fontSize: '16px', 
+              fontSize: '14px', 
               fontWeight: 500, 
               color:'#213547',
               backgroundColor: '#ffffff',
@@ -270,9 +270,9 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
               borderRadius: '4px',
               fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
               width: '100%', 
-              maxWidth: '220px', 
-              padding: '5px', 
-              marginTop: '4px',
+              maxWidth: '160px', 
+              padding: '4px', 
+              marginTop: '3px',
               textAlign: 'center',
               textAlignLast: 'center',
               colorScheme: 'light'
@@ -289,13 +289,13 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
         <label style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          fontSize: '16px', 
+          fontSize: '14px', 
           fontWeight: 400, 
           color:'#213547',
           fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '180px',
+          minWidth: '120px',
           flex: 1,
-          maxWidth: '220px' 
+          maxWidth: '160px' 
         }}>
           Color by:
           <select
@@ -307,7 +307,7 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
               }
             }}
             style={{ 
-              fontSize: '16px', 
+              fontSize: '14px', 
               fontWeight: 500, 
               color:'#213547',
               backgroundColor: '#ffffff',
@@ -315,9 +315,9 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
               borderRadius: '4px',
               fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
               width: '100%', 
-              maxWidth: '220px', 
-              padding: '5px', 
-              marginTop: '4px',
+              maxWidth: '160px', 
+              padding: '4px', 
+              marginTop: '3px',
               textAlign: 'center',
               textAlignLast: 'center',
               colorScheme: 'light'
