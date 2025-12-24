@@ -19,7 +19,6 @@ import ParallelCoordinatesChart from './OffshoreWindfarmPlots/ParallelCoordinate
 import { buildObjectiveColorMap } from "../utils/objectiveColorMap";
 
 import config from "../config";
-import ScatterPlotPlotly from "./OffshoreWindfarmPlots/ScatterPlotPlotly";
 const { API_BASE_URL } = config;
 
 interface MainGridProps {
@@ -256,7 +255,6 @@ const MainGrid: React.FC<MainGridProps> = ({
             <Grid item xs={12} md={6}>
               <Box sx={{ position: 'relative', zIndex: 10, width:"100%" }}>
                 <ScatterPlot
-                // <ScatterPlotPlotly
                   useCase={selectedUseCase} 
                   solutionsData={completeData}
                   decision_keys={decisionKeys}

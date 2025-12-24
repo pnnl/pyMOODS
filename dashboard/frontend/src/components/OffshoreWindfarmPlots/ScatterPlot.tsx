@@ -1,23 +1,6 @@
-// components/ScatterPlotChart.jsx
+// components/ScatterPlot.tsx
 import React from 'react';
-import {
-  ScatterChart,
-  XAxis,
-  YAxis,
-  // ZAxis,
-  Tooltip,
-  Scatter,
-  CartesianGrid,
-  ResponsiveContainer,
-  // Legend,
-  // Dot,
-  DotProps
-} from 'recharts';
-
-type CustomDotProps = DotProps & {
-  fill?: string;
-  isTooltipActive?: boolean;
-};
+import Plot from 'react-plotly.js';
 
 // Define Solution type if not already defined elsewhere
 export type Solution = Record<string, number | string>;
@@ -35,7 +18,6 @@ interface ScatterPlotProps {
 const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A', '#8FBC8F'];
   
 const ScatterPlot: React.FC<ScatterPlotProps> = ({ 
-  // useCase,
   solutionsData,
   decision_keys,
   objective_keys,
@@ -70,12 +52,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
 
   const labelField = "label";
 
-  // const formattedData = solutionsData.map(datum => ({
-  //   ...datum,
-  //   x: datum[xAxis],
-  //   y: datum[yAxis]
-  // }));
-
   // Helper function to format dollar amounts
   const formatDollarValue = (key: string, value: any) => {
     const stringValue = String(value);
@@ -105,102 +81,6 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     return stringValue;
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      console.log('Tooltip Payload:', payload); // Log the tooltip payload for debugging
-      const data = payload[0].payload;
-      console.log('Tooltip Data:', data); // Log the tooltip data for debugging
-  
-      return (
-        <div style={{
-          backgroundColor: '#fff',
-          border: '1px solid #ccc',
-          padding: '10px',
-          fontSize: '12px',
-          lineHeight: '1.4em',
-          borderRadius: '4px',
-          textAlign: 'left',
-          minWidth: '200px',
-          color: '#000',
-          colorScheme: 'light'
-        }}>
-          {/* Basic Info */}
-          <div>
-            <strong style={{ color: '#000' }}>Basic Info:</strong>
-            {['Solution ID', 'Case Study', 'Location'].map(key => (
-              data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
-                </p>
-              ) : null
-            ))}
-          </div>
-  
-          {/* Decision Variables */}
-          <div style={{ marginTop: '8px' }}>
-            <strong style={{ color: '#000' }}>Decision Variables:</strong>
-            {decision_keys?.map(key => (
-              data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
-                </p>
-              ) : null
-            ))}
-          </div>
-  
-          {/* Objective Values */}
-          <div style={{ marginTop: '8px' }}>
-            <strong style={{ color: '#000' }}>Objectives:</strong>
-            {objective_keys?.map(key => (
-              data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
-                </p>
-              ) : null
-            ))}
-          </div>
-  
-          {/* Weighted Sum and Label */}
-          <div style={{ marginTop: '8px' }}>
-            <strong style={{ color: '#000' }}>Miscellaneous:</strong>
-            {['Weighted Sum', 'label'].map(key => (
-              data[key] !== undefined ? (
-                <p key={key} style={{ margin: '4px 0', paddingLeft: '10px', color: '#000' }}>
-                  {key}: <span style={{ fontWeight: 'normal', color: '#000' }}>{formatDollarValue(key, data[key])}</span>
-                </p>
-              ) : null
-            ))}
-          </div>
-        </div>
-      );
-    }
-  
-    return null;
-  };
-
-  const RenderDot: React.FC<CustomDotProps> = ({
-    cx,
-    cy,
-    fill,
-    isTooltipActive,
-  }) => {
-    console.log(`Rendering dot at (${cx}, ${cy}) with fill: ${fill} and isTooltipActive: ${isTooltipActive}`);
-    return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={12}
-        fill={fill || '#000'}
-        fillOpacity={isTooltipActive ? 1 : 0.6}
-        stroke={isTooltipActive ? 'black' : 'none'}
-        strokeWidth={isTooltipActive ? 1 : 0}
-        style={{
-          transition: 'fill-opacity 0.2s ease',
-        }}
-      />
-    );
-  };
-
   const groupedData = React.useMemo(() => {
     if (!hasData || !solutionsData.some(item => labelField in item)) return [];
   
@@ -215,41 +95,142 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
     // 🔍 Log each group individually
     Object.entries(groups).forEach(([label, items]) => {
       console.group(`ParallelGroup: ${label} (${items.length} items)`);
-      console.log(items); // or console.log for full objects
+      console.log(items);
       console.groupEnd();
     });
   
-    return Object.entries(groups).map(([label, data]) => ({
-      label,
-      data: data.map(datum => ({
-        ...datum,
-        x: datum[xAxis],
-        y: datum[yAxis]
-      }))
+    return Object.entries(groups).map(([label, data], idx) => ({
+      x: data.map(datum => datum[xAxis] as number),
+      y: data.map(datum => datum[yAxis] as number),
+      mode: 'markers' as const,
+      type: 'scatter' as const,
+      name: label,
+      marker: {
+        color: COLORS[idx % COLORS.length],
+        size: 12,
+        opacity: 0.8,
+        line: {
+          color: 'rgba(0,0,0,0.2)',
+          width: 1
+        }
+      },
+      text: data.map(datum => {
+        // Create custom hover text
+        const basicInfo = ['Solution ID', 'Case Study', 'Location']
+          .filter(key => datum[key] !== undefined)
+          .map(key => `${key}: ${formatDollarValue(key, datum[key])}`)
+          .join('<br>');
+
+        const decisionInfo = decision_keys
+          ?.filter(key => datum[key] !== undefined)
+          .map(key => `${key}: ${formatDollarValue(key, datum[key])}`)
+          .join('<br>') || '';
+
+        const objectiveInfo = objective_keys
+          ?.filter(key => datum[key] !== undefined)
+          .map(key => `${key}: ${formatDollarValue(key, datum[key])}`)
+          .join('<br>') || '';
+
+        const miscInfo = ['Weighted Sum', 'label']
+          .filter(key => datum[key] !== undefined)
+          .map(key => `${key}: ${formatDollarValue(key, datum[key])}`)
+          .join('<br>');
+
+        return [
+          basicInfo && `<b>Basic Info:</b><br>${basicInfo}`,
+          decisionInfo && `<b>Decision Variables:</b><br>${decisionInfo}`,
+          objectiveInfo && `<b>Objectives:</b><br>${objectiveInfo}`,
+          miscInfo && `<b>Miscellaneous:</b><br>${miscInfo}`
+        ].filter(Boolean).join('<br><br>');
+      }),
+      hovertemplate: '%{text}<extra></extra>',
+      customdata: data // Store original data for reference
     }));
-  }, [solutionsData, xAxis, yAxis, labelField]); // 👈 Make sure to include labelField in deps
+  }, [solutionsData, xAxis, yAxis, labelField, decision_keys, objective_keys]);
+
+  const plotData = groupedData;
+
+  const layout = {
+    title: '',
+    xaxis: {
+      title: xAxis,
+      showgrid: true,
+      zeroline: false,
+      showticklabels: false,
+    },
+    yaxis: {
+      title: yAxis,
+      showgrid: true,
+      zeroline: false,
+      showticklabels: false,
+    },
+    hovermode: 'closest' as const,
+    hoverlabel: {
+      bgcolor: '#ffffff',
+      bordercolor: '#cccccc',
+      font: {
+        color: '#000000'
+      }
+    },
+    showlegend: true,
+    legend: {
+      x: 1,
+      y: 1,
+      xanchor: 'right' as const,
+      yanchor: 'top' as const,
+      bgcolor: 'rgba(255,255,255,0.8)',
+      bordercolor: 'rgba(0,0,0,0.1)',
+      borderwidth: 1,
+      font: {
+        size: 10,
+      },
+      itemsizing: 'constant',
+      itemwidth: 30,
+    },
+    margin: {
+      l: 50,
+      r: 20,
+      t: 20,
+      b: 50,
+    },
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    paper_bgcolor: 'rgba(0,0,0,0)',
+  };
+
+  const config = {
+    displayModeBar: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d'],
+    responsive: true,
+  };
 
   return (
-    <div style={{ width: '100%', maxWidth: '900px', height: '100%', margin: '5px auto', padding: '0px' }}>
+    <div style={{ width: '100%', height: '100%', margin: '0px', padding: '0px' }}>
       {/* Stacked Form Controls */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        gap: '10px',
-        marginBottom: '10px',
+        gap: '6px',
+        marginBottom: '8px',
         flexWrap: 'wrap'
       }}>
-        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
-        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '180px',
+        <label style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          fontSize: '14px', 
+          fontWeight: 400, 
+          color:'#213547',
+          fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          minWidth: '120px',
           flex: 1,
-          maxWidth: '220px' }}>
+          maxWidth: '160px' 
+        }}>
           X-axis:
           <select
             value={xAxis}
             onChange={(e) => setXAxis(e.target.value)}
             style={{ 
-              fontSize: '16px', 
+              fontSize: '14px', 
               fontWeight: 500, 
               color:'#213547',
               backgroundColor: '#ffffff',
@@ -257,9 +238,9 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
               borderRadius: '4px',
               fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
               width: '100%', 
-              maxWidth: '220px', 
-              padding: '5px', 
-              marginTop: '4px',
+              maxWidth: '160px', 
+              padding: '4px', 
+              marginTop: '3px',
               textAlign: 'center',
               textAlignLast: 'center',
             }}
@@ -272,17 +253,23 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           </select>
         </label>
 
-        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
-        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '180px',
+        <label style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          fontSize: '14px', 
+          fontWeight: 400, 
+          color:'#213547',
+          fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          minWidth: '120px',
           flex: 1,
-          maxWidth: '220px' }}>
+          maxWidth: '160px' 
+        }}>
           Y-axis:
           <select
             value={yAxis}
             onChange={(e) => setYAxis(e.target.value)}
             style={{ 
-              fontSize: '16px', 
+              fontSize: '14px', 
               fontWeight: 500, 
               color:'#213547',
               backgroundColor: '#ffffff',
@@ -290,9 +277,9 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
               borderRadius: '4px',
               fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
               width: '100%', 
-              maxWidth: '220px', 
-              padding: '5px', 
-              marginTop: '4px',
+              maxWidth: '160px', 
+              padding: '4px', 
+              marginTop: '3px',
               textAlign: 'center',
               textAlignLast: 'center',
               colorScheme: 'light'
@@ -306,11 +293,17 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
           </select>
         </label>
 
-        <label style={{ display: 'flex', flexDirection: 'column', fontSize: '16px', fontWeight: 400, color:'#213547',
-        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-          minWidth: '180px',
+        <label style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          fontSize: '14px', 
+          fontWeight: 400, 
+          color:'#213547',
+          fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
+          minWidth: '120px',
           flex: 1,
-          maxWidth: '220px' }}>
+          maxWidth: '160px' 
+        }}>
           Color by:
           <select
             value={labelField}
@@ -321,7 +314,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
               }
             }}
             style={{ 
-              fontSize: '16px', 
+              fontSize: '14px', 
               fontWeight: 500, 
               color:'#213547',
               backgroundColor: '#ffffff',
@@ -329,9 +322,9 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
               borderRadius: '4px',
               fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
               width: '100%', 
-              maxWidth: '220px', 
-              padding: '5px', 
-              marginTop: '4px',
+              maxWidth: '160px', 
+              padding: '4px', 
+              marginTop: '3px',
               textAlign: 'center',
               textAlignLast: 'center',
               colorScheme: 'light'
@@ -352,68 +345,26 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
         </label>
       </div>
 
-      {/* Scatter Chart with Adjustments */}
-      <ResponsiveContainer width="100%" height={500}>
-        <ScatterChart
-          margin={{
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0 
-          }}
-        >
-          <CartesianGrid />
-          <XAxis
-            type="number"
-            dataKey="x"
-            name={xAxis}
-            tick={{ visibility: 'hidden' }} 
-            tickLine={{ visibility: 'hidden' }}
-            axisLine={false}
-            hide
-          />
-          <YAxis
-            type="number"
-            dataKey="y"
-            name={yAxis}
-            tick={{ visibility: 'hidden' }} 
-            tickLine={{ visibility: 'hidden' }}
-            axisLine={false}
-            yAxisId={0}
-            hide
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-          {/* <Scatter name={`${xAxis} vs ${yAxis}`} data={formattedData} fill="#8884d8" /> */}
-          {/* Render scatter per group */}
-          {groupedData.map((group, idx) => ( <Scatter
-              key={group.label}
-              name={group.label}
-              data={group.data}
-              fill={COLORS[idx % COLORS.length]}
-              // render={(props) => {
-              //   const { cx, cy, payload } = props;
-              //   const isActive = payload?.isTooltipActive;
-            
-              //   return <RenderDot cx={cx} cy={cy} fill={COLORS[idx % COLORS.length]} isActive={isActive} />;
-              // }}
-              shape={<RenderDot fill={COLORS[idx % COLORS.length]}/>}
-              // shape={(props) => <RenderDot {...props} fill={COLORS[idx % COLORS.length]} />}
-              
-            />
-          ))}
-
-          {/* Legend at the bottom */}
-          {/* <Legend
-            layout="horizontal"
-            verticalAlign="bottom"
-            align="center"
-            wrapperStyle={{ fontSize: '12px', bottom: -10}}
-            // textStyle={{ fontSize: 2 }}
-          /> */}
-        </ScatterChart>
-      </ResponsiveContainer>
+      {/* Plotly Scatter Chart */}
+      <div style={{ width: '100%', height: '500px' }}>
+        <Plot
+          data={plotData}
+          layout={layout}
+          config={config}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      
       {objective_keys && (
-        <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:'8px', marginTop:'14px',flexWrap:'wrap', width: '100%'}}>
+        <div style={{
+          display:'flex', 
+          justifyContent:'center', 
+          alignItems:'center', 
+          gap:'8px', 
+          marginTop:'14px',
+          flexWrap:'wrap', 
+          width: '100%'
+        }}>
           {objective_keys.map((obj) =>(
             <span key={obj} style={{display:'flex', alignItems:'center', gap:'6px'}}>
               <span style={{
@@ -423,12 +374,19 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
                 borderRadius: '50%',
                 display: 'inline-block',
               }}/>
-              <span style={{fontSize:'11px', color: objectiveColorMap[obj] || '#8884d8', letterSpacing:0.1, fontWeight:500}}>{obj}</span>
+              <span style={{
+                fontSize:'11px', 
+                color: objectiveColorMap[obj] || '#8884d8', 
+                letterSpacing:0.1, 
+                fontWeight:500
+              }}>
+                {obj}
+              </span>
             </span>
           ))}
         </div>
       )}
-</div>
+    </div>
   );
 };
 
