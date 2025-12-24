@@ -27,7 +27,7 @@ interface SummaryProps {
 
 const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
-  const [selectedSolution, setSelectedSolution] = useState<Solution | null>(null);
+  const [, setSelectedSolution] = useState<Solution | null>(null);
 
   if (loading) return <LinearProgress />;
   if (!data || data.length === 0)

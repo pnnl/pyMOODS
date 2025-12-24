@@ -42,7 +42,7 @@ const MainGrid: React.FC<MainGridProps> = ({
 }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [clusterBy, setClusterBy] = useState<string>("AI-Generated");
-  const [objectiveNames, setObjectiveNames] = useState<string[]>([]);
+  const [, setObjectiveNames] = useState<string[]>([]);
   const [objectiveColorMap, setObjectiveColorMap] = useState<Record<string, string>>({});
   // State for Summary
   const [completeData, setCompleteData] = useState<Solution[]>([]);
