@@ -165,6 +165,13 @@ const ScatterPlotPlotly: React.FC<ScatterPlotPlotlyProps> = ({
       showticklabels: false,
     },
     hovermode: 'closest' as const,
+    hoverlabel: {
+      bgcolor: '#ffffff',
+      bordercolor: '#cccccc',
+      font: {
+        color: '#000000'
+      }
+    },
     showlegend: true,
     legend: {
       x: 1,
