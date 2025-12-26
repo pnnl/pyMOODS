@@ -15,7 +15,14 @@ interface ScatterPlotProps {
   colorByField?: string;
 }
 
-const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A', '#8FBC8F'];
+// Cable Material Cost ($M): #4ECDC4
+// Battery Cost ($M): #FF6B6B
+// Day-Ahead Revenue ($k): #96A6C5
+// Real-Time Revenue ($k): #45B7D1
+// Reserve WF Revenue ($k): #FFA07AW
+// Reserve ESS Revenue ($k): #FAC84D
+
+const colorPalette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A'];
   
 const ScatterPlot: React.FC<ScatterPlotProps> = ({ 
   solutionsData,
@@ -106,7 +113,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       type: 'scatter' as const,
       name: label,
       marker: {
-        color: COLORS[idx % COLORS.length],
+        color: objectiveColorMap[label] || colorPalette[idx % colorPalette.length],
         size: 12,
         opacity: 0.8,
         line: {
@@ -144,7 +151,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
         ].filter(Boolean).join('<br><br>');
       }),
       hovertemplate: '%{text}<extra></extra>',
-      customdata: data // Store original data for reference
+      customdata: data as any // Store original data for reference
     }));
   }, [solutionsData, xAxis, yAxis, labelField, decision_keys, objective_keys]);
 
@@ -184,7 +191,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       font: {
         size: 10,
       },
-      itemsizing: 'constant',
+      itemsizing: 'constant' as const,
       itemwidth: 30,
     },
     margin: {
@@ -200,7 +207,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   const config = {
     displayModeBar: true,
     displaylogo: false,
-    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d'],
+    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d'] as any,
     responsive: true,
   };
 
