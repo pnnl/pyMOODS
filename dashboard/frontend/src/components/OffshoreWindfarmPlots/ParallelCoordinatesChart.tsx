@@ -66,9 +66,17 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
 
     const rankColumns = numericColumns.map(c => `${c}_rank`);
 
-    // Color scale by configuration
+    // Cable Material Cost ($M): #4ECDC4
+    // Battery Cost ($M): #FF6B6B
+    // Day-Ahead Revenue ($k): #96A6C5
+    // Real-Time Revenue ($k): #45B7D1
+    // Reserve WF Revenue ($k): #FFA07AW
+    // Reserve ESS Revenue ($k): #FAC84D
+
+    // Color scale by configuration using consistent colors
     const configs = [...new Set(rankedData.map(d => d.config))];
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(configs);
+    const colorPalette = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96A6C5', '#FAC84D', '#FFA07A'];
+    const colorScale = d3.scaleOrdinal(colorPalette).domain(configs);
     const colorMap = Object.fromEntries(configs.map(config => [config, colorScale(config)]));
 
     // Create scales
@@ -143,8 +151,8 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
     // Axis guide lines
     rankColumns.forEach((col) => {
       g.append('line')
-        .attr('x1', xScale(col))
-        .attr('x2', xScale(col))
+        .attr('x1', xScale(col) ?? 0)
+        .attr('x2', xScale(col) ?? 0)
         .attr('y1', 0)
         .attr('y2', height)
         .attr('stroke', '#eee');
@@ -190,7 +198,7 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       .enter()
       .append('text')
       .attr('class', 'metric-label')
-      .attr('x', d => xScale(d))
+      .attr('x', d => xScale(d) || 0)
       .attr('y', height + 20)
       .attr('text-anchor', 'middle')
       .style('font-size', '11px')
