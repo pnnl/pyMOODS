@@ -1,0 +1,32 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: pymoods-repository
+  title: PyMOODS Repository
+  description: PyMOODS is a Multi-Objective Optimization and Decision Support framework for power systems planning that combines AI, interactive visualizations, and MCDM theory
+  annotations:
+    backstage.io/source-location: url:https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/
+    gitlab.com/instance: devops.pnnl.gov
+    gitlab.com/project-id: '2359'
+  links:
+    - title: pyMOODS repository
+      url: https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS
+  tags:
+    - ldrd
+    - multi-objective-decision-making
+    - react-app
+spec:
+  type: website
+  owner: user:default/milan.jain_pnnl.gov # Milan project lead
+  # system: e-comp
+  lifecycle: development
+  visibility: public # to expose this item in the catalog to others at PNNL, change the visibility to 'public'
+
+  # TODO: does pymoods depend on another resource or component?
+  # dependsOn:
+
+  # TODO: does another resource depend on pymoods? 
+  # dependencyOf:
+
+  # No current APIs to document
+  # providesApis:
