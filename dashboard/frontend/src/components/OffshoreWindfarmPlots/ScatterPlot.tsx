@@ -38,6 +38,14 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
   console.log(decision_keys)
   console.log(objective_keys)
   
+  // Helper function to check if a field is a location field
+  const isLocationField = (key: string) => {
+    const locationPatterns = ['location', 'Location', 'LOCATION', 'Location Scenario'];
+    return locationPatterns.some(pattern => 
+      key.toLowerCase().includes(pattern.toLowerCase()) || key === pattern
+    );
+  };
+  
   // Extract numeric fields dynamically
   const numericFields = hasData
   ? Object.keys(solutionsData[0]).filter(key => {
@@ -49,7 +57,7 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
         key !== 'time' &&
         key !== 'Solution ID' &&
         key !== 'Case Study' &&
-        key !== 'Location'
+        !isLocationField(key)
       );
     })
   : [];
@@ -123,8 +131,11 @@ const ScatterPlot: React.FC<ScatterPlotProps> = ({
       },
       text: data.map(datum => {
         // Create custom hover text
-        const basicInfo = ['Solution ID', 'Case Study', 'Location']
-          .filter(key => datum[key] !== undefined)
+        // Dynamically find basic info fields including location fields
+        const basicInfoFields = ['Solution ID', 'Case Study', 'Location', 'Location Scenario']
+          .filter(key => datum[key] !== undefined);
+        
+        const basicInfo = basicInfoFields
           .map(key => `${key}: ${formatDollarValue(key, datum[key])}`)
           .join('<br>');
 

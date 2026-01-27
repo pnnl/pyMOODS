@@ -26,7 +26,7 @@ interface MainGridProps {
   filters: Record<string, string[]>;
   weights: Record<string, number>;
   onWeightsChange?: (weights: Record<string, number>) => void;
-  onLocationSelect?: (location: string) => void;
+  onLocationSelect?: (location: string, locationField?: string) => void;
 }
 
 interface Solution {
@@ -276,6 +276,7 @@ const MainGrid: React.FC<MainGridProps> = ({
                   filters={filters}
                   onRowSelect={(solution) => setSelectedSolution(solution)}
                   onLocationSelect={onLocationSelect}
+                  selectedUseCase={selectedUseCase}
                 />
               </Box>
             </Grid>

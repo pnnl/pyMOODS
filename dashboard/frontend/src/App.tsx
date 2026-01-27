@@ -20,10 +20,11 @@ function App() {
     setFilters(newFilters);
   };
 
-  const handleLocationSelect = (location: string) => {
+  const handleLocationSelect = (location: string, locationField?: string) => {
+    const field = locationField || 'Location'; // Default to 'Location' for backward compatibility
     setFilters(prevFilters => ({
       ...prevFilters,
-      Location: [location]
+      [field]: [location]
     }));
   };
 
