@@ -22,29 +22,56 @@ interface SummaryProps {
   loading: boolean;
   filters?: Record<string, string[]>; // Filters from sidebar
   onRowSelect?: (solution: Solution) => void;
-  onLocationSelect?: (location: string) => void;
+  onLocationSelect?: (location: string, locationField?: string) => void;
+  selectedUseCase?: string; // Use case to help determine location field
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect }) => {
+const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect, selectedUseCase }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
   const [, setSelectedSolution] = useState<Solution | null>(null);
+
+  // Helper function to detect the location field based on available data and use case
+  const getLocationField = () => {
+    if (!data || data.length === 0) return 'Location';
+    
+    // Check for different possible location field names
+    const possibleLocationFields = [
+      'Location Scenario', // For Cameo dataset
+      'Location',          // For MoCoDo dataset
+      'location',          // lowercase variant
+      'LOCATION'           // uppercase variant
+    ];
+    
+    for (const field of possibleLocationFields) {
+      if (data[0].hasOwnProperty(field)) {
+        return field;
+      }
+    }
+    
+    return 'Location'; // fallback
+  };
+
+  const locationField = getLocationField();
 
   if (loading) return <LinearProgress />;
   if (!data || data.length === 0)
     return <Typography>No solutions found.</Typography>;
 
-  // Filter data based on Location selections
+  // Filter data based on location field selections (dynamic field name detection)
   const filteredData = React.useMemo(() => {
-    if (!filters || !filters.Location || filters.Location.length === 0) {
-      return data; // Return all data if no Location filter is selected
+    const filterKey = filters && Object.keys(filters).find(key => 
+      key.toLowerCase().includes('location') || key === locationField
+    ) || locationField;
+    
+    if (!filters || !filters[filterKey] || filters[filterKey].length === 0) {
+      return data; // Return all data if no location filter is selected
     }
     
     return data.filter((solution) => {
-      // Check for Location field with different case variations
-      const solutionLocation = solution.Location || solution.location || solution.LOCATION;
-      return solutionLocation && filters.Location.includes(solutionLocation);
+      const solutionLocation = solution[locationField];
+      return solutionLocation && filters[filterKey].includes(solutionLocation);
     });
-  }, [data, filters]);
+  }, [data, filters, locationField]);
 
   if (filteredData.length === 0) {
     return <Typography>No solutions found for the selected location(s).</Typography>;
@@ -215,9 +242,9 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, 
                   },
                 }}
                 onClick={() => {
-                  const solutionLocation = solution.Location || solution.location || solution.LOCATION;
+                  const solutionLocation = solution[locationField];
                   if (solutionLocation && onLocationSelect) {
-                    onLocationSelect(solutionLocation);
+                    onLocationSelect(solutionLocation, locationField);
                   }
                 }}
               >

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import AppNavbar from './components/AppNavbar';
 import SideMenu from './components/SideMenu';
 import MainGrid from './components/MainGrid';
@@ -20,16 +20,17 @@ function App() {
     setFilters(newFilters);
   };
 
-  const handleLocationSelect = (location: string) => {
+  const handleLocationSelect = (location: string, locationField?: string) => {
+    const field = locationField || 'Location'; // Default to 'Location' for backward compatibility
     setFilters(prevFilters => ({
       ...prevFilters,
-      Location: [location]
+      [field]: [location]
     }));
   };
 
   // Load default use case
   useEffect(() => {
-    setSelectedUseCase('MoCoDo_v3');
+    setSelectedUseCase('Cameo_datacenter');
   }, []);
 
   // Determine when filters and weights are fully loaded
@@ -79,17 +80,17 @@ function App() {
         {selectedUseCase ? (
           <>
             {
-            // !isDataLoaded ? (
-            //   <Box sx={{ textAlign: 'center', mt: 12 }}>
-            //     <Typography variant="h6">Loading Use Case Data...</Typography>
-            //     <Typography variant="body2" color="textSecondary">
-            //       Please wait while we load filters and objective weights.
-            //     </Typography>
-            //     <Box sx={{ mt: 12 }}>
-            //       <CircularProgress size={24} />
-            //     </Box>
-            //   </Box>
-            // ) : 
+            !isDataLoaded ? (
+              <Box sx={{ textAlign: 'center', mt: 12 }}>
+                <Typography variant="h6">Loading Use Case Data...</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Please wait while we load filters and objective weights.
+                </Typography>
+                <Box sx={{ mt: 12 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              </Box>
+            ) : 
             (
               <Box sx={{ textAlign: 'center', ml: 0, mr: 0, pl: 0, pr: 0, pt: 0, width: '100%' }}>
                 <MainGrid
