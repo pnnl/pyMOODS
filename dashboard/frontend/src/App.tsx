@@ -29,7 +29,7 @@ function App() {
 
   // Load default use case
   useEffect(() => {
-    setSelectedUseCase('MoCoDo_v3');
+    setSelectedUseCase('Cameo_datacenter');
   }, []);
 
   // Determine when filters and weights are fully loaded

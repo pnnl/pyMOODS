@@ -110,8 +110,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ onFiltersChange, onSelectUseCase, o
 
         // Set default use case
         let defaultUseCase = '';
-        if (files.includes('MoCoDo_v3')) {
-          defaultUseCase = 'MoCoDo_v3';
+        if (files.includes('Cameo_datacenter')) {
+          defaultUseCase = 'Cameo_datacenter';
         } else if (files.length > 0) {
           defaultUseCase = files[0];
         }
