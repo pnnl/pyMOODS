@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
 import * as d3 from 'd3';
+import config from '../../config';
+
+const { API_BASE_URL } = config;
 
 // Define types
 interface RankDict {
@@ -10,17 +13,31 @@ interface RankDict {
 interface ParallelCoordinatesChartProps {
   ranks: RankDict;
   objectiveColorMap: Record<string, string>;
+  useCase?: string;
+  filters?: Record<string, string[]>;
+  weights?: Record<string, number>;
+  onDataUpdate?: (data: any) => void;
 }
 
-const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ranks, objectiveColorMap }) => {
+const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ 
+  ranks, 
+  objectiveColorMap,
+  useCase,
+  filters = {},
+  weights = {},
+  onDataUpdate
+}) => {
   const ref = useRef<SVGSVGElement | null>(null);
-  const [sliderValue, setSliderValue] = useState<number>(0.5);
+  const [sliderValue, setSliderValue] = useState<number>(5);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentRanks, setCurrentRanks] = useState<RankDict>(ranks);
 
   // Flatten rank data and compute rankings
   const processData = () => {
-    if (!ranks || Object.keys(ranks).length === 0) return { rankedData: [], numericColumns: [] };
+    const dataToProcess = currentRanks;
+    if (!dataToProcess || Object.keys(dataToProcess).length === 0) return { rankedData: [], numericColumns: [] };
 
-    const flatData = Object.entries(ranks).map(([key, values]) => {
+    const flatData = Object.entries(dataToProcess).map(([key, values]) => {
       const [config, site] = key.split(',');
       return {
         config,
@@ -228,13 +245,58 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
       // Clean up any existing tooltips
       d3.selectAll('.tooltip').remove();
     };
+  }, [currentRanks]);
+  
+  // Update currentRanks when ranks prop changes
+  useEffect(() => {
+    setCurrentRanks(ranks);
   }, [ranks]);
 
   // Slider handler
-  const handleSliderChange = (value: number) => {
+  const handleSliderChange = async (value: number) => {
     setSliderValue(value);
-    console.log("Slider value:", value);
-    // You can pass this to backend or update the chart accordingly
+    
+    if (!useCase) {
+      console.warn('No use case provided for specializers API call');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('use_case', useCase);
+      queryParams.append('min_specializers', value.toString());
+      
+      // Add filters
+      Object.entries(filters).forEach(([key, values]) =>
+        values.forEach((filterValue) => queryParams.append(key, filterValue))
+      );
+      
+      // Add weights
+      Object.entries(weights).forEach(([key, weightValue]) =>
+        queryParams.append(`weight_${key}`, weightValue.toString())
+      );
+      
+      const response = await fetch(`${API_BASE_URL}/api/specializers?${queryParams.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch specializers data');
+      
+      const data = await response.json();
+      console.log('Specializers data received:', data);
+      
+      // Update ranks for the chart
+      setCurrentRanks(data.ranks || {});
+      
+      // Notify parent component with updated data
+      if (onDataUpdate) {
+        onDataUpdate(data);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching specializers data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Styles inside the component
@@ -270,6 +332,7 @@ const ParallelCoordinatesChart: React.FC<ParallelCoordinatesChartProps> = ({ ran
           max={10}
           step={1}
           onChange={handleSliderChange}
+          isLoading={isLoading}
         />
       </Box>
   
@@ -290,11 +353,13 @@ const HorizontalSlider: React.FC<{
   max?: number;
   step?: number;
   onChange?: (value: number) => void;
+  isLoading?: boolean;
 }> = ({
   min = 1,
   max = 10,
   step = 1,
   onChange,
+  isLoading,
 }) => {
   const [value, setValue] = useState<number>(Math.round((min + max) / 2));
 
@@ -326,7 +391,7 @@ const HorizontalSlider: React.FC<{
           colorScheme: 'light',
         }}
       >
-        Minimum Number of Specializers: {value.toFixed(0)}
+        Minimum Number of Specializers: {value.toFixed(0)} {isLoading ? '(Loading...)' : ''}
       </div>
       <input
         type="range"

@@ -22,6 +22,10 @@ import matplotlib.pyplot as plt
 # Add dashboard directory to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+# Add the notebooks directory to Python path to import TradeoffLattice
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'notebooks')))
+from tradeoff_lattice import TradeoffLattice
+
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
 
@@ -718,8 +722,12 @@ def get_weighted_solutions():
         # print(rank_frame.to_dict(orient='index'))
         
         # Convert to dict for JSON response
+        # Filter out system/metadata columns that shouldn't be displayed
+        columns_to_exclude = ['File Name']  # Only exclude File Name column
+        display_columns = [col for col in filtered_data.columns if col not in columns_to_exclude]
+        
         solution_dict = [
-            OrderedDict([(col, row[col]) for col in filtered_data.columns])
+            OrderedDict([(col, row[col]) for col in display_columns])
             for _, row in filtered_data.iterrows()
         ]
         
@@ -931,6 +939,152 @@ def get_lmp_data():
 
     except Exception as e:
         app.logger.error(f"Error fetching LMP data: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/specializers', methods=['GET'])
+def get_minimum_number_of_specializers():
+    """
+    Calculate and return filtered data based on minimum number of specializers
+    
+    Query Parameters:
+    - use_case: string, required
+    - min_specializers: int, minimum number of specializers required (default: 1)
+    - All filter parameters from hyperparameters
+    - All weight parameters (weight_<objective_name>)
+    """
+    case_study = request.args.get('use_case')
+    
+    if not case_study:
+        return jsonify({"error": "Missing query param: use_case"}), 400
+    
+    try:
+        # Get minimum specializers parameter
+        min_specializers = int(request.args.get('min_specializers', 1))
+        
+        # Load case study data
+        data = USE_CASE_CACHE[case_study]
+        hyperparameters = data["hyperparameters"]
+        csv_data = data["csv_data"]
+        objective_keys = list(data["objective_functions"].keys())
+        decision_keys = list(data["decision_variables"].keys())
+        
+        # Apply filters from hyperparameters
+        query_params = {key: request.args.getlist(key) for key in hyperparameters}
+        filtered_data = csv_data.copy()
+        
+        for key, values in query_params.items():
+            if values:
+                filtered_data = filtered_data[filtered_data[key].isin(values)]
+        
+        # Parse weights from query params
+        weights = {}
+        for key in request.args:
+            if key.startswith("weight_"):
+                obj_name = key[len("weight_"):]
+                try:
+                    weights[obj_name] = float(request.args[key])
+                except ValueError:
+                    weights[obj_name] = 1.0
+        
+        # Default weights for missing objectives
+        for obj in objective_keys:
+            if obj not in weights:
+                weights[obj] = 1.0
+        
+        # Determine ascending objectives (assuming higher values are better for revenue objectives)
+        ascending = [obj for obj in objective_keys if 'Revenue' in obj or 'revenue' in obj]
+        
+        # Initialize TradeoffLattice
+        lattice = TradeoffLattice(
+            df=filtered_data,
+            ovars=objective_keys,
+            dvars=decision_keys,
+            ascending=ascending
+        )
+        
+        # Get specializers - these are solutions that specialize in at least one objective
+        specializer_indices = lattice.specializers
+        
+        # If we don't have enough specializers, return all available ones
+        if len(specializer_indices) < min_specializers:
+            min_specializers = len(specializer_indices)
+        
+        # Get the top specializers based on their generalizability order
+        # The specializers are already in the order of generalizability
+        selected_specializers = specializer_indices[:min_specializers]
+        
+        # Filter the data to only include selected specializers
+        specialized_data = filtered_data.loc[selected_specializers].copy()
+        
+        # Add specialization information
+        specialization_matrix = lattice.specialization
+        
+        # Compute weighted score for ranking
+        specialized_data['Weighted Sum'] = sum(specialized_data[col] * weights[col] for col in objective_keys)
+        
+        # Sort by weighted score
+        specialized_data = specialized_data.sort_values(by='Weighted Sum', ascending=False)
+        
+        # Initialize Visualizer for projections and clusters
+        vis_obj = Visualizer(
+            data=csv_data,
+            data_ovars=objective_keys,
+            data_dvars=decision_keys
+        )
+        
+        # Get projections and clusters for specialized data
+        points = vis_obj.joint_xy.loc[specialized_data.index]
+        clusters = vis_obj.df_clustered.loc[specialized_data.index, ["label"]]
+        
+        # Merge projections and clusters with specialized data
+        specialized_data = pd.concat([specialized_data, points, clusters], axis=1)
+        specialized_data = specialized_data.rename(columns={0: 'x_coord', 1: 'y_coord'})
+        
+        # Convert to dict for JSON response
+        # Filter out system/metadata columns that shouldn't be displayed
+        columns_to_exclude = ['File Name']  # Only exclude File Name column
+        display_columns = [col for col in specialized_data.columns if col not in columns_to_exclude]
+        
+        solution_dict = [
+            OrderedDict([(col, row[col]) for col in display_columns])
+            for _, row in specialized_data.iterrows()
+        ]
+        
+        # Create ranks for parallel coordinates chart
+        ranks_dict = {}
+        for _, row in specialized_data.iterrows():
+            key = f"{row.get('Case Study', 'Unknown')},{row.get('Location', 'Unknown')}"
+            ranks_dict[key] = {obj: float(row[obj]) for obj in objective_keys}
+        
+        # Get specialization details for each solution
+        specialization_details = {}
+        for idx in selected_specializers:
+            if idx in specialization_matrix.index:
+                specialization_details[idx] = {
+                    obj: bool(specialization_matrix.loc[idx, obj]) 
+                    for obj in objective_keys 
+                    if obj in specialization_matrix.columns
+                }
+        
+        return Response(
+            json.dumps({
+                "solutions": solution_dict,
+                "ranks": ranks_dict,
+                "specialization_details": specialization_details,
+                "total_specializers_found": len(specializer_indices),
+                "min_specializers_requested": int(request.args.get('min_specializers', 1)),
+                "min_specializers_returned": min_specializers,
+                "weights_used": weights,
+                "objective_keys": objective_keys,
+                "decision_keys": decision_keys,
+                "hyperparameter_keys": list(hyperparameters.keys()),
+                "message": f"Filtered to top {min_specializers} specializers out of {len(specializer_indices)} total specializers found"
+            }, sort_keys=False),
+            mimetype='application/json'
+        )
+        
+    except Exception as e:
+        app.logger.error(f"Error calculating specializers: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
