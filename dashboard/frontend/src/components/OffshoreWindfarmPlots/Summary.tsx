@@ -155,12 +155,26 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, 
         overflowY: 'auto',
         maxHeight: '250px',
         '&::-webkit-scrollbar': {
-          display: 'none',
+          height: '8px', // Reduced height for horizontal scrollbar
+          width: '8px',  // Width for vertical scrollbar
         },
-        '&': {
-          '-ms-overflow-style': 'none',
-          'scrollbar-width': 'none',
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f1f1',
+          borderRadius: '4px',
         },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#c1c1c1',
+          borderRadius: '4px',
+          '&:hover': {
+            background: '#a8a8a8',
+          },
+        },
+        '&::-webkit-scrollbar-thumb:active': {
+          background: '#888',
+        },
+        // Firefox scrollbar styling
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#c1c1c1 #f1f1f1',
       }}>
         <Table
           size="small"
