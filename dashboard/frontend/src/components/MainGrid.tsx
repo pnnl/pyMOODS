@@ -317,7 +317,9 @@ const MainGrid: React.FC<MainGridProps> = ({
                   }}>
                     🎯 Showing specialized solutions only
                   </Box>
-                )}              </Box>
+                )}
+              </Box>
+              {/* Summary Table */}
               <Box sx={{ width: "100%", mt: 2 }}>
                 <Summary
                   data={isSpecializersActive ? specializersData : summaryData}
