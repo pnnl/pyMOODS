@@ -305,7 +305,8 @@ const MainGrid: React.FC<MainGridProps> = ({
                   filters={filters}
                   weights={weights}
                   onDataUpdate={handleSpecializersDataUpdate}
-                />                {isSpecializersActive && (
+                />
+                {isSpecializersActive && (
                   <Box sx={{ 
                     mt: 1, 
                     p: 1, 
