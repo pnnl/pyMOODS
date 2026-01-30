@@ -943,148 +943,132 @@ def get_lmp_data():
 
 @app.route('/api/specializers', methods=['GET'])
 def get_minimum_number_of_specializers():
-    """
-    Calculate and return filtered data based on minimum number of specializers
-    
-    Query Parameters:
-    - use_case: string, required
-    - min_specializers: int, minimum number of specializers required (default: 1)
-    - All filter parameters from hyperparameters
-    - All weight parameters (weight_<objective_name>)
-    """
-    case_study = request.args.get('use_case')
-    
-    if not case_study:
-        return jsonify({"error": "Missing query param: use_case"}), 400
-    
     try:
-        # Get minimum specializers parameter
-        min_specializers = int(request.args.get('min_specializers', 1))
+        use_case = request.args.get('use_case')
+        min_specializers = int(request.args.get('min_specializers', 5))
         
+        if not use_case:
+            return jsonify({"error": "use_case parameter is required"}), 400
+
         # Load case study data
-        data = USE_CASE_CACHE[case_study]
-        hyperparameters = data["hyperparameters"]
+        data = load_case_study_data(use_case)
         csv_data = data["csv_data"]
-        objective_keys = list(data["objective_functions"].keys())
-        decision_keys = list(data["decision_variables"].keys())
+        objective_functions = data["objective_functions"]
+        decision_variables = data["decision_variables"]
         
-        # Apply filters from hyperparameters
-        query_params = {key: request.args.getlist(key) for key in hyperparameters}
+        # Get objective and decision variable names
+        objective_keys = list(objective_functions.keys())
+        decision_keys = list(decision_variables.keys())
+        
+        # Apply filters if provided
         filtered_data = csv_data.copy()
         
-        for key, values in query_params.items():
-            if values:
-                filtered_data = filtered_data[filtered_data[key].isin(values)]
+        # Extract filter parameters from request args
+        for key, values in request.args.items():
+            if key.startswith('weight_') or key in ['use_case', 'min_specializers']:
+                continue
+            
+            # Handle multiple values for the same filter key
+            filter_values = request.args.getlist(key)
+            if filter_values and key in filtered_data.columns:
+                filtered_data = filtered_data[filtered_data[key].isin(filter_values)]
         
-        # Parse weights from query params
-        weights = {}
-        for key in request.args:
-            if key.startswith("weight_"):
-                obj_name = key[len("weight_"):]
-                try:
-                    weights[obj_name] = float(request.args[key])
-                except ValueError:
-                    weights[obj_name] = 1.0
+        if filtered_data.empty:
+            return jsonify({
+                "solutions": [],
+                "ranks": {},
+                "specializers_count": 0,
+                "objective_keys": objective_keys,
+                "decision_keys": decision_keys
+            })
         
-        # Default weights for missing objectives
-        for obj in objective_keys:
-            if obj not in weights:
-                weights[obj] = 1.0
+        # Determine which objectives should be ascending (larger is better)
+        ascending_objectives = []
+        for obj_key, obj_info in objective_functions.items():
+            if isinstance(obj_info, dict) and obj_info.get('direction') == 'maximize':
+                ascending_objectives.append(obj_key)
         
-        # Determine ascending objectives (assuming higher values are better for revenue objectives)
-        ascending = [obj for obj in objective_keys if 'Revenue' in obj or 'revenue' in obj]
-        
-        # Initialize TradeoffLattice
+        # Create TradeoffLattice object
         lattice = TradeoffLattice(
             df=filtered_data,
             ovars=objective_keys,
             dvars=decision_keys,
-            ascending=ascending
+            ascending=ascending_objectives
         )
         
-        # Get specializers - these are solutions that specialize in at least one objective
+        # Get specializer indices
         specializer_indices = lattice.specializers
         
-        # If we don't have enough specializers, return all available ones
-        if len(specializer_indices) < min_specializers:
-            min_specializers = len(specializer_indices)
+        # Filter to get only specializer solutions
+        specializer_solutions = filtered_data.loc[specializer_indices].copy()
         
-        # Get the top specializers based on their generalizability order
-        # The specializers are already in the order of generalizability
-        selected_specializers = specializer_indices[:min_specializers]
+        # If we have more specializers than requested, take the top ones based on generalizability
+        if len(specializer_solutions) > min_specializers:
+            # Take the first min_specializers solutions (they're already sorted by generalizability)
+            specializer_solutions = specializer_solutions.head(min_specializers)
         
-        # Filter the data to only include selected specializers
-        specialized_data = filtered_data.loc[selected_specializers].copy()
-        
-        # Add specialization information
-        specialization_matrix = lattice.specialization
-        
-        # Compute weighted score for ranking
-        specialized_data['Weighted Sum'] = sum(specialized_data[col] * weights[col] for col in objective_keys)
-        
-        # Sort by weighted score
-        specialized_data = specialized_data.sort_values(by='Weighted Sum', ascending=False)
-        
-        # Initialize Visualizer for projections and clusters
-        vis_obj = Visualizer(
-            data=csv_data,
-            data_ovars=objective_keys,
-            data_dvars=decision_keys
-        )
-        
-        # Get projections and clusters for specialized data
-        points = vis_obj.joint_xy.loc[specialized_data.index]
-        clusters = vis_obj.df_clustered.loc[specialized_data.index, ["label"]]
-        
-        # Merge projections and clusters with specialized data
-        specialized_data = pd.concat([specialized_data, points, clusters], axis=1)
-        specialized_data = specialized_data.rename(columns={0: 'x_coord', 1: 'y_coord'})
-        
-        # Convert to dict for JSON response
-        # Filter out system/metadata columns that shouldn't be displayed
-        columns_to_exclude = ['File Name']  # Only exclude File Name column
-        display_columns = [col for col in specialized_data.columns if col not in columns_to_exclude]
-        
-        solution_dict = [
-            OrderedDict([(col, row[col]) for col in display_columns])
-            for _, row in specialized_data.iterrows()
+        # Define the desired column order for the summary table
+        desired_column_order = [
+            'Solution ID', 'Location Scenario', 'Operation Model', 'Parameter Set',
+            'Reliability Weight', 'Cost Weight', 'Reliability Index', 'N Contingencies',
+            'Expansion Budget Cap', 'Minimum Reliability Index', 'Voltage Deviation Limit',
+            'Design Id',  # Changed from 'Line Id' to match actual data
+            'Expansion Cost', 'Expected Datacenter Load Shed', 'Expected Total Load Shed',
+            'Weighted Sum'
         ]
         
-        # Create ranks for parallel coordinates chart
-        ranks_dict = {}
-        for _, row in specialized_data.iterrows():
-            key = f"{row.get('Case Study', 'Unknown')},{row.get('Location', 'Unknown')}"
-            ranks_dict[key] = {obj: float(row[obj]) for obj in objective_keys}
+        # Define columns to exclude from the summary display
+        columns_to_exclude = ['File Name', 'x_coord', 'y_coord', 'label']
         
-        # Get specialization details for each solution
-        specialization_details = {}
-        for idx in selected_specializers:
-            if idx in specialization_matrix.index:
-                specialization_details[idx] = {
-                    obj: bool(specialization_matrix.loc[idx, obj]) 
-                    for obj in objective_keys 
-                    if obj in specialization_matrix.columns
-                }
+        # Convert to list of dictionaries for JSON response with ordered columns
+        solutions_list = []
+        for _, row in specializer_solutions.iterrows():
+            # Create ordered dictionary based on desired column order
+            ordered_solution = OrderedDict()
+            
+            # First add columns in the desired order if they exist in the data
+            for col in desired_column_order:
+                if col in row and col not in columns_to_exclude:
+                    ordered_solution[col] = row[col]
+            
+            # Then add any remaining columns that weren't in the desired order
+            for col in row.index:
+                if col not in ordered_solution and col not in columns_to_exclude:
+                    ordered_solution[col] = row[col]
+            
+            solutions_list.append(ordered_solution)
+        
+        # Create ranks dictionary for parallel coordinates
+        ranks = {}
+        for _, row in specializer_solutions.iterrows():
+            # Use a combination of relevant columns as key
+            key_parts = []
+            for col in ['Solution ID'] + [col for col in specializer_solutions.columns if 'config' in col.lower() or 'scenario' in col.lower()]:
+                if col in row:
+                    key_parts.append(str(row[col]))
+            
+            if not key_parts:
+                # Fallback to using index
+                key_parts = [str(row.name)]
+            
+            key = ','.join(key_parts)
+            ranks[key] = {obj_key: row[obj_key] for obj_key in objective_keys if obj_key in row}
         
         return Response(
             json.dumps({
-                "solutions": solution_dict,
-                "ranks": ranks_dict,
-                "specialization_details": specialization_details,
-                "total_specializers_found": len(specializer_indices),
-                "min_specializers_requested": int(request.args.get('min_specializers', 1)),
-                "min_specializers_returned": min_specializers,
-                "weights_used": weights,
+                "solutions": solutions_list,
+                "ranks": ranks,
+                "specializers_count": len(specializer_solutions),
+                "total_solutions": len(filtered_data),
                 "objective_keys": objective_keys,
                 "decision_keys": decision_keys,
-                "hyperparameter_keys": list(hyperparameters.keys()),
-                "message": f"Filtered to top {min_specializers} specializers out of {len(specializer_indices)} total specializers found"
+                "specialization_matrix": lattice.specialization.loc[specializer_solutions.index].to_dict() if len(specializer_solutions) > 0 else {}
             }, sort_keys=False),
             mimetype='application/json'
         )
         
     except Exception as e:
-        app.logger.error(f"Error calculating specializers: {str(e)}")
+        app.logger.error(f"Error in specializers endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
