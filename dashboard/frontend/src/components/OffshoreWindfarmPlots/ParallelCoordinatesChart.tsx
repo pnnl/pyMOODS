@@ -364,7 +364,7 @@ const HorizontalSlider: React.FC<{
   const [value, setValue] = useState<number>(Math.round((min + max) / 2));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
+    const newValue = parseInt(e.target.value);
     setValue(newValue);
     onChange?.(newValue);
   };
