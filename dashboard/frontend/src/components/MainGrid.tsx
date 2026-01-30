@@ -64,6 +64,8 @@ const MainGrid: React.FC<MainGridProps> = ({
   });
   const [radarLoading, setRadarLoading] = useState<boolean>(true);
   const [rankData, setRankData] = useState<Record<string, any>>({});
+  const [specializersData, setSpecializersData] = useState<Solution[]>([]);
+  const [isSpecializersActive, setIsSpecializersActive] = useState<boolean>(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -118,6 +120,10 @@ const MainGrid: React.FC<MainGridProps> = ({
         !Object.keys(weights).length
       )
         return;
+
+      // Reset specializers data when filters/weights change
+      setIsSpecializersActive(false);
+      setSpecializersData([]);
 
       setSummaryLoading(true);
       setRadarLoading(true);
@@ -214,6 +220,31 @@ const MainGrid: React.FC<MainGridProps> = ({
   //   }
   // };
 
+  const handleSpecializersDataUpdate = (specializersResult: any) => {
+    console.log('Received specializers data update:', specializersResult);
+    
+    if (specializersResult.solutions) {
+      setSpecializersData(specializersResult.solutions);
+      setIsSpecializersActive(true);
+      
+      // Update rank data for parallel coordinates chart
+      if (specializersResult.ranks) {
+        setRankData(specializersResult.ranks);
+      }
+      
+      // Optionally update summary data with specializers
+      if (specializersResult.solutions.length > 0) {
+        setSummaryData(specializersResult.solutions);
+      }
+    }
+  };
+
+  const handleResetToOriginalData = () => {
+    setIsSpecializersActive(false);
+    setSpecializersData([]);
+    // This will trigger a re-fetch of original data
+  };
+
   if (summaryLoading || radarLoading) {
     return (
       <Box sx={{ textAlign: 'center', mt: 12 }}>
@@ -267,11 +298,32 @@ const MainGrid: React.FC<MainGridProps> = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               <Box sx={{ width: "100%" }}>
-                <ParallelCoordinatesChart ranks={rankData} objectiveColorMap={objectiveColorMap}/>
+                <ParallelCoordinatesChart 
+                  ranks={rankData} 
+                  objectiveColorMap={objectiveColorMap}
+                  useCase={selectedUseCase}
+                  filters={filters}
+                  weights={weights}
+                  onDataUpdate={handleSpecializersDataUpdate}
+                />
+                {isSpecializersActive && (
+                  <Box sx={{ 
+                    mt: 1, 
+                    p: 1, 
+                    backgroundColor: '#e3f2fd', 
+                    borderRadius: 1, 
+                    fontSize: '0.875rem',
+                    color: '#1976d2',
+                    textAlign: 'center'
+                  }}>
+                    🎯 Showing specialized solutions only
+                  </Box>
+                )}
               </Box>
+              {/* Summary Table */}
               <Box sx={{ width: "100%", mt: 2 }}>
                 <Summary
-                  data={summaryData}
+                  data={isSpecializersActive ? specializersData : summaryData}
                   loading={summaryLoading}
                   filters={filters}
                   onRowSelect={(solution) => setSelectedSolution(solution)}

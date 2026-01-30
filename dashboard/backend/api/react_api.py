@@ -22,6 +22,10 @@ import matplotlib.pyplot as plt
 # Add dashboard directory to Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+# Add the notebooks directory to Python path to import TradeoffLattice
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'notebooks')))
+from tradeoff_lattice import TradeoffLattice
+
 # Import specific modules from your dashboard library
 from dashlib.offshore_windfarm.vis import Visualizer
 
@@ -718,8 +722,12 @@ def get_weighted_solutions():
         # print(rank_frame.to_dict(orient='index'))
         
         # Convert to dict for JSON response
+        # Filter out system/metadata columns that shouldn't be displayed
+        columns_to_exclude = ['File Name']  # Only exclude File Name column
+        display_columns = [col for col in filtered_data.columns if col not in columns_to_exclude]
+        
         solution_dict = [
-            OrderedDict([(col, row[col]) for col in filtered_data.columns])
+            OrderedDict([(col, row[col]) for col in display_columns])
             for _, row in filtered_data.iterrows()
         ]
         
@@ -931,6 +939,136 @@ def get_lmp_data():
 
     except Exception as e:
         app.logger.error(f"Error fetching LMP data: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/specializers', methods=['GET'])
+def get_minimum_number_of_specializers():
+    try:
+        use_case = request.args.get('use_case')
+        min_specializers = int(request.args.get('min_specializers', 5))
+        
+        if not use_case:
+            return jsonify({"error": "use_case parameter is required"}), 400
+
+        # Load case study data
+        data = load_case_study_data(use_case)
+        csv_data = data["csv_data"]
+        objective_functions = data["objective_functions"]
+        decision_variables = data["decision_variables"]
+        
+        # Get objective and decision variable names
+        objective_keys = list(objective_functions.keys())
+        decision_keys = list(decision_variables.keys())
+        
+        # Apply filters if provided
+        filtered_data = csv_data.copy()
+        
+        # Extract filter parameters from request args
+        for key, values in request.args.items():
+            if key.startswith('weight_') or key in ['use_case', 'min_specializers']:
+                continue
+            
+            # Handle multiple values for the same filter key
+            filter_values = request.args.getlist(key)
+            if filter_values and key in filtered_data.columns:
+                filtered_data = filtered_data[filtered_data[key].isin(filter_values)]
+        
+        if filtered_data.empty:
+            return jsonify({
+                "solutions": [],
+                "ranks": {},
+                "specializers_count": 0,
+                "objective_keys": objective_keys,
+                "decision_keys": decision_keys
+            })
+        
+        # Determine which objectives should be ascending (larger is better)
+        ascending_objectives = []
+        for obj_key, obj_info in objective_functions.items():
+            if isinstance(obj_info, dict) and obj_info.get('direction') == 'maximize':
+                ascending_objectives.append(obj_key)
+        
+        # Create TradeoffLattice object
+        lattice = TradeoffLattice(
+            df=filtered_data,
+            ovars=objective_keys,
+            dvars=decision_keys,
+            ascending=ascending_objectives
+        )
+        
+        # Get specializer indices
+        specializer_indices = lattice.specializers
+        
+        # Filter to get only specializer solutions
+        specializer_solutions = filtered_data.loc[specializer_indices].copy()
+        
+        # If we have more specializers than requested, take the top ones based on generalizability
+        if len(specializer_solutions) > min_specializers:
+            # Take the first min_specializers solutions (they're already sorted by generalizability)
+            specializer_solutions = specializer_solutions.head(min_specializers)
+        
+        # Define the desired column order for the summary table
+        desired_column_order = [
+            'Solution ID', 'Location Scenario', 'Operation Model', 'Parameter Set',
+            'Reliability Weight', 'Cost Weight', 'Reliability Index', 'N Contingencies',
+            'Expansion Budget Cap', 'Minimum Reliability Index', 'Voltage Deviation Limit',
+            'Design Id',  # Changed from 'Line Id' to match actual data
+            'Expansion Cost', 'Expected Datacenter Load Shed', 'Expected Total Load Shed',
+            'Weighted Sum'
+        ]
+        
+        # Define columns to exclude from the summary display
+        columns_to_exclude = ['File Name', 'x_coord', 'y_coord', 'label']
+        
+        # Convert to list of dictionaries for JSON response with ordered columns
+        solutions_list = []
+        for _, row in specializer_solutions.iterrows():
+            # Create ordered dictionary based on desired column order
+            ordered_solution = OrderedDict()
+            
+            # First add columns in the desired order if they exist in the data
+            for col in desired_column_order:
+                if col in row and col not in columns_to_exclude:
+                    ordered_solution[col] = row[col]
+            
+            # Then add any remaining columns that weren't in the desired order
+            for col in row.index:
+                if col not in ordered_solution and col not in columns_to_exclude:
+                    ordered_solution[col] = row[col]
+            
+            solutions_list.append(ordered_solution)
+        
+        # Create ranks dictionary for parallel coordinates
+        ranks = {}
+        for _, row in specializer_solutions.iterrows():
+            # Use a combination of relevant columns as key
+            key_parts = []
+            for col in ['Solution ID'] + [col for col in specializer_solutions.columns if 'config' in col.lower() or 'scenario' in col.lower()]:
+                if col in row:
+                    key_parts.append(str(row[col]))
+            
+            if not key_parts:
+                # Fallback to using index
+                key_parts = [str(row.name)]
+            
+            key = ','.join(key_parts)
+            ranks[key] = {obj_key: row[obj_key] for obj_key in objective_keys if obj_key in row}
+        
+        return Response(
+            json.dumps({
+                "solutions": solutions_list,
+                "ranks": ranks,
+                "specializers_count": len(specializer_solutions),
+                "total_solutions": len(filtered_data),
+                "objective_keys": objective_keys,
+                "decision_keys": decision_keys,
+                "specialization_matrix": lattice.specialization.loc[specializer_solutions.index].to_dict() if len(specializer_solutions) > 0 else {}
+            }, sort_keys=False),
+            mimetype='application/json'
+        )
+        
+    except Exception as e:
+        app.logger.error(f"Error in specializers endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
