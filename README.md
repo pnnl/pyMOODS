@@ -34,31 +34,53 @@ An AI-enabled visualization capability for power systems planning that integrate
 
 ### Starting the API Server
 
-1. Create a virtual environment if this is your first time running. Activate your virtual environment using the following command:
+1. Create and activate a virtual environment (first-time setup):
 
+Windows (PowerShell)
 ```bash
 cd dashboard
-./venv/Scripts/activate
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
-2. Install the dependencies for your venv:
-
+macOS/Linux
 ```bash
-pip install -r requirements.txt
+cd dashboard
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-3. Run the following command to start the API server:
+2. Install backend dependencies:
 
+Windows
 ```bash
-cd dashboard/backend/api
+python -m pip install -r requirements.txt
+```
+
+macOS/Linux
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+3. Start the API server:
+
+Windows
+```bash
+cd backend/api
 python react_api.py
+```
+
+macOS/Linux
+```bash
+cd backend/api
+python3 react_api.py
 ```
 
 The API should be running on `http://localhost:8080`
 
 #### Starting the React App (Client)
 
-1. Navigate to the frontend directory
+1. Open a new terminal and navigate to the frontend directory
 
 ```bash
 cd dashboard/frontend
@@ -70,7 +92,7 @@ cd dashboard/frontend
 yarn install
 ```
 
-2. Run the following to start the development server:
+3. Run the following to start the development server:
 
 ```bash
 yarn start
@@ -104,7 +126,3 @@ If you use pyMOODS in your research, please cite:
   journal = {GitLab repository},
 }
 ```
-
-## Contact
-
-For questions or support, please open an issue on GitLab or contact the project PI Dr. Milan Jain at [milan.jain@pnnl.gov](mailto:milan.jain@pnnl.gov).
