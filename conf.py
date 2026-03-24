@@ -6,7 +6,7 @@ project = 'pyMOODS'
 copyright = '2025, Pacific Northwest National Laboratory'
 author = 'Milan Jain'
 
-release = '0.0.1'
+release = '0.3.0'
 
 extensions = [
     'sphinx.ext.autodoc',

@@ -1,5 +1,5 @@
 {
-    "datafile": "/qfs/projects/cameo/SharedFolder/output_cameo/v2_test_summary.csv",
+    "datafile": "${DATA_DIR}/mocodo24_v2_test.csv",
     "input_parameters": {
         "wind_profiles": {"name":"Wind Profile (24 Hr)", "description": "", "filepaths": []},
         "market_price": {"name":"Day Ahead Market Prices", "description": "", "filepaths": []},
