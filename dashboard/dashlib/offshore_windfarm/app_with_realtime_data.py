@@ -7,7 +7,7 @@ from sklearn.cluster import DBSCAN, HDBSCAN
 from scipy.spatial.qhull import QhullError
 import vis
 
-df = pd.read_csv('./v2_summary.csv')
+df = pd.read_csv('../../demo_data/v2_test_summary.csv')
 df.head()
 
 ovars = ['objective']
