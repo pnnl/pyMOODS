@@ -1,1 +1,0 @@
-For ExaGo Data Exploration, we need python 3.10
