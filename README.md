@@ -6,7 +6,7 @@
     A Visualization Framework for Multi-Criteria Decision Making
   </p>
   <div style="margin-bottom: 20px;">
-    ![License](https://img.shields.io/badge/license-BSD--3--Clause-blue?style=flat-square)
+    <img src="https://img.shields.io/badge/license-BSD--3--Clause-blue?style=flat-square" alt="License">
   </div>
 </div>
 
