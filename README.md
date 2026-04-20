@@ -6,7 +6,7 @@
     A Visualization Framework for Multi-Criteria Decision Making
   </p>
   <div style="margin-bottom: 20px;">
-    ![License](https://img.shields.io/badge/license-MIT-blue)
+    ![License](https://img.shields.io/badge/license-BSD--3--Clause-blue?style=flat-square)
   </div>
 </div>
 
@@ -108,7 +108,7 @@ We welcome contributions from the community! Please see our [Contribution Guidel
 
 ## License
 
-pyMOODS is released under the MIT License. See [LICENSE](docs/LICENSE) for full details.
+pyMOODS is released under the BSD-3 License. See [LICENSE](docs/LICENSE) for full details.
 
 ## Citation
 
