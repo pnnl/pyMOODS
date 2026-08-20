@@ -4,31 +4,33 @@ import * as d3 from "d3";
 const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => {
   const svgRef = useRef();
   const containerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(400);
-    
-    // Resize observer for responsiveness
-    useState(() => {
-        const updateSize = () => {
-        if (containerRef.current) {
-            setContainerWidth(containerRef.current.offsetWidth);
-        }
-        };
+  const [containerSize, setContainerSize] = useState({ width: 400, height: 300 });
 
-        updateSize();
+  // Resize observer for responsiveness
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight,
+        });
+      }
+    };
 
-        const resizeObserver = new ResizeObserver(updateSize);
-        if (containerRef.current) {
-        resizeObserver.observe(containerRef.current);
-        }
+    updateSize();
 
-        return () => {
-        if (containerRef.current) {
-            resizeObserver.unobserve(containerRef.current);
-        }
-        };
-    }, []);
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
 
-  const size = containerWidth; 
+    return () => {
+      if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+    };
+  }, []);
+
   const margin = { top: 0, right: 10, bottom: 100, left: 50 };
 
   useEffect(() => {
@@ -58,16 +60,13 @@ const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => 
         domain: [min, max],
         };
     });
-    console.log("Data:", data)
-    console.log("Normalized Data:", normalizedData)
 
     // const minValue = Math.min(...normalizedData.flatMap(d => d.distribution));
     // const maxValue = Math.max(...normalizedData.flatMap(d => d.distribution));
 
     // Responsive width and computed height
-    const width = containerWidth;
-    const categoryCount = normalizedData.length;
-    const height = Math.max(300, categoryCount * 80); // ~80px per row, min 300px
+    const width = Math.max(260, containerSize.width);
+    const height = Math.max(220, containerSize.height);
 
     // Update scale ranges
     const xScale = d3.scaleLinear()
@@ -206,12 +205,18 @@ const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => 
 
     // Highlight selected values
     normalizedData.forEach((d, i) => {
-        const min = d.min;
-        const max = d.max;
-        const range = max - min;
-        const selectedNormalized = range === 0
-            ? 0.5
-            : (d.selected - min) / range;
+      const [domainMin, domainMax] = d.domain;
+      const min = Number.isFinite(d.min) ? d.min : domainMin;
+      const max = Number.isFinite(d.max) ? d.max : domainMax;
+      const selected = Number(d.selected);
+
+      if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(selected)) return;
+
+      const range = max - min;
+      const selectedNormalizedRaw = range === 0
+        ? 0.5
+        : (selected - min) / range;
+      const selectedNormalized = Math.max(0, Math.min(1, selectedNormalizedRaw));
         
         const cy = yCenter(i);
         const cx = xScale(selectedNormalized);
@@ -232,7 +237,7 @@ const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => 
           tooltip
             .style("left", event.pageX + 10 + "px")
             .style("top", event.pageY - 20 + "px")
-            .html(`${d.name}: ${d.selected.toFixed(1)}`);
+            .html(`${d.name}: ${selected.toFixed(1)}`);
         });
     });
 
@@ -255,9 +260,9 @@ const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => 
       .selectAll("text")
       .style("text-anchor", "end")
       .attr("dy", ".35em")
-      .style('font-family', 'Inter, Roboto, sans-serif')
+      .style('font-family', 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif')
       .style('font-weight', '500')
-      .style("font-size", "16px");
+      .style("font-size", "0.75rem");
 
     // // Add X-axis (values)
     // svg.append("g")
@@ -267,34 +272,38 @@ const BeeswarmPlot = ({ data, title = "Beeswarm Plot", isDecision = false }) => 
     return () => {
       tooltip.remove();
     };
-  }, [data, isDecision]);
+  }, [data, isDecision, containerSize.width, containerSize.height]);
 
   return (
     <div
       ref={containerRef}
       style={{
         width: "100%",
-        aspectRatio: "1/1",
+        height: "100%",
         position: "relative",
         margin: 0,
         padding: 0,
+        overflow: "hidden",
       }}
     >
-      <p style={{
-        textAlign: 'center',
-        marginBottom: '10px',
-        fontWeight: "500",
-        fontFamily:"Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
-        fontSize: '15px',
-        color: '#213547',
-        }}>
-        {title}
+      {title ? (
+        <p style={{
+          textAlign: 'center',
+          marginBottom: '10px',
+          fontWeight: "500",
+          fontFamily:"Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          fontSize: '15px',
+          color: '#213547',
+          }}>
+          {title}
         </p>
+      ) : null}
       <svg
         ref={svgRef}
         width="100%"
         height="100%"
-        viewBox={`0 0 ${size} ${size}`}
+        style={{ display: "block" }}
+        viewBox={`0 0 ${Math.max(260, containerSize.width)} ${Math.max(220, containerSize.height)}`}
         preserveAspectRatio="xMidYMid meet"
       ></svg>
     </div>

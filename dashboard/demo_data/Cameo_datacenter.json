@@ -25,15 +25,18 @@
   "objective_functions": {
     "Expansion Cost": {
       "name": "Expansion Cost",
-      "description": ""
+      "description": "",
+      "unit": "USD"
     },
     "Expected Datacenter Load Shed": {
       "name": "Expected Datacenter Load Shed",
-      "description": ""
+      "description": "",
+      "unit": "MWh"
     },
     "Expected Total Load Shed": {
       "name": "Expected Total Load Shed",
-      "description": ""
+      "description": "",
+      "unit": "MWh"
     }
   }
 }

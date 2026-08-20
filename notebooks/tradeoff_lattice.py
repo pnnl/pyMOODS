@@ -1,3 +1,5 @@
+import hashlib
+
 import pandas as pd
 import numpy as np
 
@@ -6,6 +8,68 @@ import seaborn as sns
 
 import networkx as nx
 import hypernetx as hnx  # pip install hypernetx
+
+from scipy.spatial import Delaunay
+from scipy.stats import mannwhitneyu
+
+def test_all(X, Y):
+    result = pd.DataFrame([
+        mannwhitneyu(X[c], Y[c])
+        for c in X
+    ], index=X.columns)
+
+    df = pd.DataFrame([X.median(), Y.median()])
+    result['magnitude'] = df.max() / df.min()
+
+    result['direction'] = np.sign(result.statistic/(len(X)*len(Y)) - .5)
+    
+    return result
+    
+def get_triangulation(points):
+    G = nx.Graph()
+
+    for i, xy in enumerate(points):
+        G.add_node(i, pos=xy)
+    
+    tri = Delaunay(points)
+    for i, j, k in tri.simplices:
+        G.add_edge(i, j)
+        G.add_edge(j, k)
+        G.add_edge(k, i)
+
+    return G
+
+def reorient_lattice(G, by, alpha=.01):
+    D = nx.DiGraph()
+
+    # copy nodes and data from G into D
+    for v, d in G.nodes(data=True):
+        D.add_node(v, **d)
+
+    # copy edges, but flip baed on direction of by variable
+    for v, u, d in G.edges(data=True):
+        test = d['test'].copy()
+
+        if test.loc[by, 'direction'] < 0:
+            v, u = u, v
+            test['direction'] *= -1
+            
+        D.add_edge(u, v, test=test)
+
+    return D
+
+def _stable_color(name, cmap=None, n=10):
+    """Return a consistent color for *name* regardless of iteration order.
+
+    Uses an MD5 hash of the string representation so the same solution always
+    maps to the same tab10 slot even when used across different loop iterations.
+    Pass a custom *cmap* (any callable accepting a float in [0, 1]) to override
+    the default tab10 palette.
+    """
+    if cmap is None:
+        cmap = plt.cm.tab10
+    idx = int(hashlib.md5(str(name).encode()).hexdigest(), 16) % n
+    return cmap(idx / n)
 
 
 class TradeoffLattice:
@@ -207,6 +271,22 @@ class TradeoffLattice:
         S.iloc[:k] = self.specialization.iloc[:k]
         return S[S.any(axis=1)]
 
+    def get_node_label(self, v):
+        yield f'# {v}'
+        if v in self.generalizers:
+            yield '(generalizer)'
+
+        # if v in self.anti_generalizers:
+        #     yield '(anti-generalizer)'
+
+        if v in self.specialization.index:
+            for c in self.specialization.columns[self.specialization.loc[v]]:
+                yield f'+{c}'
+
+        # if v in self.anti_specializers.index:
+        #     for c in self.anti_specializers.columns[self.anti_specializers.loc[v]]:
+        #         yield f'-{c}'
+                
     def plot_pcp(
         self,
         ax=None,
@@ -214,6 +294,7 @@ class TradeoffLattice:
         show_generalizability_as='Generalizability',
         subset=None,
         colors=None,
+        color_cmap=None,
         specialization_marker='o',
         tradeoff_marker='s',
         generalizers=None,
@@ -227,6 +308,12 @@ class TradeoffLattice:
         generalizer_linestyle='--',
         specializer_linestyle='-',
         default_linestyle='-',
+        specializer_alpha=1.0,
+        generalizer_alpha=1.0,
+        default_alpha=1.0,
+        annotation_fontsize=None,
+        x_label_rotation=0,
+        column_order=None,
         labels={},
         x_labels={},
     ):
@@ -244,15 +331,18 @@ class TradeoffLattice:
         subset : list
             subset of solutions to show
         colors : dict
-            mapping of solution to color; if None assigns each solution one of 10 unique colors
+            mapping of solution name -> color; if None, colors are assigned by hashing the solution
+            name so the same solution always receives the same color across loop iterations
+        color_cmap : matplotlib colormap
+            colormap used when auto-generating colors from solution names (default: tab10)
         specialization_marker : str
             matplotlib marker character to indicate specialization
         tradeoff_marker : str
             matplotlib marker character to indicate tradeoff
         generalizers : list
-            solutions to be encoded as generalizers; if None, uses the single the most general solution 
+            solutions to be encoded as generalizers; if None, uses the single the most general solution
         specialization : pandas.DataFrame
-            custom specialization DataFrmae, if None, uses self.specialization
+            custom specialization DataFrame, if None, uses self.specialization
         tradeoff : pandas.DataFrame
             custom tradeoff DataFrame, if None, uses self.tradeoff
         show_tradeoff : bool
@@ -271,6 +361,21 @@ class TradeoffLattice:
             style of lines for solutions that are specializers (defaults to solid)
         default_linestyle : str
             style of lines for solutions that are neither specializers nor generalizers
+        specializer_alpha : float
+            alpha (opacity) for specializer lines and their annotations (default 1.0)
+        generalizer_alpha : float
+            alpha (opacity) for generalizer lines and their annotations (default 1.0)
+        default_alpha : float
+            alpha (opacity) for all other lines and their annotations (default 1.0)
+        annotation_fontsize : float or None
+            font size for right-hand labels; if None uses matplotlib's default
+        x_label_rotation : float
+            rotation angle in degrees for x-axis tick labels (default 0); use e.g. 45 or 90
+            when labels overlap
+        column_order : list or None
+            custom ordering of objective columns on the x-axis; must be a permutation of the
+            objective variable names (excluding the generalizability column). If None, uses the
+            order from the rank matrix (set by reorder_rank_columns)
         labels : dict
             mapping of DataFrame index -> human readable string in visualization
         x_labels : dict
@@ -288,7 +393,7 @@ class TradeoffLattice:
         if tradeoff is None:
             tradeoff = self.tradeoff.copy()
 
-        order = list(specialization.columns)
+        order = list(column_order) if column_order is not None else list(specialization.columns)
 
         if subset is None:
             subset = self.rank.index
@@ -302,8 +407,10 @@ class TradeoffLattice:
 
         x = np.arange(len(order))
 
+        # Use hash-based stable colors so the same solution name always maps to
+        # the same color slot regardless of iteration order in a for loop.
         if colors is None:
-            colors = {name: plt.cm.tab10(i % 10) for i, name in enumerate(df.index)}
+            colors = {name: _stable_color(name, cmap=color_cmap) for name in df.index}
 
         n = len(df)
         for i, (name, y) in enumerate(df.iterrows()):
@@ -311,14 +418,22 @@ class TradeoffLattice:
 
             linewidth = default_linewidth
             linestyle = default_linestyle
+            alpha = default_alpha
+            fontweight = 'normal'
+            fontstyle = 'normal'
 
             if name in specialization.index:
                 linewidth = specializer_linewidth
                 linestyle = specializer_linestyle
+                alpha = specializer_alpha
+                fontstyle = 'italic'
 
             if name in generalizers:
                 linestyle = generalizer_linestyle
                 linewidth = generalizer_linewidth
+                alpha = generalizer_alpha
+                fontweight = 'bold'
+                fontstyle = 'normal'
                 facecolor = 'none'
                 edgecolor = 'none'
 
@@ -328,6 +443,7 @@ class TradeoffLattice:
                 color=color,
                 linewidth=linewidth,
                 linestyle=linestyle,
+                alpha=alpha,
                 zorder=n - i,
             )
 
@@ -340,6 +456,7 @@ class TradeoffLattice:
                     facecolor=facecolor,
                     edgecolor=edgecolor,
                     s=marker_size,
+                    alpha=alpha,
                     linewidth=generalizer_linewidth / 2,
                     zorder=n - i,
                 )
@@ -353,22 +470,31 @@ class TradeoffLattice:
                     facecolor=facecolor,
                     edgecolor=edgecolor,
                     s=marker_size / 2,
+                    alpha=alpha,
                     linewidth=generalizer_linewidth / 2,
                     zorder=n - i,
                 )
 
-            ax.annotate(
-                labels.get(name, name),
-                (x[-1], y.iloc[-1]),
+            annotation_kwargs = dict(
                 va='center',
                 ha='left',
                 xytext=(specializer_size**0.5, 0),
                 textcoords='offset pixels',
+                color=color,
+                alpha=alpha,
+                fontweight=fontweight,
+                fontstyle=fontstyle,
             )
+            if annotation_fontsize is not None:
+                annotation_kwargs['fontsize'] = annotation_fontsize
+
+            ax.annotate(labels.get(name, name), (x[-1], y.iloc[-1]), **annotation_kwargs)
 
         ax.xaxis.set_ticks(
             x,
             [x_labels.get(s, s) for s in df.columns],
+            rotation=x_label_rotation,
+            ha='right' if x_label_rotation else 'center',
         )
 
         if use_rank:
@@ -481,11 +607,13 @@ class TradeoffLattice:
                 greedy_set_cover(specialization.values)
             ]
 
-        incidence_dict = {
-            c: specialization.index[specialization[c]] for c in specialization
-        }
+        rows = [
+            {'edges': c, 'nodes': node}
+            for c in specialization
+            for node in specialization.index[specialization[c]]
+        ]
 
-        return hnx.Hypergraph(incidence_dict)
+        return hnx.Hypergraph(pd.DataFrame(rows), edge_col='edges', node_col='nodes')
 
     def plot_hypergraph_euler(self, cover=False, **kwargs):
         """
@@ -652,6 +780,10 @@ class TradeoffLattice:
         smin=None,
         smax=None,
         cmap=plt.cm.bwr_r,
+        seed=None,
+        figsize=None,
+        edge_labels_kwargs=None,
+        node_labels_kwargs=None,
         **kwargs,
     ):
         """
@@ -682,49 +814,195 @@ class TradeoffLattice:
             upper endpoint of the size scale
         cmap : matplotlib color scale
             color mapping for edges; ideally a divergent color scale
+        edge_labels_kwargs : dict
+            keyword arguments passed to the edge label text rendering; defaults add a white
+            background box and horizontal (non-rotated) text to reduce overlap
+        node_labels_kwargs : dict
+            keyword arguments passed to the node label text rendering
         """
         
-        edges = []
-        def add_edge(*args):
-            edges.append(args)
-            return len(edges) - 1
-            
-        def get_incidence(df, s=1):
-            return {
-                add_edge(c, s): df.index[df[c]].tolist()
-                for c in df
-            }
-            
-        H = hnx.Hypergraph({
-            **get_incidence(self.specialization),
-            **get_incidence(self.tradeoff.loc[self.specialization.index], -1)
-        })
+        # Build edge metadata: string key -> (ovar, sign)
+        edge_meta = {}
+        rows = []
+        for c in self.specialization.columns:
+            key = f"{c}__pos"
+            edge_meta[key] = (c, 1)
+            for node in self.specialization.index[self.specialization[c]]:
+                rows.append({'edges': key, 'nodes': node})
+
+        spec_idx = self.specialization.index
+        tradeoff_restricted = self.tradeoff.loc[self.tradeoff.index.intersection(spec_idx)]
+        for c in tradeoff_restricted.columns:
+            members = tradeoff_restricted.index[tradeoff_restricted[c]].tolist()
+            if not members:
+                continue
+            key = f"{c}__neg"
+            edge_meta[key] = (c, -1)
+            for node in members:
+                rows.append({'edges': key, 'nodes': node})
+
+        H = hnx.Hypergraph(pd.DataFrame(rows), edge_col='edges', node_col='nodes')
+        all_nodes = list(H.nodes)
 
         def scale(by, vmin=None, vmax=None, alpha=1, beta=1):
-            s = self.df.loc[H.nodes(), by]
+            s = self.df.loc[all_nodes, by]
             vmin = s.min() if vmin is None else vmin
             vmax = s.max() if vmax is None else vmax
-
-            return (alpha*(((s - vmin)/(vmax - vmin))**beta))
+            return alpha * (((s - vmin) / (vmax - vmin)) ** beta)
 
         norm = plt.Normalize(-1, 1)
 
         nodes_kwargs = {}
         if node_color_by is not None:
-            nodes_kwargs['facecolor'] = node_cmap(scale(node_color_by)) if node_color_by is not None else None
+            fc = node_cmap(scale(node_color_by))
+            nodes_kwargs['facecolors'] = lambda v, _fc=fc, _nodes=all_nodes: (
+                _fc[_nodes.index(v)] if v in _nodes else 'white'
+            )
+
+        if node_size_by is not None:
+            raw = scale(node_size_by, smin, smax, node_size_scale, 0.5)
+            node_radius = raw.clip(lower=1e-6).to_dict()
+        else:
+            node_radius = None
+
+        # Only inject seed into layout_kwargs when using the default spring_layout.
+        layout_fn = kwargs.pop('layout', None)
+        if layout_fn is not None:
+            kwargs['layout'] = layout_fn
+        if seed is not None and layout_fn is None:
+            lk = kwargs.pop('layout_kwargs', {})
+            lk.setdefault('seed', seed)
+            kwargs['layout_kwargs'] = lk
+
+        _edge_label_style = dict(
+            rotation=0,
+            fontsize=9,
+            bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='black', alpha=1),
+        )
+        if edge_labels_kwargs is not None:
+            _edge_label_style.update(edge_labels_kwargs)
+
+        _node_label_style = dict(
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='none', alpha=0.75),
+        )
+        if node_labels_kwargs is not None:
+            _node_label_style.update(node_labels_kwargs)
+
+        if figsize is not None and 'ax' not in kwargs:
+            _, ax = plt.subplots(figsize=figsize)
+            kwargs['ax'] = ax
+        ax = kwargs.get('ax') or plt.gca()
+        texts_before = set(id(t) for t in ax.texts)
 
         hnx.draw(
             H,
-            node_labels=lambda v: node_labels.get(v, v),
-            edge_labels=lambda v: edge_labels.get(edges[v][0], edges[v][0]),
-            edges_kwargs=dict(
-                edgecolor=lambda v: cmap(norm(edges[v][1])),
-                facecolor=lambda v: cmap(norm(edges[v][1])) + np.array([0, 0, 0, -.75 if edges[v][1] == 1 else -1]),
+            node_labels=lambda v, _nl=node_labels: _nl.get(v, v),
+            edge_labels=lambda e, _el=edge_labels, _em=edge_meta: (
+                _el.get(_em[e][0], _em[e][0]) if e in _em else e
             ),
-            node_radius=scale(node_size_by, smin, smax, node_size_scale, .5).to_dict() if node_size_by is not None else None,
+            edges_kwargs=dict(
+                edgecolors=lambda e, _em=edge_meta, _cmap=cmap, _norm=norm: (
+                    _cmap(_norm(_em[e][1])) if e in _em else (0.5, 0.5, 0.5, 1)
+                ),
+                facecolors=lambda e, _em=edge_meta, _cmap=cmap, _norm=norm: (
+                    (*_cmap(_norm(_em[e][1]))[:3], 0.2)
+                    if e in _em and _em[e][1] > 0
+                    else (0, 0, 0, 0)
+                ),
+                linewidth=2,
+            ),
+            node_radius=node_radius,
             nodes_kwargs=nodes_kwargs,
             **kwargs
         )
+
+        new_texts = [t for t in ax.texts if id(t) not in texts_before]
+        node_set = set(all_nodes)
+        label_to_node = {node_labels.get(v, v): v for v in all_nodes}
+
+        edge_texts_to_adjust = [] # Keep track of edge labels for adjustment
+        
+        # Style every new text: node labels and edge labels both get white background
+        # boxes and high zorder. Edge labels keep hnx's original position; rotation=0
+        # keeps them horizontal so they are legible even when overlapping.
+        for txt in new_texts:
+            content = txt.get_text()
+            is_node = content in label_to_node or content in node_set
+            style = _node_label_style if is_node else _edge_label_style
+            txt.set_rotation(style.get('rotation', txt.get_rotation()))
+            txt.set_fontsize(style.get('fontsize', txt.get_fontsize()))
+            if 'bbox' in style:
+                txt.set_bbox(style['bbox'])
+            txt.set_zorder(20)
+            
+            # If it's an edge label, add it to our adjustment list
+            if not is_node:
+                edge_texts_to_adjust.append(txt)
+
+        # --- NEW CODE TO FIX OVERLAPS ---
+        try:
+            from adjustText import adjust_text
+            # Push the edge labels away from each other
+            adjust_text(
+                edge_texts_to_adjust, 
+                ax=ax,
+                expand_points=(1.2, 1.2), # Add a little padding
+                arrowprops=dict(arrowstyle='-', color='gray', lw=0.5, alpha=0.5) # Optional: draws a faint line back to the original centroid if moved far
+            )
+        except ImportError:
+            print("Warning: 'adjustText' library not found. Install it to prevent label overlap.")
+
+    def draw(self, ax=None, with_node_labels=True, node_labels_kwargs=dict(), with_edge_labels=True, show_negative=False, show_positive=True, by=None, node_size=1000, alpha=0, edge_labels_kwargs=dict()):
+        G = self.G
+        ax = ax or plt.gca()
+        
+        if by is not None:
+            G = reorient_lattice(G, by=by)
+    
+        pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        try:
+            pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+        except:
+            print('Graphviz not available. Using Kamada Kawai Layout')
+            pos = nx.kamada_kawai_layout(G)
+            
+        # node labels
+        if with_node_labels is True:
+            for v, xy in pos.items():
+                s = '\n'.join(self.get_node_label(v))
+                # print(s)
+                ax.annotate(s, xy, va='center', ha='center', **node_labels_kwargs)
+    
+        nx.draw_networkx_edges(
+            G, pos,
+            node_size=node_size,
+            edge_color=[
+                'black' if by is None or d['test'].loc[by, 'pvalue'] <= alpha else 'lightgray'
+                for u, v, d in G.edges(data=True)
+            ]
+        )
+    
+        def create_edge_label(d):
+            test = d['test']
+            return '\n'.join([
+                f'{"+" if ser.direction > 0 else "- "}{k}'
+                for k, ser in test[test.pvalue <= alpha].iterrows()
+                if (with_edge_labels is True or k in with_edge_labels) and (
+                    (show_positive is True and ser.direction > 0) or\
+                    (show_negative is True and ser.direction < 0)
+                )
+            ])
+    
+        if with_edge_labels is not False:
+            nx.draw_networkx_edge_labels(
+                G, pos,
+                edge_labels={
+                    (u, v): create_edge_label(d)
+                    for u, v, d in G.edges(data=True)
+                },
+                **edge_labels_kwargs
+            )   
 
     def reorder_rank_columns(self, method='corr'):
         """
@@ -749,12 +1027,20 @@ class TradeoffLattice:
             name of method used to reorder the rank matrix
         """
 
+        # Allow passing a custom column order directly as a list/tuple.
+        if not isinstance(method, str):
+            self.rank = self.rank[list(method)]
+            return
+
         order = self.rank.columns
 
         if method == 'corr':
             rows = list(self.specializers)
             C = self.rank.loc[rows].corr()
             C[C < 0] = 0
+            C_arr = C.values.copy()
+            np.fill_diagonal(C_arr, 0)
+            C = pd.DataFrame(C_arr, index=C.index, columns=C.columns)
 
             A = nx.from_pandas_adjacency(C)
             order = nx.spectral_ordering(A)

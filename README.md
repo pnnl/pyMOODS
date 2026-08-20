@@ -6,7 +6,10 @@
     A Visualization Framework for Multi-Criteria Decision Making
   </p>
   <div style="margin-bottom: 20px;">
-    <img src="https://img.shields.io/badge/license-BSD--3--Clause-blue?style=flat-square" alt="License">
+    ![Python Versions](https://img.shields.io/badge/python-3.13%2B-blue)
+    ![Latest Release](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/-/badges/release.svg)
+    ![pipeline status](https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS/badges/main/pipeline.svg)
+    ![License](https://img.shields.io/badge/license-MIT-blue)
   </div>
 </div>
 
@@ -31,53 +34,30 @@ An AI-enabled visualization capability for power systems planning that integrate
 
 ### Starting the API Server
 
-1. Create and activate a virtual environment (first-time setup):
+1. Create a virtual environment if this is your first time running. Activate your virtual environment using the following command:
 
-Windows (PowerShell)
 ```bash
-cd dashboard
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+./venv/Scripts/activate
 ```
 
-macOS/Linux
+2. Install the dependencies for your venv:
+
 ```bash
-cd dashboard
-python3 -m venv venv
-source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-2. Install backend dependencies:
+3. Run the following command to start the API server:
 
-Windows
 ```bash
-python -m pip install -r requirements.txt
-```
-
-macOS/Linux
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-3. Start the API server:
-
-Windows
-```bash
-cd backend/api
+cd dashboard/backend/api
 python react_api.py
-```
-
-macOS/Linux
-```bash
-cd backend/api
-python3 react_api.py
 ```
 
 The API should be running on `http://localhost:8080`
 
 #### Starting the React App (Client)
 
-1. Open a new terminal and navigate to the frontend directory
+1. Navigate to the frontend directory
 
 ```bash
 cd dashboard/frontend
@@ -89,7 +69,7 @@ cd dashboard/frontend
 yarn install
 ```
 
-3. Run the following to start the development server:
+2. Run the following to start the development server:
 
 ```bash
 yarn start
@@ -97,9 +77,18 @@ yarn start
 
 You can now access the React app on `http://localhost:8081`.
 
+## Contributing
+
+We welcome contributions from the community! Please see our [Contribution Guidelines](docs/CONTRIBUTING.md) for details on how to:
+
+- Report issues
+- Submit pull requests
+- Suggest new features
+- Improve documentation
+
 ## License
 
-pyMOODS is released under the [BSD-3-Clause License](LICENSE.txt)
+pyMOODS is released under the MIT License. See [LICENSE](docs/LICENSE) for full details.
 
 ## Citation
 
@@ -110,7 +99,11 @@ If you use pyMOODS in your research, please cite:
   title = {pyMOODS: Multi-Objective Optimization and Decision Support},
   author = {pyMOODS Contributors},
   year = {2023},
-  publisher = {GitHub},
-  journal = {GitHub repository},
+  publisher = {GitLab},
+  journal = {GitLab repository},
 }
 ```
+
+## Contact
+
+For questions or support, please open an issue on GitLab or contact the project PI Dr. Milan Jain at [milan.jain@pnnl.gov](mailto:milan.jain@pnnl.gov).
