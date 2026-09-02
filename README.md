@@ -6,7 +6,7 @@
     A Visualization Framework for Multi-Criteria Decision Making
   </p>
   <div style="margin-bottom: 20px;">
-    ![License](https://img.shields.io/badge/license-MIT-blue)
+    <img src="https://img.shields.io/badge/license-BSD--3--Clause-blue?style=flat-square" alt="License">
   </div>
 </div>
 
@@ -97,18 +97,9 @@ yarn start
 
 You can now access the React app on `http://localhost:8081`.
 
-## Contributing
-
-We welcome contributions from the community! Please see our [Contribution Guidelines](docs/CONTRIBUTING.md) for details on how to:
-
-- Report issues
-- Submit pull requests
-- Suggest new features
-- Improve documentation
-
 ## License
 
-pyMOODS is released under the MIT License. See [LICENSE](docs/LICENSE) for full details.
+pyMOODS is released under the [BSD-3-Clause License](LICENSE.txt)
 
 ## Citation
 
