@@ -13,7 +13,7 @@
 [![DOI:22101267](https://zenodo.org/badge/DOI/22101267.svg)](https://doi.org/10.5281/zenodo.22101267)
 
 ## Overview
-An AI-enabled visualization capability for power systems planning that integrates co-design principles. The goal is to create a platform that combines cutting-edge artificial intelligence with interactive visualizations and theory of multi-criteria decision-making (MCDM) to address key challenges in large-scale infrastructure planning and operations. This tool will help stakeholders collaborate more effectively, enabling better decision-making by exploring complex scenarios in real time.
+A visualization dashboard for power systems planning that integrates co-design principles. The goal is to create a machine learning supported platform that combines interactive visualizations and theory of multi-criteria decision-making (MCDM) to address key challenges in large-scale infrastructure planning and operations. This tool will help stakeholders collaborate more effectively, enabling better decision-making by exploring complex scenarios in real time.
 
 ## Key Features
 ✅ Interactive Visualization of High-Dimensional Pareto Fronts\
@@ -102,17 +102,3 @@ You can now access the React app on `http://localhost:8081`.
 ## License
 
 pyMOODS is released under the [BSD-3-Clause License](LICENSE.txt)
-
-## Citation
-
-If you use pyMOODS in your research, please cite:
-
-```bibtex
-@software{pymoods,
-  title = {pyMOODS: Multi-Objective Optimization and Decision Support},
-  author = {pyMOODS Contributors},
-  year = {2023},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-}
-```
