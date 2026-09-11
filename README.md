@@ -18,14 +18,6 @@
 ## Overview
 A visualization dashboard for power systems planning that integrates co-design principles. The goal is to create a machine learning supported platform that combines interactive visualizations and theory of multi-criteria decision-making (MCDM) to address key challenges in large-scale infrastructure planning and operations. This tool will help stakeholders collaborate more effectively, enabling better decision-making by exploring complex scenarios in real time.
 
-## Key Features
-✅ Interactive Visualization of High-Dimensional Pareto Fronts\
-✅ Plug-and-Play Data-Driven Framework\
-✅ Scenario Comparison & Tradeoff Analysis\
-✅ Customizable Decision Criteria & Constraints\
-✅ Pre-Integrated Real-World Use Cases\
-🚀 Coming Soon: Generative AI-Powered Interaction
-
 ## Quick Start
 
 ### Prerequisites
@@ -33,6 +25,9 @@ A visualization dashboard for power systems planning that integrates co-design p
 - venv
 - yarn
 - node
+- Git LFS
+
+Please run `git lfs install` in your terminal before cloning the repository. This is necessary as our data files utilize Git LFS.
 
 ### Starting the API Server
 
