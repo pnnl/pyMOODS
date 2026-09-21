@@ -5,6 +5,8 @@ bibliography: paper.bib
 authors:
     - name: Jennifer Pham
       affiliation: "1"
+    - name: Milan Jain
+      affiliation: "1"
 affiliations:
     - index: 1
       name: Pacific Northwest National Laboratory
