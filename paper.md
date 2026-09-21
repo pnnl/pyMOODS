@@ -1,6 +1,7 @@
 ---
 title: "pyMOODS: multi-criteria decision support for large-scale infrastructure planning"
 date: 21 September 2026
+bibliography: paper.bib
 authors:
     - name: Jennifer Pham
       affiliation: "1"
@@ -17,13 +18,13 @@ In energy infrastructure planning, there are hundreds of feasible designs that c
 
 # Statement of need
 
-Large-scale infrastructure planning and operations require operators to optimize multiple parameters and evaluate the system over multiple criteria and under multiple scenarios. Co-design and multi-objective optimization therefore produce sets of non-dominated alternatives rather than a single answer. The difficult post-optimization task is to compare these alternatives, elicit preferences, understand sensitivity to those preferences, and communicate trade-offs among domain experts and stakeholders.
+Large-scale infrastructure planning and operations require operators to optimize multiple parameters and evaluate the system over multiple criteria and under multiple scenarios. Co-design and multi-objective optimization therefore produce sets of non-dominated alternatives rather than a single answer. The difficult post-optimization task is to compare these alternatives, elicit preferences, understand sensitivity to those preferences, and communicate trade-offs among domain experts and stakeholders [@branke2008multiobjective].
 
 `pyMOODS` addresses this interpretation gap for researchers, infrastructure planners, systems engineers, and analysts. It supports heterogeneous formulations and the input of case-study descriptors that identify hyperparameters, decision variables, objective functions, and optional control inputs, including each objective's optimization direction.
 
 # State of the field
 
-Different research software provides sophisticated algorithms for generating Pareto-optimal solution sets. These packages primarily address search and optimization, whereas `pyMOODS` starts from the resulting alternatives and supports the subsequent human decision process.
+Research software for multi-objective optimization spans algorithm-oriented frameworks, such as `pymoo` [@blank2020pymoo] and jMetalPy [@benitezhidalgo2019jmetalpy]. `pyMOODS` complements these tools by starting from external optimization and simulation results and support the subsequent human decision process through linked scenario views, post-optimization ranking methods, and domain-specific metadata.
 
 `pyMOODS` was built as a separate framework because its research requirements span capabilities that are normally separated. It combines a case-study JSON schema, linked solution and scenario views, multiple MCDM methods, generalizer/specializer analysis, and optional AI assistance grounded in the current dashboard state. Adding these capabilities to an optimization library would require substantial data-loading, application-state, and scenario-analysis infrastructure outside the library's primary purpose. General visualization packages, in turn, do not provide the multi-objective decision methods or infrastructure-planning semantics required by this workflow.
 
@@ -37,7 +38,7 @@ The frontend centers on three linked views: a scatter plot for exploring and sel
 
 ## Decision-support workflow
 
-The software supports weighted-sum, TOPSIS, VIKOR, and generalizer/specializer analyses. Providing multiple methods helps users identify rankings that depend on a particular scoring assumption and distinguish balanced solutions from those that perform especially well on individual objectives. The trade-off lattice groups solutions by user-selected scenario dimensions and allows users to inspect each group's members and objective profiles.
+The software supports the weighted-sum method [@marler2010weighted], TOPSIS [@hwang1981multiple], VIKOR [@opricovic2004compromise], and generalizer/specializer analyses. Providing multiple methods helps users identify rankings that depend on a particular scoring assumption and distinguish balanced solutions from those that perform especially well on individual objectives. The trade-off lattice groups solutions by user-selected scenario dimensions and allows users to inspect each group's members and objective profiles.
 
 Version 0.0.4 extends the visual workflow with `mooCHAT`, an optional large-language-model interface. The backend exposes explicit tools for querying solutions, summarizing trade-offs, and comparing alternatives. If prompted, `mooCHAT` can perform actions on the user interface, such as changing a chart, updating filters, highlighting variables, changing a weight, setting scenario aggregation, or resetting the dashboard. This AI feature should be considered as an aid rather than an autonomous decision-maker.
 
