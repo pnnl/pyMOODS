@@ -15,14 +15,6 @@
 ## Overview
 A visualization dashboard for power systems planning that integrates co-design principles. The goal is to create a machine learning supported platform that combines interactive visualizations and theory of multi-criteria decision-making (MCDM) to address key challenges in large-scale infrastructure planning and operations. This tool will help stakeholders collaborate more effectively, enabling better decision-making by exploring complex scenarios in real time.
 
-## Key Features
-✅ Interactive Visualization of High-Dimensional Pareto Fronts\
-✅ Plug-and-Play Data-Driven Framework\
-✅ Scenario Comparison & Tradeoff Analysis\
-✅ Customizable Decision Criteria & Constraints\
-✅ Pre-Integrated Real-World Use Cases\
-🚀 Coming Soon: Generative AI-Powered Interaction
-
 ## Quick Start
 
 ### Prerequisites
@@ -30,56 +22,36 @@ A visualization dashboard for power systems planning that integrates co-design p
 - venv
 - yarn
 - node
+- Git LFS
+
+Please run `git lfs install` in your terminal before cloning the repository. This is necessary as our data files utilize Git LFS.
 
 ### Starting the API Server
 
-1. Create and activate a virtual environment (first-time setup):
+1. Create a virtual environment if this is your first time running. Activate your virtual environment using the following command:
 
-Windows (PowerShell)
 ```bash
-cd dashboard
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+./venv/Scripts/activate
 ```
 
-macOS/Linux
+2. Install the dependencies for your venv:
+
 ```bash
-cd dashboard
-python3 -m venv venv
-source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-2. Install backend dependencies:
+3. Run the following command to start the API server:
 
-Windows
 ```bash
-python -m pip install -r requirements.txt
-```
-
-macOS/Linux
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-3. Start the API server:
-
-Windows
-```bash
-cd backend/api
+cd dashboard/backend/api
 python react_api.py
-```
-
-macOS/Linux
-```bash
-cd backend/api
-python3 react_api.py
 ```
 
 The API should be running on `http://localhost:8080`
 
 #### Starting the React App (Client)
 
-1. Open a new terminal and navigate to the frontend directory
+1. Navigate to the frontend directory
 
 ```bash
 cd dashboard/frontend
@@ -91,7 +63,7 @@ cd dashboard/frontend
 yarn install
 ```
 
-3. Run the following to start the development server:
+2. Run the following to start the development server:
 
 ```bash
 yarn start
@@ -99,6 +71,19 @@ yarn start
 
 You can now access the React app on `http://localhost:8081`.
 
+## Contributing
+
+We welcome contributions from the community! Please see our [Contribution Guidelines](docs/CONTRIBUTING.md) for details on how to:
+
+- Report issues
+- Submit pull requests
+- Suggest new features
+- Improve documentation
+
 ## License
 
 pyMOODS is released under the [BSD-3-Clause License](LICENSE.txt)
+
+## Contact
+
+For questions or support, please open an issue on GitLab or contact the project PI Dr. Milan Jain at [milan.jain@pnnl.gov](mailto:milan.jain@pnnl.gov).

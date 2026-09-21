@@ -11,6 +11,8 @@ metadata:
   links:
     - title: pyMOODS repository
       url: https://devops.pnnl.gov/e-comp/thrust-2/PyMOODS
+    - title: pyMOODS Jira Board
+      url: https://tasks.pnnl.gov/projects/PYMOODS/summary
   tags:
     - ldrd
     - multi-objective-decision-making

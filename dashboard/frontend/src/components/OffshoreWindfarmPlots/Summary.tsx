@@ -2,16 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   LinearProgress,
 } from '@mui/material';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 interface Solution {
   [key: string]: any;
@@ -24,9 +16,13 @@ interface SummaryProps {
   onRowSelect?: (solution: Solution) => void;
   onLocationSelect?: (location: string, locationField?: string) => void;
   selectedUseCase?: string; // Use case to help determine location field
+  decisionKeys?: string[]; // Decision variable keys
+  objectiveKeys?: string[]; // Objective function keys
+  objectiveUnits?: Record<string, string>; // Units for objective functions
+  selectedSolution?: Solution; // Externally controlled selected solution
 }
 
-const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect, selectedUseCase }) => {
+const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, onLocationSelect, selectedUseCase, decisionKeys = [], objectiveKeys = [], objectiveUnits = {}, selectedSolution: externalSelectedSolution }) => {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(0);
   const [, setSelectedSolution] = useState<Solution | null>(null);
 
@@ -53,10 +49,6 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, 
 
   const locationField = getLocationField();
 
-  if (loading) return <LinearProgress />;
-  if (!data || data.length === 0)
-    return <Typography>No solutions found.</Typography>;
-
   // Filter data based on location field selections (dynamic field name detection)
   const filteredData = React.useMemo(() => {
     const filterKey = filters && Object.keys(filters).find(key => 
@@ -73,12 +65,6 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, 
     });
   }, [data, filters, locationField]);
 
-  if (filteredData.length === 0) {
-    return <Typography>No solutions found for the selected location(s).</Typography>;
-  }
-
-  const allKeys = Array.from(new Set(filteredData.flatMap(Object.keys)));
-
   // State for sorting
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
@@ -88,23 +74,6 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, 
     direction: 'asc',
   });
 
-  // Determine if a column is numeric
-  const isNumericColumn = (key: string) =>
-    filteredData.every((item) => typeof item[key] === 'number');
-
-  // Handle sort toggle
-  const handleSort = (key: string) => {
-    setSortConfig((prev) => {
-      if (prev.key === key) {
-        return {
-          key,
-          direction: prev.direction === 'asc' ? 'desc' : 'asc',
-        };
-      } else {
-        return { key, direction: 'asc' };
-      }
-    });
-  };
 
   // Sorted data
   const sortedData = [...filteredData].sort((a, b) => {
@@ -139,153 +108,131 @@ const Summary: React.FC<SummaryProps> = ({ data, loading, filters, onRowSelect, 
     }
   }, [filteredData.length]);
 
-  // Gradient: dark green (best) to light red (worst)
-  const getRowColor = (index: number, total: number) => {
-    const ratio = index / Math.max(1, total - 1);
-    const r = Math.round(0 + ratio * (255 - 0));
-    const g = Math.round(100 + ratio * (200 - 100));
-    const b = Math.round(0 + ratio * (200 - 0));
-    return `rgba(${r}, ${g}, ${b}, 0.3)`;
+  const formatValue = (value: any) => {
+    if (typeof value === 'number' && !Number.isNaN(value)) {
+      return Number.isInteger(value)
+        ? value.toLocaleString('en-US')
+        : value.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+    }
+    return String(value);
+  };
+
+  const formatKey = (key: string) => {
+    return key === 'weighted_score' ? 'Weighted Sum' : key;
+  };
+
+  // Use externally controlled solution if provided, otherwise fall back to first filtered solution
+  const solution = externalSelectedSolution ?? filteredData[0];
+
+  if (loading) return <LinearProgress />;
+  if (!data || data.length === 0)
+    return <Typography variant="body2" color="text.secondary">No solutions found.</Typography>;
+
+  if (filteredData.length === 0) {
+    return <Typography variant="body2" color="text.secondary">No solutions found for the selected location(s).</Typography>;
+  }
+
+  // Helper function to render a regular row
+  const renderRow = (key: string, value: any) => (
+    <Box
+      key={key}
+      sx={{ display: 'flex', alignItems: 'flex-start', columnGap: 1.5, py: 0.75 }}
+    >
+      <Typography variant="body2" sx={{ color: 'text.secondary', flex: '0 0 55%', wordWrap: 'break-word' }}>
+        {formatKey(key)}:
+      </Typography>
+      <Typography variant="body2" sx={{ color: 'text.primary', flex: '1 1 45%', wordWrap: 'break-word', fontWeight: 500 }}>
+        {formatValue(value)}
+      </Typography>
+    </Box>
+  );
+
+  // Helper function to render a section header row
+  const renderSectionHeader = (title: string, isFirstSection: boolean = false) => (
+    <Box
+      key={`header-${title}`}
+      sx={{ mb: 0.5, mt: 1, pt: isFirstSection ? 0 : 1, borderTop: isFirstSection ? 'none' : '1px solid', borderColor: isFirstSection ? undefined : 'divider' }}
+    >
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+        {title}
+      </Typography>
+    </Box>
+  );
+
+  // Build the organized table rows
+  const buildTableRows = () => {
+    if (!solution) return [];
+    
+    const rows = [];
+    
+    // Solution ID first
+    if (solution['Solution ID'] !== undefined) {
+      rows.push(renderRow('Solution ID', solution['Solution ID']));
+    }
+    
+    // Decision Variables section
+    const decisionVars = decisionKeys.filter(key => solution.hasOwnProperty(key));
+    if (decisionVars.length > 0) {
+      const isFirstSection = solution['Solution ID'] === undefined;
+      rows.push(renderSectionHeader('Decision Variables', isFirstSection));
+      decisionVars.forEach((key) => {
+        rows.push(renderRow(key, solution[key]));
+      });
+    }
+    
+    // Objective Functions section
+    const objectiveVars = objectiveKeys.filter(key => solution.hasOwnProperty(key));
+    if (objectiveVars.length > 0) {
+      rows.push(renderSectionHeader('Objective Functions'));
+      objectiveVars.forEach((key) => {
+        const unit = objectiveUnits[key];
+        const displayValue = unit ? `${formatValue(solution[key])} ${unit}` : formatValue(solution[key]);
+        rows.push(renderRow(key, displayValue));
+      });
+    }
+    
+    return rows;
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <TableContainer sx={{ 
-        overflowX: 'auto',
-        overflowY: 'auto',
-        maxHeight: '250px',
-        '&::-webkit-scrollbar': {
-          height: '8px', // Reduced height for horizontal scrollbar
-          width: '8px',  // Width for vertical scrollbar
+    <Box sx={{ 
+      width: '100%',
+      height: '100%',
+      minHeight: 0,
+      overflow: 'auto',
+      '&::-webkit-scrollbar': {
+        width: '8px',
+      },
+      '&::-webkit-scrollbar-track': {
+        background: '#f1f1f1',
+        borderRadius: '4px',
+      },
+      '&::-webkit-scrollbar-thumb': {
+        background: '#c1c1c1',
+        borderRadius: '4px',
+        '&:hover': {
+          background: '#a8a8a8',
         },
-        '&::-webkit-scrollbar-track': {
-          background: '#f1f1f1',
-          borderRadius: '4px',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          background: '#c1c1c1',
-          borderRadius: '4px',
-          '&:hover': {
-            background: '#a8a8a8',
-          },
-        },
-        '&::-webkit-scrollbar-thumb:active': {
-          background: '#888',
-        },
-        // Firefox scrollbar styling
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#c1c1c1 #f1f1f1',
+      },
+      scrollbarWidth: 'thin',
+      scrollbarColor: '#c1c1c1 #f1f1f1',
+    }}>
+      <Box sx={{
+        bgcolor: 'background.default',
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 2,
+        p: 1,
+        minHeight: '100%',
+        boxSizing: 'border-box',
       }}>
-        <Table
-          size="small"
-          sx={{
-            tableLayout: 'fixed',
-            minWidth: 280,
-            maxWidth: '95%',
-            margin: '0 auto',
-            width: 'max-content',
-          }}
-        >
-          <TableHead
-            sx={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-            }}
-          >
-            <TableRow>
-              {allKeys.map((key) => (
-                <TableCell
-                  key={`col-${key}`}
-                  align={key === 'Weighted Sum' ? 'right' : 'left'}
-                  sx={{
-                    fontWeight: 500,
-        fontFamily: 'Inter,system-ui, Avenir, Helvetica,Arial, sans-serif',
-                    whiteSpace: 'normal',
-                    wordWrap: 'break-word',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: 150,
-                    px: 1,
-                    fontSize: '0.8rem',
-                    verticalAlign: 'top',
-                    cursor: isNumericColumn(key) ? 'pointer' : 'default',
-                    '&:hover': isNumericColumn(key)
-                      ? { backgroundColor: '#006400' }
-                      : {},
-                    backgroundColor: '#2e7d32', 
-                    color: 'white'
-                  }}
-                  onClick={() => isNumericColumn(key) && handleSort(key)}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent:
-                        key === 'Weighted Sum' ? 'flex-end' : 'flex-start',
-                      alignItems: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    {key === 'weighted_score' ? 'Weighted Sum' : key}
-                    {isNumericColumn(key) && sortConfig.key === key && (
-                      <>
-                        {sortConfig.direction === 'asc' ? (
-                          <ArrowUpwardIcon fontSize="small" />
-                        ) : (
-                          <ArrowDownwardIcon fontSize="small" />
-                        )}
-                      </>
-                    )}
-                  </Box>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {/* Add .slice(0, 5) if you want to limit to top 5 rows */}
-            {sortedData.map((solution, index) => (
-              <TableRow
-                key={`solution-${index}`}
-                sx={{
-                  backgroundColor: getRowColor(index, sortedData.length),
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: getRowColor(index, sortedData.length).replace('0.3', '0.5'),
-                  },
-                }}
-                onClick={() => {
-                  const solutionLocation = solution[locationField];
-                  if (solutionLocation && onLocationSelect) {
-                    onLocationSelect(solutionLocation, locationField);
-                  }
-                }}
-              >
-                {allKeys.map((key) => (
-                  <TableCell
-                    key={`sol-${index}-cell-${key}`}
-                    align={key === 'Weighted Sum' ? 'right' : 'left'}
-                    sx={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      px: 1,
-                      fontSize: '0.75rem',
-                    }}
-                  >
-                    {typeof solution[key] === 'number' && !Number.isNaN(solution[key])
-                      ? Number.isInteger(solution[key])
-                        ? solution[key]
-                        : solution[key].toFixed(2)
-                      : solution[key]}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        <Box sx={{ pb: 1.5 }}>
+          {buildTableRows()}
+        </Box>
+      </Box>
     </Box>
   );
 };
