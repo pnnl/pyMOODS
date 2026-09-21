@@ -1,0 +1,1333 @@
+{
+  "nodes": [
+    {
+      "id": "Base",
+      "x": 0.4016902379669721,
+      "y": -0.6046525389673614,
+      "members": [
+        "Base_COTTONWOOD",
+        "Base_MOSSLAND",
+        "Base_TESLA",
+        "Base_WCASCADE"
+      ],
+      "label_lines": [
+        "# Base (4)",
+        "+ Cable Material Cost($M) (3)",
+        "+ Day-Ahead Revenue ($k) (1)",
+        "+ Reserve ESS Revenue ($k) (3)",
+        "- Cable Material Cost($M) (1)",
+        "- Battery Cost($M) (3)",
+        "- Real-Time Revenue ($k) (1)",
+        "- Reserve WF Revenue ($k) (4)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 552.636800097776,
+        "Battery Cost($M)": 34.45119125,
+        "Day-Ahead Revenue ($k)": 1064.844549899975,
+        "Real-Time Revenue ($k)": 33.15071893419191,
+        "Reserve WF Revenue ($k)": 2.582434667619464,
+        "Reserve ESS Revenue ($k)": 0.790316334019942
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 3250.0,
+        "Battery Rated Power(MW)": 38.75
+      }
+    },
+    {
+      "id": "CCD18_3",
+      "x": -0.2868557769271114,
+      "y": 0.6362045153556806,
+      "members": [
+        "CCD18_3_MOSSLAND",
+        "CCD18_3_TESLA",
+        "CCD18_3_WCASCADE"
+      ],
+      "label_lines": [
+        "# CCD18_3 (3)",
+        "generalizer (2)",
+        "+ Cable Material Cost($M) (1)",
+        "+ Battery Cost($M) (1)",
+        "- Real-Time Revenue ($k) (1)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 410.0591803192811,
+        "Battery Cost($M)": 52.810340119573,
+        "Day-Ahead Revenue ($k)": 1118.880992286,
+        "Real-Time Revenue ($k)": 26.09972371761468,
+        "Reserve WF Revenue ($k)": 0.5298102800902161,
+        "Reserve ESS Revenue ($k)": 1.1713265043794439
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2178.003449314178,
+        "Battery Rated Power(MW)": 59.39999765847758
+      }
+    },
+    {
+      "id": "CCD18_5",
+      "x": 0.18397924009637706,
+      "y": 0.29486290789948416,
+      "members": [
+        "CCD18_5_MOSSLAND",
+        "CCD18_5_TESLA",
+        "CCD18_5_WCASCADE"
+      ],
+      "label_lines": [
+        "# CCD18_5 (3)",
+        "generalizer (2)",
+        "+ Cable Material Cost($M) (1)",
+        "+ Battery Cost($M) (1)",
+        "- Real-Time Revenue ($k) (1)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 410.05923845638364,
+        "Battery Cost($M)": 52.809384711097664,
+        "Day-Ahead Revenue ($k)": 1118.8766956159945,
+        "Real-Time Revenue ($k)": 26.10344450181127,
+        "Reserve WF Revenue ($k)": 0.5298177406013457,
+        "Reserve ESS Revenue ($k)": 1.171287799255157
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2178.003856956678,
+        "Battery Rated Power(MW)": 59.39892303631864
+      }
+    },
+    {
+      "id": "CCD18_8",
+      "x": -0.5699355929810029,
+      "y": -0.22033247327560165,
+      "members": [
+        "CCD18_8_JOHNDAY",
+        "CCD18_8_MOSSLAND",
+        "CCD18_8_TESLA",
+        "CCD18_8_WCASCADE"
+      ],
+      "label_lines": [
+        "# CCD18_8 (4)",
+        "generalizer (3)",
+        "+ Cable Material Cost($M) (1)",
+        "- Real-Time Revenue ($k) (1)",
+        "- Reserve WF Revenue ($k) (1)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 396.7565176331827,
+        "Battery Cost($M)": 46.032769486517026,
+        "Day-Ahead Revenue ($k)": 1177.0279310916114,
+        "Real-Time Revenue ($k)": 27.88057562673757,
+        "Reserve WF Revenue ($k)": 0.6577953376606291,
+        "Reserve ESS Revenue ($k)": 1.0274800820616332
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2279.757349091507,
+        "Battery Rated Power(MW)": 51.776723906536446
+      }
+    },
+    {
+      "id": "CCD22_3",
+      "x": 0.028068884330937762,
+      "y": 0.75221428561269,
+      "members": [
+        "CCD22_3_COTTONWOOD",
+        "CCD22_3_JOHNDAY",
+        "CCD22_3_MOSSLAND",
+        "CCD22_3_TESLA",
+        "CCD22_3_WCASCADE"
+      ],
+      "label_lines": [
+        "# CCD22_3 (5)",
+        "generalizer (1)",
+        "+ Cable Material Cost($M) (2)",
+        "+ Battery Cost($M) (4)",
+        "+ Real-Time Revenue ($k) (2)",
+        "- Cable Material Cost($M) (1)",
+        "- Day-Ahead Revenue ($k) (4)",
+        "- Reserve WF Revenue ($k) (1)",
+        "- Reserve ESS Revenue ($k) (4)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 357.50551715443254,
+        "Battery Cost($M)": 89.79531863993421,
+        "Day-Ahead Revenue ($k)": 2624.675462914257,
+        "Real-Time Revenue ($k)": 15.09393508858183,
+        "Reserve WF Revenue ($k)": 0.6449938047033945,
+        "Reserve ESS Revenue ($k)": 2.447151349501753
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2222.0167942569296,
+        "Battery Rated Power(MW)": 100.99995010469921
+      }
+    },
+    {
+      "id": "CCD22_5",
+      "x": -0.0765852805966238,
+      "y": -0.004509219843811277,
+      "members": [
+        "CCD22_5_COTTONWOOD",
+        "CCD22_5_JOHNDAY",
+        "CCD22_5_MOSSLAND",
+        "CCD22_5_TESLA",
+        "CCD22_5_WCASCADE"
+      ],
+      "label_lines": [
+        "# CCD22_5 (5)",
+        "generalizer (1)",
+        "+ Cable Material Cost($M) (1)",
+        "+ Battery Cost($M) (4)",
+        "+ Real-Time Revenue ($k) (2)",
+        "- Cable Material Cost($M) (1)",
+        "- Day-Ahead Revenue ($k) (4)",
+        "- Reserve WF Revenue ($k) (1)",
+        "- Reserve ESS Revenue ($k) (4)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 357.50459508085277,
+        "Battery Cost($M)": 89.79496643288515,
+        "Day-Ahead Revenue ($k)": 2624.6785675646247,
+        "Real-Time Revenue ($k)": 15.101796317767485,
+        "Reserve WF Revenue ($k)": 0.6450124672911004,
+        "Reserve ESS Revenue ($k)": 2.447233343500097
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2222.013608797379,
+        "Battery Rated Power(MW)": 100.99955395013774
+      }
+    },
+    {
+      "id": "CCD22_8",
+      "x": 0.7171987007069138,
+      "y": 0.29173419191042543,
+      "members": [
+        "CCD22_8_MOSSLAND",
+        "CCD22_8_TESLA",
+        "CCD22_8_WCASCADE"
+      ],
+      "label_lines": [
+        "# CCD22_8 (3)",
+        "generalizer (2)",
+        "+ Cable Material Cost($M) (1)",
+        "+ Battery Cost($M) (1)",
+        "+ Real-Time Revenue ($k) (1)",
+        "- Day-Ahead Revenue ($k) (1)",
+        "- Reserve WF Revenue ($k) (1)",
+        "- Reserve ESS Revenue ($k) (1)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 410.0615747102094,
+        "Battery Cost($M)": 52.81047954459938,
+        "Day-Ahead Revenue ($k)": 2517.7690609659107,
+        "Real-Time Revenue ($k)": 14.43273189529902,
+        "Reserve WF Revenue ($k)": 0.6271752194498761,
+        "Reserve ESS Revenue ($k)": 1.4697528987662551
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2178.0157415620683,
+        "Battery Rated Power(MW)": 59.400154482415054
+      }
+    },
+    {
+      "id": "No ESS",
+      "x": -0.35676535606310006,
+      "y": -1.0,
+      "members": [
+        "No ESS_COTTONWOOD",
+        "No ESS_JOHNDAY",
+        "No ESS_MOSSLAND",
+        "No ESS_TESLA",
+        "No ESS_WCASCADE"
+      ],
+      "label_lines": [
+        "# No ESS (5)",
+        "+ Cable Material Cost($M) (1)",
+        "+ Day-Ahead Revenue ($k) (1)",
+        "+ Reserve ESS Revenue ($k) (5)",
+        "- Cable Material Cost($M) (2)",
+        "- Battery Cost($M) (5)",
+        "- Real-Time Revenue ($k) (1)",
+        "- Reserve WF Revenue ($k) (5)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 357.50275961406834,
+        "Battery Cost($M)": 0.0,
+        "Day-Ahead Revenue ($k)": 1142.1802614174776,
+        "Real-Time Revenue ($k)": 25.53665791357895,
+        "Reserve WF Revenue ($k)": 1.3708181011623823,
+        "Reserve ESS Revenue ($k)": 0.0
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2222.000655687658,
+        "Battery Rated Power(MW)": 0.0
+      }
+    },
+    {
+      "id": "No Reserve",
+      "x": -0.04079505653336261,
+      "y": -0.14552166869150576,
+      "members": [
+        "No Reserve_COTTONWOOD",
+        "No Reserve_JOHNDAY",
+        "No Reserve_MOSSLAND",
+        "No Reserve_TESLA",
+        "No Reserve_WCASCADE"
+      ],
+      "label_lines": [
+        "# No Reserve (5)",
+        "+ Cable Material Cost($M) (1)",
+        "+ Reserve WF Revenue ($k) (5)",
+        "+ Reserve ESS Revenue ($k) (5)",
+        "- Cable Material Cost($M) (2)",
+        "- Battery Cost($M) (5)"
+      ],
+      "objectives": {
+        "Cable Material Cost($M)": 357.50268102686,
+        "Battery Cost($M)": 0.005479381,
+        "Day-Ahead Revenue ($k)": 1172.3173554129112,
+        "Real-Time Revenue ($k)": 18.61250221710565,
+        "Reserve WF Revenue ($k)": 0.0,
+        "Reserve ESS Revenue ($k)": 0.0
+      },
+      "decisions": {
+        "Cable Capacity(MW)": 2222.0001201283944,
+        "Battery Rated Power(MW)": 0.00616309644155894
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "CCD18_3",
+      "target": "CCD22_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000123563664207
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000024056229841
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.1,
+          "magnitude": 2.1865473564318023
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.822597738858998
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.168503584590437
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.2331770949933303
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.000012356366421
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000024056796177
+        }
+      ]
+    },
+    {
+      "source": "CCD18_3",
+      "target": "CCD18_5",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000006073699206
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000590886373415
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000123588276193
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.000166869346557
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.000060921347685
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.000084363323396
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000006073699206
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.000059088498969
+        }
+      ]
+    },
+    {
+      "source": "CCD18_5",
+      "target": "Base",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.1981875292217972
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.4957562976616845
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.020812237097088
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.4266205077233662
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.05714285714285714,
+          "magnitude": 5.2295407488275805
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.22857142857142856,
+          "magnitude": 1.443003942313883
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.3590120537864294,
+          "magnitude": 1.3131300300244266
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.4957562977839336
+        }
+      ]
+    },
+    {
+      "source": "CCD18_5",
+      "target": "CCD22_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000129637438462
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000614944024706
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.1,
+          "magnitude": 2.186574379593662
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.8229018745527177
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.1684324021138215
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.4,
+          "magnitude": 1.2332811299113997
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000129637438464
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.7,
+          "magnitude": 1.0000614943207349
+        }
+      ]
+    },
+    {
+      "source": "CCD18_8",
+      "target": "Base",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.6857142857142857,
+          "magnitude": 1.2759281635958393
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.402789272642654
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.6857142857142857,
+          "magnitude": 1.181316940637437
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.6857142857142857,
+          "magnitude": 1.0717843541676657
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.02857142857142857,
+          "magnitude": 3.6006672837860187
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.363748555655527
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.183150203156622,
+          "magnitude": 1.1391025184790615
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.4027892726426539
+        }
+      ]
+    },
+    {
+      "source": "CCD18_8",
+      "target": "CCD18_3",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 1.064882505816866
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.6285714285714286,
+          "magnitude": 1.0663359843386533
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.2058878855322843
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 1.3312925882962299
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.22857142857142856,
+          "magnitude": 1.4524694806010223
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.6285714285714286,
+          "magnitude": 1.0582051016203995
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": -1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.1527752868306613
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.6285714285714286,
+          "magnitude": 1.0663359842782631
+        }
+      ]
+    },
+    {
+      "source": "CCD18_8",
+      "target": "CCD18_5",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0648818590396558
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.6285714285714286,
+          "magnitude": 1.0662729797212476
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.20590278889279
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 1.3310704734361063
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.22857142857142856,
+          "magnitude": 1.4523809995931751
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.6285714285714286,
+          "magnitude": 1.0581158354519828
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": -1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.1527759869916958
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.6285714285714286,
+          "magnitude": 1.066272979808395
+        }
+      ]
+    },
+    {
+      "source": "CCD22_3",
+      "target": "CCD22_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.5714285714285714,
+          "magnitude": 1.138777839050576
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.07142857142857142,
+          "magnitude": 1.67592193933149
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.39285714285714285,
+          "magnitude": 1.2073649359656047
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.218011000699277
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.7857142857142857,
+          "magnitude": 1.131500514345374
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.07142857142857142,
+          "magnitude": 1.727479818231209
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": -1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0055534003850677
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.07142857142857142,
+          "magnitude": 1.6759219393314906
+        }
+      ]
+    },
+    {
+      "source": "CCD22_5",
+      "target": "Base",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.4126984126984127,
+          "magnitude": 1.3644510808632713
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 2.506886401299276
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 2.5861868521689186
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 2.1318549350894758
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 3.9545931173876956
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 3.074722035512217
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.10536405286983035,
+          "magnitude": 1.305852677368657
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 2.50688640140617
+        }
+      ]
+    },
+    {
+      "source": "CCD22_5",
+      "target": "CCD22_3",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000004661498945
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000153761324573
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000067993778368
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.8412698412698413,
+          "magnitude": 1.0015275360853422
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0002381098905784
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0001457040826978
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000064024098017
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0000153760898167
+        }
+      ]
+    },
+    {
+      "source": "CCD22_5",
+      "target": "CCD22_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.39285714285714285,
+          "magnitude": 1.138777308209654
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.07142857142857142,
+          "magnitude": 1.675896170529987
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.39285714285714285,
+          "magnitude": 1.207373145295991
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.2198715564551887
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.131769935809034
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.07142857142857142,
+          "magnitude": 1.7277315190935032
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0055598383500146
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.07142857142857142,
+          "magnitude": 1.675896170601448
+        }
+      ]
+    },
+    {
+      "source": "CCD22_8",
+      "target": "Base",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.8571428571428571,
+          "magnitude": 1.1981719964269517
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.4958482783014508
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.05714285714285714,
+          "magnitude": 2.1419946784843447
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.05714285714285714,
+          "magnitude": 2.600589197804274
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.05714285714285714,
+          "magnitude": 4.475689598616721
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.05714285714285714,
+          "magnitude": 1.7796295324434699
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.3590120537864294,
+          "magnitude": 1.3131130071637604
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.11428571428571428,
+          "magnitude": 1.4958482783014506
+        }
+      ]
+    },
+    {
+      "source": "No ESS",
+      "target": "Base",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.4126984126984127,
+          "magnitude": 1.364453194465727
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.5555555555555556,
+          "magnitude": 1.0906931530503097
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.4126984126984127,
+          "magnitude": 1.4638805465036864
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 1.8680161308111294
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.10536405286983035,
+          "magnitude": 1.3058756547204378
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        }
+      ]
+    },
+    {
+      "source": "No ESS",
+      "target": "CCD18_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.7301587301587302,
+          "magnitude": 1.0693808894541565
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.7301587301587302,
+          "magnitude": 1.0830882520291636
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.5555555555555556,
+          "magnitude": 1.3658349655985764
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 1.9275354341948525
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 1.1464074861883835
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        }
+      ]
+    },
+    {
+      "source": "No Reserve",
+      "target": "CCD18_3",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.39285714285714285,
+          "magnitude": 1.1387650565597
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.03571428571428571,
+          "magnitude": 19319.435341423974
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.5714285714285714,
+          "magnitude": 1.1433445626965937
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.39285714285714285,
+          "magnitude": 1.4009354203419566
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.016804604239087036,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.016804604239087036,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0055541451669445
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.03571428571428571,
+          "magnitude": 19319.437983164895
+        }
+      ]
+    },
+    {
+      "source": "No Reserve",
+      "target": "CCD18_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.7301587301587302,
+          "magnitude": 1.0693809414083286
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 18117.587350675385
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.7301587301587302,
+          "magnitude": 1.0547020774631415
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.19047619047619047,
+          "magnitude": 1.86505494178291
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.010799590882009212,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 1.1464079705417305
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.015873015873015872,
+          "magnitude": 18117.58982910159
+        }
+      ]
+    },
+    {
+      "source": "No Reserve",
+      "target": "CCD22_3",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.6904761904761905,
+          "magnitude": 1.0000011314827053
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.007936507936507936,
+          "magnitude": 32377.94343312612
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.007936507936507936,
+          "magnitude": 2.3089807702042697
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.42063492063492064,
+          "magnitude": 1.0681235747678588
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.00749495751693524,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.00749495751693524,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.6904761904761905,
+          "magnitude": 1.0000116156891703
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.007936507936507936,
+          "magnitude": 32377.947862322024
+        }
+      ]
+    },
+    {
+      "source": "No Reserve",
+      "target": "CCD22_8",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.39285714285714285,
+          "magnitude": 1.1387791275580061
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.03571428571428571,
+          "magnitude": 19319.48181670167
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.03571428571428571,
+          "magnitude": 1.9124133072140568
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.25,
+          "magnitude": 1.3009862641734886
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.016804604239087036,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.016804604239087036,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 1.0,
+          "magnitude": 1.0055417203249966
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": 1.0,
+          "pvalue": 0.03571428571428571,
+          "magnitude": 19319.484459543073
+        }
+      ]
+    },
+    {
+      "source": "No Reserve",
+      "target": "No ESS",
+      "tests": [
+        {
+          "key": "Cable Material Cost($M)",
+          "direction": 1.0,
+          "pvalue": 0.8412698412698413,
+          "magnitude": 1.0000000485834117
+        },
+        {
+          "key": "Battery Cost($M)",
+          "direction": -1.0,
+          "pvalue": 0.00749495751693524,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Day-Ahead Revenue ($k)",
+          "direction": -1.0,
+          "pvalue": 0.6904761904761905,
+          "magnitude": 1.0269139268543956
+        },
+        {
+          "key": "Real-Time Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.2222222222222222,
+          "magnitude": 1.365505341976328
+        },
+        {
+          "key": "Reserve WF Revenue ($k)",
+          "direction": 1.0,
+          "pvalue": 0.00749495751693524,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Reserve ESS Revenue ($k)",
+          "direction": 0.0,
+          "pvalue": 1.0,
+          "magnitude": 0.0
+        },
+        {
+          "key": "Cable Capacity(MW)",
+          "direction": 1.0,
+          "pvalue": 0.8412698412698413,
+          "magnitude": 1.0000004224966712
+        },
+        {
+          "key": "Battery Rated Power(MW)",
+          "direction": -1.0,
+          "pvalue": 0.00749495751693524,
+          "magnitude": 0.0
+        }
+      ]
+    }
+  ],
+  "ovars": [
+    "Cable Material Cost($M)",
+    "Battery Cost($M)",
+    "Day-Ahead Revenue ($k)",
+    "Real-Time Revenue ($k)",
+    "Reserve WF Revenue ($k)",
+    "Reserve ESS Revenue ($k)"
+  ],
+  "dvars": [
+    "Cable Capacity(MW)",
+    "Battery Rated Power(MW)"
+  ]
+}

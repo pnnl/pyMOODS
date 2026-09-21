@@ -20,8 +20,12 @@ from dashlib.offshore_windfarm.vis import Visualizer
 from dashlib.components import blank_figure
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS to allow requests from the React app
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow any origin for development
+
+# Configure CORS properly
+CORS(app, 
+     resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}},
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Load data for the visualizations
 CSV_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "v2_test_summary.csv")

@@ -171,7 +171,6 @@ notebooks/input_cameo
 notebooks/output_cameo
 
 # Ignore CSV and PDF files globally
-*.csv
 *.pdf
 *.jld2
 
