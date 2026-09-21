@@ -1,6 +1,12 @@
 ---
 title: "pyMOODS: multi-criteria decision support for large-scale infrastructure planning"
 date: 21 September 2026
+authors:
+    - name: Jennifer Pham
+      affiliation: "1"
+affiliations:
+    - index: 1
+      name: Pacific Northwest National Laboratory
 ---
 
 # Summary
