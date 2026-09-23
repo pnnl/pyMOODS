@@ -1,11 +1,13 @@
 ---
-title: "pyMOODS: multi-criteria decision support for large-scale infrastructure planning"
+title: "pyMOODS: Multi-Criteria Decision Support for Large-Scale Infrastructure Planning"
 date: 21 September 2026
 bibliography: paper.bib
 authors:
     - name: Jennifer Pham
       affiliation: "1"
     - name: Milan Jain
+      affiliation: "1"
+    - name: Palak Mattoo
       affiliation: "1"
 affiliations:
     - index: 1
@@ -59,6 +61,6 @@ manuscript. The authors reviewed and edited the generated text, checked technica
 
 # Acknowledgements
 
-This work was supported by the Pacific Northwest National Laboratory and Timothy Salsbury for directing the project initiative. The author thanks Milan Jain and Palak Mattoo for their contributions to the development of `pyMOODS`. The author retains responsibility for the manuscript.
+This research was supported by the E-COMP initiative at the Pacific Northwest National Laboratory (PNNL). The computational work for this research was performed using Research Computing at PNNL.  PNNL is a multi-program national laboratory operated for the U.S. Department of Energy (DOE) by Battelle Memorial Institute under Contract No. DE AC05 76RL01830.
 
 # References
