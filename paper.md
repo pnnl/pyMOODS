@@ -24,6 +24,10 @@ In energy infrastructure planning, there are hundreds of feasible designs that c
 
 Large-scale infrastructure planning and operations require operators to optimize multiple parameters and evaluate the system over multiple criteria and under multiple scenarios [@krishnan2016cooptimization; @dvorkin2018coplanning; @cho2022recent]. Co-design and multi-objective optimization therefore produce sets of non-dominated alternatives rather than a single answer. The difficult post-optimization task is to compare these alternatives, elicit preferences, understand sensitivity to those preferences, and communicate trade-offs among domain experts and stakeholders [@miettinen1999nonlinear; @osika2023what].
 
+The resulting workflow is summarized in \autoref{fig:motivation}.
+
+![Conceptual multi-objective optimization and decision-support workflow. Optimization produces a set of non-dominated alternatives, after which a decision-maker uses visual analytics to evaluate trade-offs and select a preferred solution. This figure was originally prepared for and is also included in a related SoftwareX manuscript currently under review.\label{fig:motivation}](figures/fig_motivation.png){width="100%"}
+
 `pyMOODS` addresses this interpretation gap for researchers, infrastructure planners, systems engineers, and analysts. It supports heterogeneous formulations and the input of case-study descriptors that identify hyperparameters, decision variables, objective functions, and optional control inputs, including each objective's optimization direction.
 
 # State of the field
@@ -36,15 +40,21 @@ These tools cover complementary parts of the workflow, whereas `pyMOODS` starts 
 
 ## Architecture and data flow
 
-`pyMOODS` separates interactive rendering from analytical computation. A React and Material UI frontend maintains coordinated application state with Zustand. A Flask backend loads solutions from CSV files and case-study metadata from JSON schemas. The backend validates and caches the data, filters alternatives, and returns structured results. Version 0.0.4 refactors the backend into Flask Blueprints for case studies, solutions, visualizations, parameters, trade-offs, and chat. Pure helper modules isolate filtering, normalization, labeling, ranking, graph construction, and model access. This separation makes domain calculations testable without a browser and allows new visual panels or case studies to reuse stable data contracts.
+`pyMOODS` separates interactive rendering from analytical computation. A React and Material UI frontend maintains coordinated application state with Zustand. A Flask backend loads solutions from CSV files and case-study metadata from JSON schemas. The backend validates and caches the data, filters alternatives, and returns structured results. Version 0.0.4 refactors the backend into Flask Blueprints for case studies, solutions, visualizations, parameters, trade-offs, and chat. Pure helper modules isolate filtering, normalization, labeling, ranking, graph construction, and model access. This separation makes domain calculations testable without a browser and allows new visual panels or case studies to reuse stable data contracts. The resulting data flow is shown in \autoref{fig:architecture}.
 
-The frontend centers on three linked views: a scatter plot for exploring and selecting solutions, a summary table for comparing alternatives, and a parallel-coordinates plot for examining trade-offs among objectives. Hyperparameter filters can be applied to analyze solutions under certain conditions.
+![Architecture and data flow of `pyMOODS` version 0.0.4. The React frontend communicates with Flask services that load and validate case-study data, perform analytical computations, and support the AI-assisted interaction layer. This figure is adapted from the related SoftwareX manuscript currently under review and updated here to include AI chat assistance.\label{fig:architecture}](figures/fig_architecture.jpg){width="95%"}
+
+The frontend centers on three linked views: a scatter plot for exploring and selecting solutions, a summary table for comparing alternatives, and a parallel-coordinates plot for examining trade-offs among objectives. Hyperparameter filters can be applied to analyze solutions under certain conditions. \autoref{fig:dashboard} shows the current dashboard with a selected generalizer.
+
+![The `pyMOODS` version 0.0.4 dashboard showing the solution-space scatter plot, objective weights and filters, and a generalizer selected in the analysis view.\label{fig:dashboard}](figures/fig_dashboard.png){width="95%"}
 
 ## Decision-support workflow
 
 The software supports the weighted-sum method [@marler2010weighted], TOPSIS [@hwang1981multiple], VIKOR [@opricovic2004compromise], and generalizer/specializer analyses. Providing multiple methods helps users identify rankings that depend on a particular scoring assumption and distinguish balanced solutions from those that perform especially well on individual objectives. The trade-off lattice groups solutions by user-selected scenario dimensions and allows users to inspect each group's members and objective profiles.
 
-Version 0.0.4 extends the visual workflow with `mooCHAT`, an optional large language model interface. The backend exposes explicit tools for querying solutions, summarizing trade-offs, and comparing alternatives. If prompted, `mooCHAT` can perform actions on the user interface, such as changing a chart, updating filters, highlighting variables, changing a weight, setting scenario aggregation, or resetting the dashboard. This AI feature should be considered as an aid rather than an autonomous decision-maker.
+Version 0.0.4 extends the visual workflow with `mooCHAT`, an optional large language model interface. The backend exposes explicit tools for querying solutions, summarizing trade-offs, and comparing alternatives. If prompted, `mooCHAT` can perform actions on the user interface, such as changing a chart, updating filters, highlighting variables, changing a weight, setting scenario aggregation, or resetting the dashboard. This AI feature should be considered as an aid rather than an autonomous decision-maker. An example interaction is shown in \autoref{fig:ai-chat}.
+
+![Example `mooCHAT` interaction. In response to a natural-language request, the assistant applies the COTTONWOOD location filter, selects a candidate that minimizes cable material cost within that filtered set, and reports its decision variables and objective values.\label{fig:ai-chat}](figures/fig_ai_chat.png){width="95%"}
 
 # Research impact statement
 
