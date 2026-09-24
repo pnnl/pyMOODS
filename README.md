@@ -69,7 +69,7 @@ yarn install
 yarn start
 ```
 
-You can now access the React app on `http://localhost:8081`.
+You can now access the React app on `http://localhost:3000`.
 
 ## Contributing
 
