@@ -14,7 +14,7 @@ def get_requirements():
 
 setup(
     name='pymoods',
-    version='0.4.0',
+    version='0.0.4',
     description='Multi-Objective Optimization and Decision Support for electricity infrastructure planning',
     long_description=README,
     long_description_content_type='text/markdown',
